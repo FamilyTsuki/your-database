@@ -1,5 +1,16 @@
 RewriteEngine On
+
+# Autoriser les fichiers et dossiers existants
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Autoriser l'accès aux pages publiques (login, register, logout)
+RewriteRule ^(login|register|logout)\.php$ public/$1.php [QSA,L]
+
+# Autoriser l'accès aux fichiers statiques (css, js, images, uploads)
+RewriteRule ^(css|js|img|uploads)/ public/$0 [QSA,L]
+
+# Par défaut, rediriger vers public/index.php
 RewriteRule ^$ public/index.php [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ public/index.php [QSA,L]
