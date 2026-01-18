@@ -5,12 +5,14 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Autoriser l'accès aux pages publiques (login, register, logout)
+# Autoriser l'accès direct au dossier public/
+RewriteRule ^public/ - [L]
+
+# Rediriger les pages publiques vers public/ (login, register, logout)
 RewriteRule ^(login|register|logout)\.php$ public/$1.php [QSA,L]
 
-# Autoriser l'accès aux fichiers statiques (css, js, images, uploads)
+# Rediriger les fichiers statiques vers public/
 RewriteRule ^(css|js|img|uploads)/ public/$0 [QSA,L]
 
-# Par défaut, rediriger vers public/index.php
+# Par défaut vers public/index.php
 RewriteRule ^$ public/index.php [L]
-RewriteRule ^(.*)$ public/index.php [QSA,L]
