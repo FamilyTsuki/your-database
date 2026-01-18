@@ -1,0 +1,330 @@
+/* ==========================================================================
+   BASES & LAYOUT
+   ========================================================================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding-bottom: 50px;
+    color: #333;
+    width: 100vw;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+.top-nav {
+    background: #2c3e50;
+    padding: 22px;
+    display: flex;
+    justify-content: space-around;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.top-nav button {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 24px;
+}
+
+
+.top-nav .btn-add-nav {
+    background: #27ae60 !important;
+    border: none !important;
+}
+
+
+
+/* ==========================================================================
+   ZONE DE RECHERCHE
+   ========================================================================== */
+.search-zone {
+    display: flex;
+    flex-wrap: wrap; /* Permet de passer à la ligne si pas assez de place */
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.search-zone input, 
+.search-zone select {
+    flex: 1 1 250px; /* S'étire, mais fait au moins 250px avant de sauter à la ligne */
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+/* ==========================================================================
+   GRILLE D'INVENTAIRE & CARTES
+   ========================================================================== */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 15px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex; /* Pour la compatibilité avec ton JS filter */
+    flex-direction: column;
+    transition: transform 0.2s;
+}
+
+
+
+.card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+/* État sans image pour la carte */
+.card-no-image {
+    width: 100%;
+    height: 140px;
+    border-bottom: 1px solid #ddd;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #95a5a6;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+
+.card-details {
+    padding: 12px;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.card-details h3 {
+    margin: 5px 0;
+    font-size: 1.1em;
+}
+
+.tag {
+    font-size: 11px;
+    color: #7f8c8d;
+    background: #ecf0f1;
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Gestion des quantités */
+.qty-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 12px 0;
+}
+
+.btn-qty {
+    text-decoration: none;
+    background: #3498db;
+    color: white;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border-radius: 50%;
+    font-weight: bold;
+    transition: opacity 0.2s;
+    padding: 10px;
+}
+
+
+
+.qty-val {
+    font-weight: bold;
+    font-size: 18px;
+    min-width: 25px;
+}
+
+.delete-link {
+    display: block;
+    margin-top: 10px;
+    color: #ffffff;
+    font-size: 14px;
+    text-decoration: none;
+    background-color: #e74c3c;
+    border-radius: 20px;
+    padding: 8px 10px;
+}
+ 
+/* ==========================================================================
+   FORMULAIRES D'AJOUT
+   ========================================================================== */
+.form-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #34495e;
+}
+
+form input[type="text"],
+form input[type="number"] {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Zone d'upload photo (Drag & Drop) */
+/* ==========================================================================
+   MODIFICATION PRÉVISUALISATION IMAGE
+   ========================================================================== */
+
+/* On s'assure que le conteneur a une taille fixe et cache ce qui dépasse */
+.upload-placeholder {
+    width: 100%;
+    max-width: 300px;
+    height: 250px; /* Hauteur fixe pour le cadre */
+    margin: 10px auto;
+    border: 3px dashed #3498db;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ecf0f1;
+    color: #3498db;
+    cursor: pointer;
+    overflow: hidden; /* IMPORTANT : Empêche l'image de déborder des coins arrondis */
+    position: relative;
+}
+
+/* L'image prend toute la place disponible */
+#imagePreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* L'image remplit le cadre sans être déformée */
+    display: none;    /* Caché par défaut jusqu'à l'upload */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* On stylise aussi le contenu textuel à l'intérieur pour qu'il soit bien centré */
+#placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+}
+
+
+.upload-placeholder span {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+/* Boutons d'action du formulaire */
+.btn-save {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 15px;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    color: white;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+.category-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#categorySelect {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: white;
+    cursor: pointer;
+}
+
+#newCategoryInput {
+    border: 2px solid #3498db; /* Une bordure bleue pour montrer qu'on crée du nouveau */
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .upload-placeholder:hover {
+    background: #d6eaf8;
+}
+.top-nav button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+.top-nav .btn-add-nav:hover {
+    background: #219150 !important;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.card-no-image:hover {
+    background: #f0f0f0;
+}
+.btn-qty:hover {
+    opacity: 0.8;
+}
+}
