@@ -19,6 +19,7 @@ if ($conn->connect_error) {
 require_once dirname(__DIR__) . '/src/Helpers/Validator.php';
 require_once dirname(__DIR__) . '/src/Helpers/FlashMessage.php';
 require_once dirname(__DIR__) . '/src/Helpers/CsrfToken.php';
+require_once dirname(__DIR__) . '/src/Helpers/Auth.php';
 
 // Charger les models et controllers
 require_once dirname(__DIR__) . '/src/Models/ObjetModel.php';

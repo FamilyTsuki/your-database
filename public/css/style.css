@@ -5,7 +5,8 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f0f2f5;
     margin: 0;
-    padding-bottom: 50px;
+    padding: 0;
+    padding-top: 70px;
     color: #333;
     width: 100vw;
     overflow-x: hidden;
@@ -17,7 +18,12 @@ body {
     margin: 0 auto;
     padding: 15px;
 }
+@media (max-width: 900px) {
+.container {
 
+    margin-top: 50px;
+
+}}
 /* ==========================================================================
    MESSAGES FLASH
    ========================================================================== */
@@ -75,34 +81,103 @@ body {
    ========================================================================== */
 .top-nav {
     background: #2c3e50;
-    padding: 22px;
+    padding: 15px 20px;
     display: flex;
-    justify-content: space-around;
-    position: sticky;
+    align-items: center;
+    justify-content: center; /* centre le bloc du milieu */
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
+
+body {
+    padding-top: 70px;
+}
+.div-modif-inv {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-around;
+    flex: 1; /* prend l'espace central */
+    
+}
+
 
 .top-nav button {
     background: transparent;
     border: 1px solid white;
     color: white;
-    padding: 14px 28px;
+    padding: 10px 20px;
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 500;
-    font-size: 24px;
+    font-size: 16px;
+    white-space: nowrap;
 }
-
 
 .top-nav .btn-add-nav {
     background: #27ae60 !important;
     border: none !important;
 }
 
+.user-info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-left: auto; /* pousse à droite */
+}
 
+
+.user-info span {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.user-info a {
+    color: white;
+    text-decoration: none;
+    border: 1px solid white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.user-info a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive: petit écran */
+@media (max-width: 900px) {
+
+    .top-nav {
+        flex-wrap: wrap;          /* permet de passer sur 2 lignes */
+        justify-content: flex-end;
+    }
+
+    .user-info {
+        order: 1;                 /* passe en premier */
+        width: 100%;              /* occupe toute la ligne */
+        display: flex;
+        justify-content: flex-end; /* aligné à droite */
+        margin-bottom: 10px;
+    }
+
+    .div-modif-inv {
+        order: 2;                 /* passe en deuxième */
+        width: 100%;              /* occupe toute la ligne */
+        display: flex;
+        justify-content: center;  /* centré */
+        margin-top: 0;
+    }
+}
 
 /* ==========================================================================
    ZONE DE RECHERCHE
@@ -369,6 +444,10 @@ form input[type="number"] {
 }
 .top-nav button:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+.top-nav button:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: translateY(-2px);
 }
 .top-nav .btn-add-nav:hover {
     background: #219150 !important;
