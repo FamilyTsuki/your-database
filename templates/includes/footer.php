@@ -6,9 +6,20 @@
 
         function editField(id, field, currentValue) {
             let msg = "";
-            if (field === 'quantite') msg = "Nouvelle quantité :";
-            else if (field === 'categorie') msg = "Nouvelle catégorie :";
-            else if (field === 'nom') msg = "Nouveau nom de l'objet :";
+            let title = "";
+            
+            if (field === 'quantite') {
+                msg = "Nouvelle quantité :";
+                title = "Doit être un nombre";
+            }
+            else if (field === 'categorie') {
+                msg = "Nouvelle catégorie :";
+                title = "Ex: Cuisine, Jardin...";
+            }
+            else if (field === 'nom') {
+                msg = "Nouveau nom de l'objet :";
+                title = "Ex: Marteau, Vis...";
+            }
 
             let newValue = prompt(msg, currentValue);
             
@@ -21,6 +32,24 @@
         }
 
         function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Vérifier la taille (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('L\'image est trop volumineuse (max 5MB)');
+                event.target.value = '';
+                return;
+            }
+
+            // Vérifier le type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Format d\'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF');
+                event.target.value = '';
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function() {
                 const output = document.getElementById('imagePreview');
@@ -30,7 +59,7 @@
                 content.style.display = "none";
                 document.getElementById('drop-zone').style.border = "none";
             }
-            reader.readAsDataURL(event.target.files[0]);
+            reader.readAsDataURL(file);
         }
 
         function filterItems() {
@@ -65,6 +94,16 @@
                 select.name = "categorie";
             }
         }
+
+        // Fermer les messages flash au clic
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message button');
+            flashMessages.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.parentElement.style.display = 'none';
+                });
+            });
+        });
     </script>
 </body>
 </html>

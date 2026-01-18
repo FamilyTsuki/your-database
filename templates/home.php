@@ -1,4 +1,6 @@
 <div class="container">
+    <?php echo FlashMessage::render(); ?>
+    
     <section id="page-consultation">
         <div class="search-zone">
             <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="Rechercher un objet...">
@@ -91,6 +93,8 @@
                 <label>Quantité initiale</label>
                 <input type="number" name="quantite" value="1" min="1">
                 
+                <?php echo CsrfToken::field(); ?>
+                
                 <button type="submit" class="btn-save">ENREGISTRER</button>
             </form>
         </div>
@@ -106,4 +110,5 @@
     <input type="hidden" name="id" id="fastUpdateId">
     <input type="hidden" name="field" id="fastUpdateField">
     <input type="hidden" name="value" id="fastUpdateValue">
+    <input type="hidden" name="csrf_token" id="fastUpdateCsrf" value="<?php echo htmlspecialchars(CsrfToken::get(), ENT_QUOTES, 'UTF-8'); ?>">
 </form>

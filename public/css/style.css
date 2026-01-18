@@ -19,6 +19,39 @@ body {
 }
 
 /* ==========================================================================
+   MESSAGES FLASH
+   ========================================================================== */
+.flash-message {
+    animation: slideDown 0.3s ease;
+}
+
+.flash-message button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.flash-message button:hover {
+    opacity: 1;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
    NAVIGATION
    ========================================================================== */
 .top-nav {
