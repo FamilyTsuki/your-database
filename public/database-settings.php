@@ -129,7 +129,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
     <?php echo FlashMessage::render(); ?>
     
     <div class="settings-header">
-        <a href="database.php?id=<?php echo $database_id; ?>" class="back-link">← Retour</a>
+        <a href="database-view.php?id=<?php echo $database_id; ?>" class="back-link">← Retour</a>
         <h1>⚙️ Paramètres de <?php echo htmlspecialchars($database['name']); ?></h1>
     </div>
 

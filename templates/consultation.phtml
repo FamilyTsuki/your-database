@@ -4,9 +4,8 @@
         <select id="categoryFilter" onchange="filterItems()">
             <option value="">Toutes les catégories</option>
             <?php
-            $catRes = $conn->query("SELECT DISTINCT categorie FROM objets WHERE categorie != ''");
-            while($c = $catRes->fetch_assoc()) {
-                echo "<option value='".htmlspecialchars($c['categorie'])."'>".$c['categorie']."</option>";
+            foreach ($categories as $c) {
+                echo "<option value='".htmlspecialchars($c)."'>".$c."</option>";
             }
             ?>
         </select>
@@ -14,16 +13,15 @@
 
     <div class="grid" id="inventoryGrid">
         <?php
-        $res = $conn->query("SELECT * FROM objets ORDER BY id DESC");
-        while($row = $res->fetch_assoc()):
+        foreach ($objets as $row):
             $hasImg = !empty($row['image_path']);
         ?>
         <div class="card" data-name="<?php echo strtolower(htmlspecialchars($row['nom'])); ?>" data-cat="<?php echo htmlspecialchars($row['categorie']); ?>">
             
             <?php if($hasImg): ?>
-                <img src="uploads/<?php echo $row['image_path']; ?>" onclick="changeImage(<?php echo $row['id']; ?>)" alt="Photo objet">
+                <img src="<?php echo htmlspecialchars($row['image_path']); ?>" onclick="changeImage(<?php echo $row['id']; ?>)" alt="Photo objet" style="cursor:pointer;">
             <?php else: ?>
-                <div class="card-no-image" onclick="changeImage(<?php echo $row['id']; ?>)">
+                <div class="card-no-image" onclick="changeImage(<?php echo $row['id']; ?>)" style="cursor:pointer;">
                     <span>📷</span>
                     <p>Ajouter photo</p>
                 </div>
@@ -48,9 +46,9 @@
                     <button class="btn-qty" onclick="updateQuantity(<?php echo $row['id']; ?>, 'inc')">+</button>
                 </div>
                 
-                <a href="update.php?id=<?php echo $row['id']; ?>&action=delete" class="delete-link" onclick="return confirm('Supprimer cet objet ?')">🗑 Supprimer</a>
+                <a href="#" class="delete-link" onclick="deleteObject(<?php echo $row['id']; ?>); return false;">🗑 Supprimer</a>
             </div>
         </div>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     </div>
 </section>

@@ -120,9 +120,38 @@ body {
     white-space: nowrap;
 }
 
+.top-nav .nav-link {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 16px;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.top-nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.top-nav button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
 .top-nav .btn-add-nav {
     background: #27ae60 !important;
     border: none !important;
+}
+
+.top-nav .btn-add-nav:hover {
+    background: #219150 !important;
 }
 
 .user-info {

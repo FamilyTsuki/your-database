@@ -56,7 +56,7 @@
                     <?php endif; ?>
                     
                     <div class="db-card-footer">
-                        <a href="database.php?id=<?php echo $db['id']; ?>" class="btn-link">Consulter</a>
+                        <a href="database-view.php?id=<?php echo $db['id']; ?>" class="btn-link">Consulter</a>
                         
                         <?php if ($db['owner_id'] == $user_id): ?>
                             <a href="database-settings.php?id=<?php echo $db['id']; ?>" class="btn-link">Paramètres</a>

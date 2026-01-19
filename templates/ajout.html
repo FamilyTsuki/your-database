@@ -1,41 +1,57 @@
-<section id="page-ajout" style="display:none;">
-    <div class="form-card">
-        <h2>Nouvel Objet</h2>
-        <form action="ajouter.php" method="POST" enctype="multipart/form-data">
-            <label>Photo de l'objet</label>
-            <input type="file" name="image" id="imageInput" accept="image/*" capture="environment" style="display:none;" onchange="previewImage(event)">
-            <label for="imageInput" class="upload-placeholder" id="drop-zone">
-                <div id="placeholder-content">
-                    <span>📷</span>
-                    <p>Prendre une photo / Galerie</p>
+<section id="page-ajout">
+    <h2>Ajouter un nouvel objet</h2>
+    
+    <div class="add-form">
+        <form method="POST" enctype="multipart/form-data">
+            <!-- Image Upload -->
+            <div class="form-group image-upload">
+                <label>Photo de l'objet</label>
+                <div id="dropZone" class="drop-zone">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>Déposer une image ici ou cliquer pour sélectionner</p>
+                    <input type="file" name="image" id="fileInput" accept="image/*" onchange="previewImage(event)">
                 </div>
-                <img id="imagePreview" src="#" style="display:none; max-width:100%; max-height:100%; border-radius:12px; object-fit: cover;">
-            </label>
-
-            <label>Nom de l'objet</label>
-            <input type="text" name="nom" required placeholder="Ex: Marteau">
-            
-            <label>Catégorie</label>
-            <div class="category-group">
-                <select name="categorie" id="categorySelect" onchange="checkNewCategory(this)">
-                    <option value="">-- Choisir une catégorie --</option>
-                    <?php
-                    $catRes = $conn->query("SELECT DISTINCT categorie FROM objets WHERE categorie != '' ORDER BY categorie ASC");
-                    while($c = $catRes->fetch_assoc()) {
-                        echo "<option value='".htmlspecialchars($c['categorie'])."'>".$c['categorie']."</option>";
-                    }
-                    ?>
-                    <option value="NEW" style="font-weight: bold; color: #3498db;">+ Ajouter une nouvelle catégorie</option>
-                </select>
-                <input type="text" id="newCategoryInput" placeholder="Nom de la nouvelle catégorie" style="display:none; margin-top: 10px;">
+                <div id="preview"></div>
             </div>
 
-            <label>Quantité initiale</label>
-            <input type="number" name="quantite" value="1" min="1">
-            
-            <?php echo CsrfToken::field(); ?>
-            
-            <button type="submit" class="btn-save">ENREGISTRER</button>
+            <!-- Nom de l'objet -->
+            <div class="form-group">
+                <label for="objet-nom">Nom de l'objet</label>
+                <input type="text" id="objet-nom" name="nom" required placeholder="Ex: Bouteille plastique 5L">
+            </div>
+
+            <!-- Catégorie -->
+            <div class="form-group">
+                <label for="objet-cat">Catégorie</label>
+                <select id="objet-cat" name="categorie">
+                    <option value="">Sélectionner une catégorie</option>
+                    <?php foreach ($categories as $c): ?>
+                        <option value="<?php echo htmlspecialchars($c); ?>"><?php echo htmlspecialchars($c); ?></option>
+                    <?php endforeach; ?>
+                    <option value="">---</option>
+                    <option value="NEW">+ Créer nouvelle catégorie</option>
+                </select>
+                <input type="text" id="new-cat-input" name="new_category" placeholder="Nom de la nouvelle catégorie" style="display:none;">
+            </div>
+
+            <!-- Quantité -->
+            <div class="form-group">
+                <label for="objet-qty">Quantité</label>
+                <input type="number" id="objet-qty" name="quantite" value="1" min="0">
+            </div>
+
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+
+            <!-- Buttons -->
+            <div class="form-buttons">
+                <button type="submit" name="add_object" class="btn btn-primary">✓ Ajouter l'objet</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">✗ Annuler</button>
+            </div>
         </form>
     </div>
 </section>
