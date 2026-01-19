@@ -11,12 +11,6 @@
     <nav class="top-nav">
         <div class="div-modif-inv">
             <a href="index.php" class="nav-link">📦 Mes Bases</a>
-            <?php 
-            // Afficher le bouton "Ajouter" seulement si on est sur la page database-view.php
-            if (strpos($_SERVER['PHP_SELF'], 'database-view.php') !== false): 
-            ?>
-                <button onclick="toggleAddForm()" class="btn-add-nav">➕ Ajouter</button>
-            <?php endif; ?>
         </div>
         <div class="user-info">
             <?php 

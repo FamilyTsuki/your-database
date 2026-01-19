@@ -175,75 +175,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 // Handle form submission for adding objects
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
-    if (!CsrfToken::verify($_POST['csrf_token'] ?? '')) {
-        FlashMessage::set('error', 'Token CSRF invalide');
-    } else if ($permission !== 'edit' && $permission !== 'admin') {
-        FlashMessage::set('error', 'Vous n\'avez pas la permission d\'ajouter des objets');
-    } else {
-        $nom = $conn->real_escape_string($_POST['nom'] ?? '');
-        $categorie = $conn->real_escape_string($_POST['categorie'] ?? '');
-        $quantite = intval($_POST['quantite'] ?? 1);
-        
-        // Handle new category
-        if ($categorie === 'NEW') {
-            $categorie = $conn->real_escape_string($_POST['new_category'] ?? '');
-            if (empty($categorie)) {
-                FlashMessage::set('error', 'Nom de catégorie vide');
-                $categorie = '';
-            }
-        }
-        
-        if (!empty($nom)) {
-            $image_path = '';
-            
-            // Handle image upload
-            if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
-                $file = $_FILES['image'];
-                $allowed = ['image/jpeg', 'image/png', 'image/gif'];
-                
-                if (!in_array($file['type'], $allowed)) {
-                    FlashMessage::set('error', 'Type de fichier non autorisé');
-                } else if ($file['size'] > 5242880) { // 5MB
-                    FlashMessage::set('error', 'Fichier trop volumineux');
-                } else {
-                    // Create uploads directory if needed
-                    $uploads_dir = __DIR__ . '/uploads';
-                    if (!is_dir($uploads_dir)) {
-                        mkdir($uploads_dir, 0755, true);
-                    }
-                    
-                    // Generate filename
-                    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                    $filename = 'obj_' . time() . '_' . uniqid() . '.' . $ext;
-                    $filepath = $uploads_dir . '/' . $filename;
-                    
-                    if (move_uploaded_file($file['tmp_name'], $filepath)) {
-                        $image_path = $filename;
-                    }
-                }
-            }
-            
-            // Insert object
-            $image_path_esc = $conn->real_escape_string($image_path);
-            $result = $conn->query("
-                INSERT INTO objets (database_id, nom, categorie, quantite, image_path, created_at)
-                VALUES ('$database_id', '$nom', '$categorie', $quantite, '$image_path_esc', NOW())
-            ");
-            
-            if ($result) {
-                FlashMessage::set('success', 'Objet ajouté avec succès');
-            } else {
-                FlashMessage::set('error', 'Erreur lors de l\'ajout de l\'objet');
-            }
-        } else {
-            FlashMessage::set('error', 'Nom de l\'objet vide');
-        }
-    }
-    
-    header('Location: ' . $_SERVER['REQUEST_URI']);
-    exit;
-}
+// REMOVED - Now handled by database-ajouter.php
+
 
 // Get all objects for this database
 $objets_res = $conn->query("
@@ -281,27 +214,20 @@ include __DIR__ . '/../templates/includes/header.phtml';
     <p class="db-description"><?php echo htmlspecialchars($db_info['description'] ?? ''); ?></p>
     
     <div class="db-controls">
-        <button class="btn btn-primary" onclick="toggleAddForm()">➕ Ajouter un objet</button>
+        <a href="database-ajouter.php?id=<?php echo $database_id; ?>" class="btn btn-primary">➕ Ajouter un objet</a>
         <?php if ($permission === 'admin'): ?>
             <a href="database-settings.php?id=<?php echo $database_id; ?>" class="btn btn-secondary">⚙️ Paramètres</a>
         <?php endif; ?>
     </div>
 
     <?php
-    // Include page sections
+    // Include page sections (consultation only, ajout moved to separate page)
     include __DIR__ . '/../templates/consultation.phtml';
-    include __DIR__ . '/../templates/ajout.html';
     ?>
 </div>
 
 <script>
-function toggleAddForm() {
-    const form = document.getElementById('page-ajout');
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    if (form.style.display === 'block') {
-        document.getElementById('objet-nom').focus();
-    }
-}
+// No longer showing ajout section - moved to database-ajouter.php
 
 function updateQuantity(id, action) {
     const current = parseInt(document.getElementById('qty-' + id).textContent);
