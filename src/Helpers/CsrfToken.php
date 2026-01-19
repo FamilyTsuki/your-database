@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Helpers;
+
 class CsrfToken {
     
     private static $tokenName = 'csrf_token';

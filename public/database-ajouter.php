@@ -318,8 +318,13 @@ include __DIR__ . '/../templates/includes/header.phtml';
 }
 
 .preview-container {
-    margin-top: 20px;
     text-align: center;
+    min-height: 200px;
+    display: none;
+}
+
+.preview-container.active {
+    display: block;
 }
 
 .preview-container img {
@@ -462,14 +467,21 @@ fileInput.addEventListener('change', previewImage);
 
 function previewImage() {
     const file = fileInput.files[0];
+    const dropZone = document.getElementById('dropZone');
+    const preview = document.getElementById('preview');
+    
     if (!file) {
         preview.innerHTML = '';
+        preview.classList.remove('active');
+        dropZone.style.display = 'block';
         return;
     }
     
     const reader = new FileReader();
     reader.onload = (e) => {
         preview.innerHTML = `<img src="${e.target.result}" alt="Aperçu">`;
+        preview.classList.add('active');
+        dropZone.style.display = 'none';
     };
     reader.readAsDataURL(file);
 }

@@ -1,10 +1,13 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\ObjetModel;
+
 class ObjetController {
     private $model;
 
     public function __construct($database) {
-        require_once dirname(__DIR__) . '/Models/ObjetModel.php';
         $this->model = new ObjetModel($database);
     }
 

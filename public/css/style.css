@@ -413,7 +413,7 @@ form input[type="number"] {
    ========================================================================== */
 
 /* On s'assure que le conteneur a une taille fixe et cache ce qui dépasse */
-.upload-placeholder {
+.drop-zone {
     width: 100%;
     max-width: 300px;
     height: 250px; /* Hauteur fixe pour le cadre */
@@ -431,28 +431,45 @@ form input[type="number"] {
     position: relative;
 }
 
-/* L'image prend toute la place disponible */
-#imagePreview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* L'image remplit le cadre sans être déformée */
-    display: none;    /* Caché par défaut jusqu'à l'upload */
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-/* On stylise aussi le contenu textuel à l'intérieur pour qu'il soit bien centré */
-#placeholder-content {
+.placeholder-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     padding: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    z-index: 1;
 }
 
+.placeholder-content.hidden {
+    display: none;
+}
 
-.upload-placeholder span {
+/* L'image prend toute la place disponible */
+.image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.image-preview.show {
+    display: block !important;
+}
+
+.placeholder-content span {
     font-size: 40px;
     margin-bottom: 10px;
 }
@@ -506,7 +523,7 @@ form input[type="number"] {
     to { opacity: 1; transform: translateY(0); }
 }
 @media (hover: hover) and (pointer: fine) {
-  .upload-placeholder:hover {
+  .drop-zone:hover {
     background: #d6eaf8;
 }
 .top-nav button:hover {

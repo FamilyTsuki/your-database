@@ -41,12 +41,22 @@ function editField(id, field, currentValue) {
  */
 function previewImage(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    const imagePreview = document.getElementById('imagePreview');
+    const placeholderContent = document.getElementById('placeholderContent');
+
+    if (!file) {
+        // Pas de fichier : afficher le placeholder
+        imagePreview.classList.remove('show');
+        if (placeholderContent) placeholderContent.classList.remove('hidden');
+        return;
+    }
 
     // Vérifier la taille (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
         alert('L\'image est trop volumineuse (max 5MB)');
         event.target.value = '';
+        imagePreview.classList.remove('show');
+        if (placeholderContent) placeholderContent.classList.remove('hidden');
         return;
     }
 
@@ -55,17 +65,16 @@ function previewImage(event) {
     if (!allowedTypes.includes(file.type)) {
         alert('Format d\'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF');
         event.target.value = '';
+        imagePreview.classList.remove('show');
+        if (placeholderContent) placeholderContent.classList.remove('hidden');
         return;
     }
 
     const reader = new FileReader();
     reader.onload = function() {
-        const output = document.getElementById('imagePreview');
-        const content = document.getElementById('placeholder-content');
-        output.src = reader.result;
-        output.style.display = "block";
-        content.style.display = "none";
-        document.getElementById('drop-zone').style.border = "none";
+        imagePreview.src = reader.result;
+        imagePreview.classList.add('show');
+        if (placeholderContent) placeholderContent.classList.add('hidden');
     }
     reader.readAsDataURL(file);
 }
@@ -154,6 +163,7 @@ function updateQuantity(id, action) {
  * Gère la disparition automatique des messages flash
  */
 window.addEventListener('load', function() {
+    // Messages flash
     const flashMessages = document.querySelectorAll('.flash-message');
     
     flashMessages.forEach(msg => {
@@ -175,4 +185,5 @@ window.addEventListener('load', function() {
             }
         }, 4000);
     });
+
 });
