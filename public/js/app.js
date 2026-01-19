@@ -1,9 +1,9 @@
-/**
- * Affiche/masque les sections de la page
- */
+
 function showPage(id) {
-    document.getElementById('page-consultation').style.display = (id === 'consultation') ? 'block' : 'none';
-    document.getElementById('page-ajout').style.display = (id === 'ajout') ? 'block' : 'none';
+    document.getElementById('page-consultation')
+    .style.display = (id === 'consultation') ? 'block' : 'none';
+    document.getElementById('page-ajout')
+    .style.display = (id === 'ajout') ? 'block' : 'none';
 }
 
 /**
@@ -113,20 +113,38 @@ function checkNewCategory(select) {
 }
 
 /**
+ * Flag pour éviter les clics multiples rapides
+ */
+let isUpdatingQuantity = false;
+
+/**
  * Mettre à jour la quantité sans recharger la page
  */
 function updateQuantity(id, action) {
+    // Éviter les clics multiples
+    if (isUpdatingQuantity) {
+        return;
+    }
+    
+    isUpdatingQuantity = true;
+    
     fetch('update.php?id=' + id + '&action=' + action, {
         method: 'GET'
     })
-    .then(response => response.text())
-    .then(data => {
-        // Récupérer la nouvelle quantité de la page
+    .then(response => {
+        isUpdatingQuantity = false;
+        
+        if (!response.ok) {
+            throw new Error('Erreur serveur');
+        }
+        
+        // Attendre avant de recharger
         setTimeout(() => {
             location.reload();
         }, 300);
     })
     .catch(error => {
+        isUpdatingQuantity = false;
         console.error('Erreur:', error);
         alert('Erreur lors de la mise à jour');
     });
