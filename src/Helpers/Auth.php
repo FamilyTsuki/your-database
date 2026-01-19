@@ -122,5 +122,26 @@ class Auth {
         
         return null;
     }
+
+    /**
+     * Récupère l'ID de l'utilisateur connecté
+     */
+    public static function getUserId() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        return $_SESSION['user_id'] ?? null;
+    }
+
+    /**
+     * Requiert une authentification (redirige vers login si pas connecté)
+     */
+    public static function requireLogin() {
+        if (!self::isLoggedIn()) {
+            header("Location: login.php");
+            exit();
+        }
+    }
 }
 ?>

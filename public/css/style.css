@@ -103,7 +103,44 @@ body {
     align-items: center;
     justify-content: space-around;
     flex: 1; /* prend l'espace central */
-    
+}
+
+.nav-action-btn {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 15px;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.nav-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.nav-action-btn.btn-add {
+    border-color: #27ae60;
+    color: #27ae60;
+}
+
+.nav-action-btn.btn-add:hover {
+    background: rgba(39, 174, 96, 0.1);
+}
+
+.nav-action-btn.btn-settings {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.nav-action-btn.btn-settings:hover {
+    background: rgba(52, 152, 219, 0.1);
 }
 
 

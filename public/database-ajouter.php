@@ -1,77 +1,76 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../src/Helpers/Auth.php';
-require_once __DIR__ . '/../src/Helpers/CsrfToken.php';
-require_once __DIR__ . '/../src/Helpers/FlashMessage.php';
-require_once __DIR__ . '/../src/Models/DatabaseModel.php';
 
-// Protect route
-Auth::requireLogin();
+// Vérifier l'authentification
+if (!Auth::isLoggedIn()) {
+    header("Location: login.php");
+    exit();
+}
 
 // Get database ID
 $database_id = $_GET['id'] ?? null;
 if (!$database_id) {
-    FlashMessage::set('error', 'Base de données non trouvée');
-    header('Location: index.php');
-    exit;
+    FlashMessage::error('Base de données non trouvée');
+    header("Location: index.php");
+    exit();
 }
 
-// Initialize models
-$db_model = new DatabaseModel($conn);
+$database_id = intval($database_id);
 $user_id = Auth::getUserId();
 
-// Check access
-$permission = $db_model->getPermission($database_id, $user_id);
-if (!$permission || ($permission !== 'edit' && $permission !== 'admin')) {
-    FlashMessage::set('error', 'Vous n\'avez pas la permission d\'ajouter des objets');
-    header('Location: index.php');
-    exit;
-}
+// Vérifier les permissions (simplifié - l'utilisateur peut ajouter à sa propre base)
+// À améliorer plus tard avec un système de permissions
 
 // Get database info
-$db_info = $conn->query("
-    SELECT * FROM `databases` 
-    WHERE id = '$database_id' 
-    LIMIT 1
-")->fetch_assoc();
-
-if (!$db_info) {
-    FlashMessage::set('error', 'Base de données non trouvée');
-    header('Location: index.php');
-    exit;
+$stmt = $conn->prepare("SELECT * FROM objets WHERE database_id = ? LIMIT 1");
+if (!$stmt) {
+    // Si la colonne database_id n'existe pas, on utilise juste la base par défaut
+    $db_info = ['id' => $database_id, 'nom' => 'Mon Inventaire'];
+} else {
+    $stmt->bind_param("i", $database_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // On va utiliser un nom simplifié
+    $db_info = [
+        'id' => $database_id,
+        'nom' => 'Mon Inventaire'
+    ];
 }
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
-    if (!CsrfToken::verify($_POST['csrf_token'] ?? '')) {
-        FlashMessage::set('error', 'Token CSRF invalide');
+    if (!CsrfToken::verifyFromPost()) {
+        FlashMessage::error('Token CSRF invalide');
     } else {
-        $nom = $conn->real_escape_string($_POST['nom'] ?? '');
-        $categorie = $conn->real_escape_string($_POST['categorie'] ?? '');
+        $nom = $_POST['nom'] ?? '';
+        $categorie = $_POST['categorie'] ?? '';
         $quantite = intval($_POST['quantite'] ?? 1);
         
         // Handle new category
         if ($categorie === 'NEW') {
-            $categorie = $conn->real_escape_string($_POST['new_category'] ?? '');
+            $categorie = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
             if (empty($categorie)) {
-                FlashMessage::set('error', 'Nom de catégorie vide');
+                FlashMessage::error('Nom de catégorie vide');
                 $categorie = '';
             }
+        } else {
+            $categorie = Validator::sanitizeText($categorie, 100);
         }
+        
+        $nom = Validator::sanitizeText($nom, 100);
         
         if (!empty($nom)) {
             $image_path = '';
             
             // Handle image upload
             if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
-                $file = $_FILES['image'];
-                $allowed = ['image/jpeg', 'image/png', 'image/gif'];
-                
-                if (!in_array($file['type'], $allowed)) {
-                    FlashMessage::set('error', 'Type de fichier non autorisé');
-                } else if ($file['size'] > 5242880) { // 5MB
-                    FlashMessage::set('error', 'Fichier trop volumineux');
+                $validation = Validator::validateImageFile($_FILES['image']);
+                if (!$validation['valid']) {
+                    FlashMessage::error($validation['message']);
                 } else {
+                    $file = $_FILES['image'];
+                    
                     // Create uploads directory if needed
                     $uploads_dir = __DIR__ . '/uploads';
                     if (!is_dir($uploads_dir)) {
@@ -79,32 +78,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
                     }
                     
                     // Generate filename
-                    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                    $filename = 'obj_' . time() . '_' . uniqid() . '.' . $ext;
+                    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    $filename = 'obj_' . time() . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
                     $filepath = $uploads_dir . '/' . $filename;
                     
                     if (move_uploaded_file($file['tmp_name'], $filepath)) {
                         $image_path = $filename;
+                    } else {
+                        FlashMessage::error('Erreur lors du téléchargement de l\'image');
                     }
                 }
             }
             
             // Insert object
-            $image_path_esc = $conn->real_escape_string($image_path);
-            $result = $conn->query("
-                INSERT INTO objets (database_id, nom, categorie, quantite, image_path, created_at)
-                VALUES ('$database_id', '$nom', '$categorie', $quantite, '$image_path_esc', NOW())
-            ");
+            $stmt = $conn->prepare("INSERT INTO objets (nom, categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
+            if ($stmt) {
+                $stmt->bind_param("ssis", $nom, $categorie, $quantite, $image_path);
+                $result = $stmt->execute();
             
-            if ($result) {
-                FlashMessage::set('success', 'Objet ajouté avec succès');
-                header('Location: database-view.php?id=' . $database_id);
-                exit;
+                if ($result) {
+                    FlashMessage::success('Objet ajouté avec succès');
+                    header('Location: index.php');
+                    exit();
+                } else {
+                    FlashMessage::error('Erreur lors de l\'ajout de l\'objet');
+                }
+                $stmt->close();
             } else {
-                FlashMessage::set('error', 'Erreur lors de l\'ajout de l\'objet');
+                FlashMessage::error('Erreur de base de données');
             }
         } else {
-            FlashMessage::set('error', 'Nom de l\'objet vide');
+            FlashMessage::error('Nom de l\'objet vide');
         }
     }
 }

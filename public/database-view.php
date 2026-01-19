@@ -5,8 +5,16 @@ require_once __DIR__ . '/../src/Helpers/CsrfToken.php';
 require_once __DIR__ . '/../src/Helpers/FlashMessage.php';
 require_once __DIR__ . '/../src/Models/DatabaseModel.php';
 
+// Start session if not started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Protect route
-Auth::requireLogin();
+if (!Auth::isLoggedIn()) {
+    header('Location: login.php');
+    exit;
+}
 
 // Get database ID
 $database_id = $_GET['id'] ?? null;
@@ -18,7 +26,7 @@ if (!$database_id) {
 
 // Initialize models
 $db_model = new DatabaseModel($conn);
-$user_id = Auth::getUserId();
+$user_id = $_SESSION['user_id'] ?? null;
 
 // Check access
 $permission = $db_model->getPermission($database_id, $user_id);
@@ -210,15 +218,8 @@ include __DIR__ . '/../templates/includes/header.phtml';
 ?>
 
 <div class="database-view-container">
-    <h1><?php echo htmlspecialchars($db_info['nom']); ?></h1>
+    <h1><?php echo htmlspecialchars($db_info['nom'] ?? 'Base de données'); ?></h1>
     <p class="db-description"><?php echo htmlspecialchars($db_info['description'] ?? ''); ?></p>
-    
-    <div class="db-controls">
-        <a href="database-ajouter.php?id=<?php echo $database_id; ?>" class="btn btn-primary">➕ Ajouter un objet</a>
-        <?php if ($permission === 'admin'): ?>
-            <a href="database-settings.php?id=<?php echo $database_id; ?>" class="btn btn-secondary">⚙️ Paramètres</a>
-        <?php endif; ?>
-    </div>
 
     <?php
     // Include page sections (consultation only, ajout moved to separate page)
