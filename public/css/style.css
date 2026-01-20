@@ -18,12 +18,42 @@ body {
     margin: 0 auto;
     padding: 15px;
 }
+.database-view-container {
+    text-align: center;
+    /* Ajoute de l'espace pour ne pas être sous le header fixed */
+    padding-top: 50px; 
+    /* Assurez-vous que le conteneur ne soit pas caché sur les côtés */
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
+}
+
+/* Ajustement pour mobile car le header devient plus grand avec le flex-wrap */
+@media (max-width: 768px) {
+    .database-view-container {
+        padding-top: 140px; 
+    }
+}
 @media (max-width: 900px) {
+     .database-view-container {
+        padding-top: 100px; 
+    }
+
+
 .container {
 
     margin-top: 50px;
 
-}}
+
+}
+.back-link {
+    margin-top: 60px;
+}
+}
+@media (max-width: 110px) {
+     .database-view-container {
+        padding-top: 80px; 
+    }}
 /* ==========================================================================
    MESSAGES FLASH
    ========================================================================== */
@@ -79,30 +109,9 @@ body {
 /* ==========================================================================
    NAVIGATION
    ========================================================================== */
-.top-nav {
-    background: #2c3e50;
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center; /* centre le bloc du milieu */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
 
 body {
     padding-top: 70px;
-}
-.div-modif-inv {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: space-around;
-    flex: 1; /* prend l'espace central */
 }
 
 .nav-action-btn {
@@ -191,11 +200,65 @@ body {
     background: #219150 !important;
 }
 
+.top-nav {
+    background: #2c3e50;
+    padding: 10px 20px; /* Un peu moins de padding vertical */
+    display: flex;
+    flex-wrap: wrap; /* PERMET LE PASSAGE À LA LIGNE */
+    align-items: center;
+    justify-content: space-between; /* Espace entre le menu et l'utilisateur */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    min-height: 60px;
+}
+
+.div-modif-inv {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    /* On retire justify-content: space-around car on veut que les liens restent groupés */
+}
+
 .user-info {
     display: flex;
     gap: 15px;
     align-items: center;
-    margin-left: auto; /* pousse à droite */
+    /* Sur PC, on laisse margin-left: auto pour pousser à droite */
+    margin-left: auto; 
+}
+@media (max-width: 768px) {
+    .top-nav {
+        padding: 10px;
+        justify-content: center; /* Centre tout sur mobile */
+        gap: 10px;
+    }
+
+    .div-modif-inv {
+        justify-content: center;
+        width: 100%; /* Prend toute la largeur pour forcer user-info en dessous */
+        order: 1; 
+    }
+
+    .user-info {
+        margin-left: 0; /* Retire le décalage à droite */
+        width: 100%;
+        justify-content: center;
+        order: 2;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 10px;
+        font-size: 0.9em;
+    }
+    
+    /* Optionnel : masquer le texte "Déconnexion" pour ne laisser qu'une icône ou réduire la taille */
+    .nav-action-btn {
+        padding: 5px 8px;
+        font-size: 0.85em;
+    }
 }
 
 
@@ -223,10 +286,6 @@ body {
 /* Responsive: petit écran */
 @media (max-width: 900px) {
 
-    .top-nav {
-        flex-wrap: wrap;          /* permet de passer sur 2 lignes */
-        justify-content: flex-end;
-    }
 
     .user-info {
         order: 1;                 /* passe en premier */
@@ -254,6 +313,7 @@ body {
     flex-wrap: wrap; /* Permet de passer à la ligne si pas assez de place */
     gap: 1rem;
     margin-bottom: 2rem;
+    padding: 15px;
 }
 
 .search-zone input, 
@@ -808,12 +868,7 @@ form input[type="number"] {
     flex-direction: column;
 }
 
-.form-group label {
-    font-weight: bold;
-    color: #34495e;
-    margin-bottom: 5px;
-    font-size: 14px;
-}
+
 
 .form-group input,
 .form-group select,
@@ -1267,16 +1322,6 @@ form input[type="number"] {
     margin-bottom: 20px;
 }
 
-.back-link {
-    color: #3498db;
-    text-decoration: none;
-    font-size: 14px;
-    display: inline-block;
-}
-
-.back-link:hover {
-    text-decoration: underline;
-}
 
 .add-page-form {
     background: white;
@@ -1348,7 +1393,7 @@ form input[type="number"] {
 
 .form-group label {
     display: flex;
-    justify-content: space-between;
+    justify-content: left;
     align-items: center;
     margin-bottom: 8px;
     font-weight: 600;

@@ -5,6 +5,19 @@ require_once __DIR__ . '/../src/Helpers/CsrfToken.php';
 require_once __DIR__ . '/../src/Helpers/FlashMessage.php';
 require_once __DIR__ . '/../src/Models/DatabaseModel.php';
 
+
+$user_id = $_SESSION['user_id'];
+$database_id = intval($_GET['id'] ?? 0);
+
+// Vérifier que l'utilisateur est propriétaire
+$db_controller = new DatabaseController($conn);
+if (!$db_controller->isOwner($database_id, $user_id)) {
+    FlashMessage::error('Vous n\'avez pas accès aux paramètres de cette base');
+    header("Location: index.php");
+    exit();
+}
+
+$database = $db_controller->getDatabase($database_id);
 // Start session if not started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -218,7 +231,8 @@ include __DIR__ . '/../templates/includes/header.phtml';
 ?>
 
 <div class="database-view-container">
-    <h1><?php echo htmlspecialchars($db_info['nom'] ?? 'Base de données'); ?></h1>
+    <h1><?php echo htmlspecialchars($database['name'] ?? 'Base de données'); ?></h1>
+    
     <p class="db-description"><?php echo htmlspecialchars($db_info['description'] ?? ''); ?></p>
 
     <?php
