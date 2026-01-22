@@ -116,7 +116,7 @@ function checkNewCategory(select) {
 /**
  * Flag pour éviter les clics multiples rapides
  */
-let isUpdatingQuantity = false;
+window.isUpdatingQuantity = false;
 
 /**
  * Mettre à jour la quantité sans recharger la page

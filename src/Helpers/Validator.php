@@ -49,7 +49,7 @@ class Validator {
      * Valide qu'une valeur de champ fait partie d'une whitelist
      */
     public static function validateFieldName($fieldName, $allowedFields = ['nom', 'id_categorie', 'quantite']) {
-        return in_array($fieldName, $allowedFields, true);
+    return in_array($fieldName, $allowedFields, true);
     }
 
     /**

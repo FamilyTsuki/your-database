@@ -19,7 +19,6 @@ $user_id = Auth::getUserId();
 $conn = $conn; // Assumé défini dans config.php
 
 // 3. Traitement du formulaire
-// 3. Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
     if (!CsrfToken::verifyFromPost()) {
         FlashMessage::error('Token CSRF invalide');
@@ -30,11 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
         $id_categorie = null;
         $cat_value = $_POST['categorie'] ?? '';
 
-        // Gestion de la catégorie
+        // 1. Gestion de la catégorie
         if ($cat_value === 'NEW') {
             $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
             if (!empty($new_cat_name)) {
-                // On insère la nouvelle catégorie pour obtenir un ID
                 $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
                 $stmt_cat->bind_param("si", $new_cat_name, $database_id);
                 if ($stmt_cat->execute()) {
@@ -47,9 +45,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
 
         if (!empty($nom)) {
             $image_filename = '';
-            // ... (Gardez votre code de gestion d'image tel quel) ...
 
-            // Insertion mise à jour : id_categorie au lieu de categorie
+            // 2. GESTION DE L'IMAGE (Le code manquant)
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $validation = Validator::validateImageFile($_FILES['image']);
+                if ($validation['valid']) {
+                    $uploads_dir = __DIR__ . '/uploads';
+                    if (!is_dir($uploads_dir)) {
+                        mkdir($uploads_dir, 0755, true);
+                    }
+
+                    $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+                    // Génération d'un nom unique pour éviter les doublons
+                    $image_filename = 'obj_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                    
+                    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploads_dir . '/' . $image_filename)) {
+                        FlashMessage::error('Erreur lors du transfert physique de l\'image');
+                        $image_filename = ''; // Reset si échec
+                    }
+                } else {
+                    FlashMessage::error($validation['message']);
+                }
+            }
+
+            // 3. Insertion en base de données avec le nom de l'image
             $stmt = $conn->prepare("INSERT INTO objets (database_id, nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?, ?)");
             $stmt->bind_param("isiis", $database_id, $nom, $id_categorie, $quantite, $image_filename);
 
@@ -63,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
         }
     }
 }
-
 // 4. Données pour la vue
 // 4. Données pour la vue
 $cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY nom ASC");

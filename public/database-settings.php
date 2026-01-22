@@ -118,7 +118,32 @@ if ($action === 'delete' && !CsrfToken::verifyFromPost()) {
         FlashMessage::error('Erreur lors de la suppression');
     }
 }
+if ($action === 'edit') {
+    $field = $_POST['field'] ?? '';
+    $value = $_POST['value'] ?? '';
+    $id_objet = intval($_POST['id'] ?? 0);
 
+    // CAS : CRÉATION D'UNE NOUVELLE CATÉGORIE
+    if ($field === 'new_category_create') {
+        $cat_name = $conn->real_escape_string($value);
+        
+        // 1. Créer la catégorie
+        $conn->query("INSERT INTO categories (nom, database_id) VALUES ('$cat_name', '$database_id')");
+        $new_id = $conn->insert_id;
+        
+        // 2. Lier l'objet à cet ID
+        $result = $conn->query("UPDATE objets SET id_categorie = $new_id WHERE id = $id_objet");
+        
+        die(json_encode(['success' => $result]));
+    }
+    
+    // CAS CLASSIQUE : MISE À JOUR ID
+    if ($field === 'id_categorie') {
+        $id_cat = intval($value) > 0 ? intval($value) : "NULL";
+        $result = $conn->query("UPDATE objets SET id_categorie = $id_cat WHERE id = $id_objet");
+        die(json_encode(['success' => $result]));
+    }
+}
 // Récupérer les données
 $shared_users = $db_controller->getSharedUsers($database_id);
 $categories = $db_controller->getCategories($database_id);

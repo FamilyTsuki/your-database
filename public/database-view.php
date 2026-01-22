@@ -27,7 +27,7 @@ if (!Auth::isLoggedIn()) {
 // Get database ID
 $database_id = $_GET['id'] ?? null;
 if (!$database_id) {
-    FlashMessage::set('error', 'Base de données non trouvée');
+    FlashMessage::error('error', 'Base de données non trouvée');
     header('Location: index.php');
     exit;
 }
@@ -39,7 +39,7 @@ $user_id = $_SESSION['user_id'] ?? null;
 // Check access
 $permission = $db_model->getPermission($database_id, $user_id);
 if (!$permission) {
-    FlashMessage::set('error', 'Accès refusé à cette base de données');
+    FlashMessage::error('error', 'Accès refusé à cette base de données');
     header('Location: index.php');
     exit;
 }
@@ -52,7 +52,7 @@ $db_info = $conn->query("
 ")->fetch_assoc();
 
 if (!$db_info) {
-    FlashMessage::set('error', 'Base de données non trouvée');
+    FlashMessage::error('error', 'Base de données non trouvée');
     header('Location: index.php');
     exit;
 }
@@ -109,20 +109,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     
     if ($action === 'edit') {
         $field = $_POST['field'] ?? '';
-        $value = $conn->real_escape_string($_POST['value'] ?? '');
-        
-        if (in_array($field, ['nom', 'categorie', 'quantite'])) {
-            if ($field === 'quantite') {
-                $value = intval($value);
+        $value = $_POST['value'] ?? '';
+        $objet_id = intval($_POST['id'] ?? 0);
+
+        // CAS 1 : Créer une toute nouvelle catégorie et l'associer à l'objet
+        if ($field === 'new_category_create') {
+            $cat_name = $conn->real_escape_string(trim($value));
+            // On insère la catégorie dans la table dédiée
+            $conn->query("INSERT INTO categories (nom, database_id) VALUES ('$cat_name', $database_id)");
+            $new_cat_id = $conn->insert_id;
+            
+            // On lie l'objet à cet ID
+            $result = $conn->query("UPDATE objets SET id_categorie = $new_cat_id WHERE id = $objet_id AND database_id = '$database_id'");
+            die(json_encode(['success' => $result]));
+        }
+
+        // CAS 2 : Mise à jour classique (nom, quantité, ou changer pour une catégorie existante)
+        // On transforme 'categorie' en 'id_categorie' pour la BDD
+        if ($field === 'categorie') $field = 'id_categorie';
+
+        $allowedFields = ['nom', 'id_categorie', 'quantite'];
+        if (in_array($field, $allowedFields)) {
+            if ($field === 'nom') {
+                $clean_val = "'" . $conn->real_escape_string($value) . "'";
+            } else {
+                // Pour quantité ou id_categorie, on veut un chiffre (ou NULL si id_categorie = 0)
+                $clean_val = intval($value);
+                if ($field === 'id_categorie' && $clean_val === 0) $clean_val = "NULL";
             }
+
             $result = $conn->query("
                 UPDATE objets 
-                SET `$field` = '$value' 
+                SET `$field` = $clean_val 
                 WHERE id = $objet_id AND database_id = '$database_id'
                 LIMIT 1
             ");
-            die(json_encode(['success' => $result, 'value' => htmlspecialchars($value)]));
+            die(json_encode(['success' => $result]));
         }
+        die(json_encode(['success' => false, 'message' => 'Champ non autorisé']));
     }
     
     if ($action === 'updateImage') {
@@ -275,50 +299,48 @@ function updateQuantity(id, action) {
         }
     });
 }// On envoie l'arbre des catégories au JS
-const globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
+window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
 
 function editFieldderoul(id, field, currentValue, event) {
-    if (field !== 'categorie') {
-        let newValue = prompt("Nouvelle valeur :", currentValue);
-        if (newValue !== null) sendUpdate(id, field, newValue);
-        return;
-    }
-
     const tagElement = event.currentTarget;
     const parent = tagElement.parentNode;
     
-    // Créer le select
     const select = document.createElement('select');
     select.className = "form-input";
     
+    // Option par défaut
     const optNone = document.createElement('option');
     optNone.value = "0";
     optNone.textContent = "-- Sans catégorie --";
     select.appendChild(optNone);
 
-    // Remplir le select avec Parent > Enfant
-    globalCategories.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.nom;
-        opt.style.fontWeight = "bold";
-        if (p.nom === currentValue) opt.selected = true;
-        select.appendChild(opt);
+    // Remplissage avec les catégories existantes
+    if (window.globalCategories) {
+        window.globalCategories.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.nom;
+            if (p.nom === currentValue) opt.selected = true;
+            select.appendChild(opt);
 
-        if (p.subs) {
-            p.subs.forEach(s => {
-                const o = document.createElement('option');
-                o.value = s.id;
-                o.textContent = "   ↳ " + s.nom;
-                if (s.nom === currentValue) o.selected = true;
-                select.appendChild(o);
-            });
-        }
-    });
+            if (p.subs) {
+                p.subs.forEach(s => {
+                    const o = document.createElement('option');
+                    o.value = s.id;
+                    o.textContent = "   ↳ " + s.nom;
+                    if (s.nom === currentValue) o.selected = true;
+                    select.appendChild(o);
+                });
+            }
+        });
+    }
 
+    // AJOUT DE L'OPTION NOUVEAU
     const optNew = document.createElement('option');
     optNew.value = "NEW";
     optNew.textContent = "+ Créer nouvelle catégorie";
+    optNew.style.color = "#3498db";
+    optNew.style.fontWeight = "bold";
     select.appendChild(optNew);
 
     parent.replaceChild(select, tagElement);
@@ -327,48 +349,54 @@ function editFieldderoul(id, field, currentValue, event) {
     select.onchange = function() {
         if (this.value === "NEW") {
             const newName = prompt("Nom de la nouvelle catégorie :");
-            if (newName) {
-                // Ici on envoie le NOM pour que le serveur sache qu'il doit créer
-                // Ou mieux: vous pouvez créer une action AJAX 'addCategory'
-                sendUpdate(id, 'categorie', newName); 
+            if (newName && newName.trim() !== "") {
+                // On envoie le texte au lieu de l'ID pour que PHP sache qu'il faut créer
+                sendUpdate(id, 'new_category_create', newName);
             } else {
+                // Annulation : on remet le tag d'origine
                 parent.replaceChild(tagElement, select);
             }
         } else {
-            // On envoie l'ID
-            sendUpdate(id, 'categorie', this.value);
+            sendUpdate(id, 'id_categorie', this.value);
         }
     };
 
     select.onblur = function() {
-        setTimeout(() => { if (parent.contains(select)) parent.replaceChild(tagElement, select); }, 200);
+        setTimeout(() => {
+            if (parent.contains(select)) parent.replaceChild(tagElement, select);
+        }, 200);
     };
 }
 function sendUpdate(id, field, newVal) {
-    fetch('?id=<?php echo $database_id; ?>', {
+    // On prépare les données à envoyer
+    const params = new URLSearchParams();
+    params.append('action', 'edit');
+    params.append('id', id);
+    params.append('field', field);
+    params.append('value', newVal);
+    params.append('csrf_token', '<?php echo $csrf_token; ?>');
+
+    fetch('database-view.php?id=<?php echo $database_id; ?>', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'action=edit&id=' + id + '&field=' + field + '&value=' + encodeURIComponent(newVal) + '&csrf_token=<?php echo $csrf_token; ?>'
+        body: params.toString()
     })
     .then(r => r.json())
     .then(d => {
         if (d.success) {
-            if (field === 'quantite') {
-                document.getElementById('qty-' + id).textContent = newVal;
-                // Si on a remplacé le span par un select, on rafraîchit quand même pour remettre le design propre
-                location.reload(); 
-            } else {
-                location.reload();
-            }
+            // Rechargement pour voir la nouvelle catégorie dans les filtres et le tag
+            location.reload(); 
         } else {
             alert("Erreur: " + (d.message || "Impossible de mettre à jour"));
-            location.reload();
         }
+    })
+    .catch(err => {
+        console.error("Erreur Fetch:", err);
+        alert("Erreur réseau ou serveur");
     });
 }
-
 function editField(id, field, value) {
     const newVal = prompt('Modifier ' + field + ':', value);
     if (newVal === null) return;
