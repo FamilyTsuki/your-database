@@ -19,40 +19,39 @@ $user_id = Auth::getUserId();
 $conn = $conn; // Assumé défini dans config.php
 
 // 3. Traitement du formulaire
+// 3. Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
     if (!CsrfToken::verifyFromPost()) {
         FlashMessage::error('Token CSRF invalide');
     } else {
         $nom = Validator::sanitizeText($_POST['nom'] ?? '', 100);
         $quantite = intval($_POST['quantite'] ?? 1);
-        $categorie = ($_POST['categorie'] === 'NEW') 
-            ? Validator::sanitizeText($_POST['new_category'] ?? '', 100) 
-            : Validator::sanitizeText($_POST['categorie'] ?? '', 100);
+        
+        $id_categorie = null;
+        $cat_value = $_POST['categorie'] ?? '';
+
+        // Gestion de la catégorie
+        if ($cat_value === 'NEW') {
+            $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
+            if (!empty($new_cat_name)) {
+                // On insère la nouvelle catégorie pour obtenir un ID
+                $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
+                $stmt_cat->bind_param("si", $new_cat_name, $database_id);
+                if ($stmt_cat->execute()) {
+                    $id_categorie = $conn->insert_id;
+                }
+            }
+        } elseif (!empty($cat_value)) {
+            $id_categorie = intval($cat_value);
+        }
 
         if (!empty($nom)) {
             $image_filename = '';
+            // ... (Gardez votre code de gestion d'image tel quel) ...
 
-            // Gestion de l'image
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $validation = Validator::validateImageFile($_FILES['image']);
-                if ($validation['valid']) {
-                    $uploads_dir = __DIR__ . '/uploads';
-                    if (!is_dir($uploads_dir)) mkdir($uploads_dir, 0755, true);
-
-                    $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                    $image_filename = 'obj_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-                    
-                    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploads_dir . '/' . $image_filename)) {
-                        FlashMessage::error('Erreur lors du transfert de l\'image');
-                    }
-                } else {
-                    FlashMessage::error($validation['message']);
-                }
-            }
-
-            // Insertion (Ajout du database_id !)
-            $stmt = $conn->prepare("INSERT INTO objets (database_id, nom, categorie, quantite, image_path) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("issis", $database_id, $nom, $categorie, $quantite, $image_filename);
+            // Insertion mise à jour : id_categorie au lieu de categorie
+            $stmt = $conn->prepare("INSERT INTO objets (database_id, nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("isiis", $database_id, $nom, $id_categorie, $quantite, $image_filename);
 
             if ($stmt->execute()) {
                 FlashMessage::success('Objet ajouté avec succès');
@@ -61,15 +60,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
             } else {
                 FlashMessage::error('Erreur BDD : ' . $conn->error);
             }
-        } else {
-            FlashMessage::error('Le nom est obligatoire');
         }
     }
 }
 
 // 4. Données pour la vue
-$cat_res = $conn->query("SELECT DISTINCT categorie FROM objets WHERE database_id = $database_id AND categorie != '' ORDER BY categorie");
-$categories = $cat_res->fetch_all(MYSQLI_ASSOC);
+// 4. Données pour la vue
+$cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY nom ASC");
+$all_cats = $cat_res->fetch_all(MYSQLI_ASSOC);
+
+$categories_tree = [];
+foreach ($all_cats as $c) {
+    if ($c['parent_id'] == null) {
+        $c['subs'] = [];
+        $categories_tree[$c['id']] = $c;
+    } else {
+        if (isset($categories_tree[$c['parent_id']])) {
+            $categories_tree[$c['parent_id']]['subs'][] = $c;
+        }
+    }
+}
 $csrf_token = CsrfToken::generate();
 
 include __DIR__ . '/../templates/includes/header.phtml';
@@ -112,10 +122,19 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     <label for="objet-cat">Catégorie</label>
                     <select id="objet-cat" name="categorie" class="form-input" onchange="toggleNewCategory(this)">
                         <option value="">-- Sans catégorie --</option>
-                        <?php foreach ($categories as $c): ?>
-                            <option value="<?= htmlspecialchars($c['categorie']) ?>"><?= htmlspecialchars($c['categorie']) ?></option>
+                        <?php foreach ($categories_tree as $parent): ?>
+                            <option value="<?= $parent['id'] ?>" style="font-weight: bold;">
+                                <?= htmlspecialchars($parent['nom']) ?>
+                            </option>
+                            
+                            <?php foreach ($parent['subs'] as $sub): ?>
+                                <option value="<?= $sub['id'] ?>">
+                                    &nbsp;&nbsp;&nbsp;↳ <?= htmlspecialchars($sub['nom']) ?>
+                                </option>
+                            <?php endforeach; ?>
                         <?php endforeach; ?>
-                        <option value="NEW">+ Créer nouvelle catégorie</option>
+                        
+                        <option value="NEW" style="color: #3498db; font-weight: bold;">+ Créer nouvelle catégorie</option>
                     </select>
                     <input type="text" id="new-cat-input" name="new_category" placeholder="Nom de la catégorie" class="form-input" style="display: none; margin-top: 10px;">
                 </div>

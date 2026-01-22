@@ -11,73 +11,77 @@ class ObjetModel {
      * Récupère tous les objets avec pagination optionnelle
      */
     public function getAll($limit = null, $offset = 0) {
-        $query = "SELECT * FROM objets ORDER BY id DESC";
-        
-        if ($limit !== null) {
-            $limit = intval($limit);
-            $offset = intval($offset);
-            $query .= " LIMIT $limit OFFSET $offset";
-        }
-        
-        $result = $this->conn->query($query);
-        $objets = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $objets[] = $row;
-        }
-        
-        return $objets;
+    // On fait une jointure pour récupérer le nom de la catégorie
+    $query = "SELECT objets.*, categories.nom AS nom_categorie 
+              FROM objets 
+              LEFT JOIN categories ON objets.id_categorie = categories.id 
+              ORDER BY objets.id DESC";
+    
+    if ($limit !== null) {
+        $limit = intval($limit);
+        $offset = intval($offset);
+        $query .= " LIMIT $limit OFFSET $offset";
     }
+    
+    $result = $this->conn->query($query);
+    $objets = [];
+    while ($row = $result->fetch_assoc()) {
+        $objets[] = $row;
+    }
+    return $objets;
+}
 
     /**
      * Récupère un objet par ID
      */
     public function getById($id) {
-        $id = intval($id);
-        $result = $this->conn->query("SELECT * FROM objets WHERE id = $id");
-        
-        if ($result && $row = $result->fetch_assoc()) {
-            return $row;
-        }
-        
-        return null;
+    $id = intval($id);
+    $result = $this->conn->query("
+        SELECT objets.*, categories.nom AS nom_categorie 
+        FROM objets 
+        LEFT JOIN categories ON objets.id_categorie = categories.id 
+        WHERE objets.id = $id
+    ");
+    
+    if ($result && $row = $result->fetch_assoc()) {
+        return $row;
     }
+    return null;
+}
 
     /**
      * Crée un nouvel objet
      */
-    public function create($nom, $categorie, $quantite, $image_path = '') {
-        $stmt = $this->conn->prepare("INSERT INTO objets (nom, categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
-        
-        if (!$stmt) {
-            return false;
-        }
-        
-        $stmt->bind_param("ssis", $nom, $categorie, $quantite, $image_path);
-        $success = $stmt->execute();
-        $stmt->close();
-        
-        return $success;
-    }
+    public function create($nom, $id_categorie, $quantite, $image_path = '') {
+    $stmt = $this->conn->prepare("INSERT INTO objets (nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
+    
+    if (!$stmt) return false;
+    
+    // Le second paramètre devient "i" pour integer (id_categorie)
+    $stmt->bind_param("siis", $nom, $id_categorie, $quantite, $image_path);
+    $success = $stmt->execute();
+    $stmt->close();
+    
+    return $success;
+}
 
     /**
      * Met à jour un objet
      */
     public function update($id, $field, $value) {
-        // Whitelist de sécurité
-        $allowedFields = ['nom', 'categorie', 'quantite', 'image_path'];
+        // Mise à jour de la whitelist : on remplace 'categorie' par 'id_categorie'
+        $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path'];
         if (!in_array($field, $allowedFields, true)) {
             return false;
         }
 
         $id = intval($id);
-        $stmt = $this->conn->prepare("UPDATE objets SET $field = ? WHERE id = ?");
+        $stmt = $this->conn->prepare("UPDATE objets SET `$field` = ? WHERE id = ?");
         
-        if (!$stmt) {
-            return false;
-        }
+        if (!$stmt) return false;
 
-        if ($field === 'quantite') {
+        // Si on modifie la catégorie ou la quantité, c'est un entier (i)
+        if ($field === 'quantite' || $field === 'id_categorie') {
             $stmt->bind_param("ii", $value, $id);
         } else {
             $stmt->bind_param("si", $value, $id);
@@ -85,7 +89,6 @@ class ObjetModel {
         
         $success = $stmt->execute();
         $stmt->close();
-        
         return $success;
     }
 
@@ -111,13 +114,13 @@ class ObjetModel {
      * Récupère les catégories uniques
      */
     public function getCategories() {
-        $result = $this->conn->query("SELECT DISTINCT categorie FROM objets WHERE categorie != '' ORDER BY categorie ASC");
+    // On récupère toutes les catégories réelles de la table categories
+        $result = $this->conn->query("SELECT id, nom, parent_id FROM categories ORDER BY nom ASC");
         $categories = [];
         
         while ($row = $result->fetch_assoc()) {
-            $categories[] = $row['categorie'];
+            $categories[] = $row;
         }
-        
         return $categories;
     }
 

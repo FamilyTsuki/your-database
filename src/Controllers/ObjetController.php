@@ -11,26 +11,23 @@ class ObjetController {
     /**
      * Ajoute un nouvel objet
      */
-    public function add($nom, $categorie, $quantite, $image_path = '') {
-        // Validations
+    public function add($nom, $id_categorie, $quantite, $image_path = '') {
         if (!Validator::isNotEmpty($nom)) {
             return ['success' => false, 'message' => 'Le nom est requis'];
         }
         
-        if (!Validator::isNotEmpty($categorie)) {
-            return ['success' => false, 'message' => 'La catégorie est requise'];
+        // On valide que l'ID de catégorie est un nombre
+        $id_categorie = intval($id_categorie);
+        if ($id_categorie <= 0) {
+            // Optionnel : permettre 0 ou null si "Sans catégorie" est autorisé
+            $id_categorie = null; 
         }
 
         $nom = Validator::sanitizeText($nom, 100);
-        $categorie = Validator::validateCategory($categorie);
-        
-        if ($categorie === false) {
-            return ['success' => false, 'message' => 'Catégorie invalide'];
-        }
-        
         $quantite = Validator::validateQuantity($quantite);
 
-        if ($this->model->create($nom, $categorie, $quantite, $image_path)) {
+        // On passe id_categorie au lieu de categorie
+        if ($this->model->create($nom, $id_categorie, $quantite, $image_path)) {
             return ['success' => true, 'message' => 'Objet ajouté avec succès ✓'];
         } else {
             return ['success' => false, 'message' => 'Erreur lors de l\'ajout'];
@@ -47,25 +44,22 @@ class ObjetController {
             return ['success' => false, 'message' => 'ID invalide'];
         }
 
+        // On change 'categorie' par 'id_categorie' dans les tests ci-dessous
+        if ($field === 'categorie') $field = 'id_categorie';
+
         if (!Validator::validateFieldName($field)) {
             return ['success' => false, 'message' => 'Champ non autorisé'];
         }
 
-        // Valider selon le type de champ
         if ($field === 'nom') {
             if (!Validator::isNotEmpty($value)) {
                 return ['success' => false, 'message' => 'Le nom ne peut pas être vide'];
             }
             $value = Validator::sanitizeText($value, 100);
         } 
-        elseif ($field === 'categorie') {
-            if (!Validator::isNotEmpty($value)) {
-                return ['success' => false, 'message' => 'La catégorie ne peut pas être vide'];
-            }
-            $value = Validator::validateCategory($value);
-            if ($value === false) {
-                return ['success' => false, 'message' => 'Catégorie invalide'];
-            }
+        elseif ($field === 'id_categorie') { // Changé ici
+            $value = intval($value);
+            if ($value <= 0) $value = null; // Permet de remettre à "Sans catégorie"
         } 
         elseif ($field === 'quantite') {
             $value = Validator::validateQuantity($value);

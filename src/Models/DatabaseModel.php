@@ -251,17 +251,20 @@ class DatabaseModel {
     /**
      * Renomme une catégorie dans une base de données
      */
-    public function renameCategory($database_id, $old_name, $new_name) {
-        $database_id = intval($database_id);
-        $old_name = Validator::validateCategory($old_name);
-        $new_name = Validator::validateCategory($new_name);
+    /**
+ * Renomme une catégorie dans la table globale des catégories
+ */
+    public function renameCategory($category_id, $new_name) {
+        $category_id = intval($category_id);
+        $new_name = Validator::sanitizeText($new_name, 100);
         
-        if (!$old_name || !$new_name) {
+        if (!$new_name) {
             return false;
         }
         
-        $stmt = $this->conn->prepare("UPDATE objets SET categorie = ? WHERE database_id = ? AND categorie = ?");
-        $stmt->bind_param("sis", $new_name, $database_id, $old_name);
+        // On met à jour le nom directement dans la table des catégories
+        $stmt = $this->conn->prepare("UPDATE categories SET nom = ? WHERE id = ?");
+        $stmt->bind_param("si", $new_name, $category_id);
         
         return $stmt->execute();
     }
@@ -269,21 +272,29 @@ class DatabaseModel {
     /**
      * Récupère toutes les catégories d'une base de données
      */
-    public function getCategories($database_id) {
-        $database_id = intval($database_id);
-        
-        $stmt = $this->conn->prepare("SELECT DISTINCT categorie FROM objets WHERE database_id = ? AND categorie != '' ORDER BY categorie ASC");
-        $stmt->bind_param("i", $database_id);
-        $stmt->execute();
-        
-        $result = $stmt->get_result();
-        $categories = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $categories[] = $row['categorie'];
-        }
-        
-        return $categories;
+    /**
+ * Récupère toutes les catégories (utilisé pour les filtres et menus)
+ */
+    public function getCategories($database_id = null) {
+    // 1. Préparation de la requête
+    $stmt = $this->conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? OR database_id IS NULL ORDER BY nom ASC");
+    
+    // 2. Liaison du paramètre (i pour integer)
+    $stmt->bind_param("i", $database_id);
+    
+    // 3. EXÉCUTION (Ligne indispensable)
+    $stmt->execute();
+    
+    // 4. Récupération des résultats
+    $result = $stmt->get_result();
+    
+    $categories = [];
+    while ($row = $result->fetch_assoc()) {
+        $categories[] = $row;
     }
+    
+    $stmt->close();
+    return $categories;
+}
 }
 ?>

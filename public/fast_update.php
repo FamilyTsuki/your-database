@@ -36,19 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $value = Validator::sanitizeText($value, 100);
     } 
-    elseif ($field === 'categorie') {
-        if (!Validator::isNotEmpty($value)) {
-            FlashMessage::error('La catégorie ne peut pas être vide');
-            header("Location: index.php");
-            exit();
+    elseif ($field === 'id_categorie') { // Nom du champ mis à jour
+        $value = intval($value);
+        if ($value <= 0) {
+            $value = null; // Autorise "Sans catégorie"
         }
-        $value = Validator::validateCategory($value);
-        if ($value === false) {
-            FlashMessage::error('Catégorie invalide');
-            header("Location: index.php");
-            exit();
-        }
-    } 
+    }
     elseif ($field === 'quantite') {
         $value = Validator::validateQuantity($value);
     }
@@ -56,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Préparation sécurisée de la requête
     $stmt = $conn->prepare("UPDATE objets SET $field = ? WHERE id = ?");
     
-    if ($field === 'quantite') {
+    // Si c'est la quantité OU l'id_categorie, on utilise "i" (integer)
+    if ($field === 'quantite' || $field === 'id_categorie') {
         $stmt->bind_param("ii", $value, $id);
     } else {
         $stmt->bind_param("si", $value, $id);

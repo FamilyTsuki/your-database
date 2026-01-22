@@ -95,10 +95,11 @@ if ($action === 'remove_user') {
 if ($action === 'rename_category' && !CsrfToken::verifyFromPost()) {
     FlashMessage::error('Erreur de sécurité');
 } elseif ($action === 'rename_category') {
-    $old_cat = $_POST['old_category'] ?? '';
-    $new_cat = $_POST['new_category'] ?? '';
-    
-    if ($db_controller->renameCategory($database_id, $old_cat, $new_cat)) {
+    $cat_id = intval($_POST['category_id'] ?? 0); // On récupère l'ID
+    $new_cat_name = $_POST['new_category'] ?? '';
+
+    // On appelle la fonction avec l'ID (le database_id n'est plus utile si l'ID est unique)
+    if ($db_controller->renameCategory($cat_id, $new_cat_name)) {
         FlashMessage::success('Catégorie renommée!');
     } else {
         FlashMessage::error('Erreur lors du renommage');
@@ -229,14 +230,14 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <h2>Renommer les catégories</h2>
             <div class="categories-list">
                 <?php foreach ($categories as $category): ?>
-                    <form method="POST" class="category-rename-form">
+                    <form method="POST" class="category-rename-form" style="margin-bottom: 10px; display: flex; gap: 10px;">
                         <input type="hidden" name="action" value="rename_category">
-                        <input type="hidden" name="old_category" value="<?php echo htmlspecialchars($category); ?>">
+                        <input type="hidden" name="category_id" value="<?php echo $category['id']; ?>">
                         
-                        <input type="text" name="new_category" value="<?php echo htmlspecialchars($category); ?>" required>
+                        <input type="text" name="new_category" value="<?php echo htmlspecialchars($category['nom']); ?>" required class="form-input">
                         
                         <?php echo CsrfToken::field(); ?>
-                        <button type="submit" class="btn-small">Renommer</button>
+                        <button type="submit" class="btn-small">Enregistrer</button>
                     </form>
                 <?php endforeach; ?>
             </div>

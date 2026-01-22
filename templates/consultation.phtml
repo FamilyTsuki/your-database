@@ -1,13 +1,21 @@
+
+
+<script>
+    // On récupère les catégories PHP pour les rendre disponibles en JS
+    // On utilise l'arbre hiérarchique que nous avons construit en PHP
+    const globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
+</script>
 <section id="page-consultation">
     <div class="search-zone">
         <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="Rechercher un objet...">
         <select id="categoryFilter" onchange="filterItems()">
             <option value="">Toutes les catégories</option>
-            <?php
-            foreach ($categories as $c) {
-                echo "<option value='".htmlspecialchars($c)."'>".$c."</option>";
-            }
-            ?>
+            <?php foreach ($categories_tree as $parent): ?>
+                <option value="<?= htmlspecialchars($parent['nom']) ?>"><?= htmlspecialchars($parent['nom']) ?></option>
+                <?php foreach ($parent['subs'] as $sub): ?>
+                    <option value="<?= htmlspecialchars($sub['nom']) ?>">↳ <?= htmlspecialchars($sub['nom']) ?></option>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
         </select>
     </div>
 
@@ -16,7 +24,7 @@
         foreach ($objets as $row):
             $hasImg = !empty($row['image_path']);
         ?>
-        <div class="card" data-name="<?php echo strtolower(htmlspecialchars($row['nom'])); ?>" data-cat="<?php echo htmlspecialchars($row['categorie']); ?>">
+        <div class="card" data-name="<?php echo strtolower(htmlspecialchars($row['nom'])); ?>" data-cat="<?php echo htmlspecialchars($row['nom_categorie'] ?? '')?>"
             
             <?php if($hasImg): ?>
                 <img src="uploads/<?php echo htmlspecialchars($row['image_path']); ?>" onclick="changeImage(<?php echo $row['id']; ?>)" alt="Photo objet" style="cursor:pointer;">
@@ -34,7 +42,7 @@
                     <?php echo htmlspecialchars($row['nom']); ?>
                 </h3>
                 
-                <span class="tag" style="cursor:pointer;" onclick="editField(<?php echo $row['id']; ?>, 'categorie', '<?php echo addslashes($row['categorie']); ?>')" title="Modifier la catégorie">
+                <span class="tag" style="cursor:pointer;" onclick="editFieldderoul(..., 'id_categorie', '<?php echo addslashes($row['nom_categorie'] ?? ''); ?>', event)" title="Modifier la catégorie">
                     <?php echo htmlspecialchars($row['categorie']); ?>
                 </span>
                 

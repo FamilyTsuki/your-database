@@ -94,14 +94,19 @@ class DatabaseController {
     }
 
     /**
-     * Renomme une catégorie
-     */
-    public function renameCategory($database_id, $old_name, $new_name) {
-        return $this->model->renameCategory($database_id, $old_name, $new_name);
+ * Renomme une catégorie
+ * On utilise maintenant l'ID de la catégorie pour plus de précision
+ */
+    public function renameCategory($category_id, $new_name) {
+        // On appelle la méthode du modèle qui met à jour la table 'categories'
+        return $this->model->renameCategory($category_id, $new_name);
     }
 
     /**
      * Récupère les catégories
+     */
+    /**
+     * Récupère les catégories (renvoie désormais un tableau associatif ID/Nom)
      */
     public function getCategories($database_id) {
         return $this->model->getCategories($database_id);

@@ -13,31 +13,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $categorie = $_POST['categorie'] ?? '';
     $quantite = $_POST['quantite'] ?? 1;
     
-    // Validations
-    if (!Validator::isNotEmpty($nom)) {
-        FlashMessage::error('Le nom est requis');
-        header("Location: index.php");
-        exit();
-    }
+    // Validations$nom = Validator::sanitizeText($nom, 100);
+    $quantite = Validator::validateQuantity($quantite);
     
-    if (!Validator::isNotEmpty($categorie)) {
-        FlashMessage::error('La catégorie est requise');
-        header("Location: index.php");
-        exit();
+    // Nouvelle gestion de l'ID de catégorie
+    $id_categorie = null;
+    $cat_input = $_POST['categorie'] ?? '';
+
+    if ($cat_input === 'NEW') {
+        $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
+        if (!empty($new_cat_name)) {
+            // On insère la nouvelle catégorie
+            // Note: Ajustez database_id si nécessaire selon votre contexte
+            $stmt_cat = $conn->prepare("INSERT INTO categories (nom) VALUES (?)");
+            $stmt_cat->bind_param("s", $new_cat_name);
+            if ($stmt_cat->execute()) {
+                $id_categorie = $conn->insert_id;
+            }
+            $stmt_cat->close();
+        }
+    } else {
+        $id_categorie = intval($cat_input) > 0 ? intval($cat_input) : null;
     }
 
-    // Nettoyer les données
-    $nom = Validator::sanitizeText($nom, 100);
-    $categorie = Validator::validateCategory($categorie);
-    if ($categorie === false) {
+    if ($id_categorie === null && $cat_input !== "") {
         FlashMessage::error('Catégorie invalide');
         header("Location: index.php");
         exit();
     }
-    $quantite = Validator::validateQuantity($quantite);
-
-    $image_name = ""; 
-
     // Traiter l'image si présente
     if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
         $validation = Validator::validateImageFile($_FILES['image']);
@@ -72,15 +75,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Insérer en base de données
-    $stmt = $conn->prepare("INSERT INTO objets (nom, categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
+    // Insérer en base de données (id_categorie au lieu de categorie)
+    $stmt = $conn->prepare("INSERT INTO objets (nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
     if (!$stmt) {
         FlashMessage::error('Erreur préparation requête');
         header("Location: index.php");
         exit();
     }
 
-    $stmt->bind_param("ssis", $nom, $categorie, $quantite, $image_name);
+    // Le type change : "siis" (string, int, int, string)
+    $stmt->bind_param("siis", $nom, $id_categorie, $quantite, $image_name);
 
     if ($stmt->execute()) {
         FlashMessage::success('Objet ajouté avec succès ✓');

@@ -195,10 +195,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 
 // Get all objects for this database
+// 1. Récupérer les objets avec le NOM de la catégorie (via LEFT JOIN)
 $objets_res = $conn->query("
-    SELECT * FROM objets 
-    WHERE database_id = '$database_id' 
-    ORDER BY id DESC
+    SELECT objets.*, categories.nom AS nom_categorie 
+    FROM objets 
+    LEFT JOIN categories ON objets.id_categorie = categories.id
+    WHERE objets.database_id = '$database_id' 
+    ORDER BY objets.id DESC
 ");
 
 $objets = [];
@@ -206,16 +209,31 @@ while ($row = $objets_res->fetch_assoc()) {
     $objets[] = $row;
 }
 
-// Get categories
+// 2. Récupérer les catégories proprement (Table categories)
+// On filtre par database_id (celles de cette base + les globales si NULL)
 $cat_res = $conn->query("
-    SELECT DISTINCT categorie FROM objets 
-    WHERE database_id = '$database_id' AND categorie != '' 
-    ORDER BY categorie
+    SELECT id, nom, parent_id 
+    FROM categories 
+    WHERE database_id = '$database_id' OR database_id IS NULL 
+    ORDER BY parent_id ASC, nom ASC
 ");
 
-$categories = [];
+$categories_raw = [];
 while ($row = $cat_res->fetch_assoc()) {
-    $categories[] = $row['categorie'];
+    $categories_raw[] = $row;
+}
+
+// 3. Organiser les catégories en arbre (Parent/Enfant) pour le JS
+$categories_tree = [];
+foreach ($categories_raw as $cat) {
+    if ($cat['parent_id'] == null) {
+        $cat['subs'] = [];
+        $categories_tree[$cat['id']] = $cat;
+    } else {
+        if (isset($categories_tree[$cat['parent_id']])) {
+            $categories_tree[$cat['parent_id']]['subs'][] = $cat;
+        }
+    }
 }
 
 // Generate CSRF token for templates
@@ -254,6 +272,99 @@ function updateQuantity(id, action) {
     .then(d => {
         if (d.success) {
             document.getElementById('qty-' + id).textContent = qty;
+        }
+    });
+}// On envoie l'arbre des catégories au JS
+const globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
+
+function editFieldderoul(id, field, currentValue, event) {
+    if (field !== 'categorie') {
+        let newValue = prompt("Nouvelle valeur :", currentValue);
+        if (newValue !== null) sendUpdate(id, field, newValue);
+        return;
+    }
+
+    const tagElement = event.currentTarget;
+    const parent = tagElement.parentNode;
+    
+    // Créer le select
+    const select = document.createElement('select');
+    select.className = "form-input";
+    
+    const optNone = document.createElement('option');
+    optNone.value = "0";
+    optNone.textContent = "-- Sans catégorie --";
+    select.appendChild(optNone);
+
+    // Remplir le select avec Parent > Enfant
+    globalCategories.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.nom;
+        opt.style.fontWeight = "bold";
+        if (p.nom === currentValue) opt.selected = true;
+        select.appendChild(opt);
+
+        if (p.subs) {
+            p.subs.forEach(s => {
+                const o = document.createElement('option');
+                o.value = s.id;
+                o.textContent = "   ↳ " + s.nom;
+                if (s.nom === currentValue) o.selected = true;
+                select.appendChild(o);
+            });
+        }
+    });
+
+    const optNew = document.createElement('option');
+    optNew.value = "NEW";
+    optNew.textContent = "+ Créer nouvelle catégorie";
+    select.appendChild(optNew);
+
+    parent.replaceChild(select, tagElement);
+    select.focus();
+
+    select.onchange = function() {
+        if (this.value === "NEW") {
+            const newName = prompt("Nom de la nouvelle catégorie :");
+            if (newName) {
+                // Ici on envoie le NOM pour que le serveur sache qu'il doit créer
+                // Ou mieux: vous pouvez créer une action AJAX 'addCategory'
+                sendUpdate(id, 'categorie', newName); 
+            } else {
+                parent.replaceChild(tagElement, select);
+            }
+        } else {
+            // On envoie l'ID
+            sendUpdate(id, 'categorie', this.value);
+        }
+    };
+
+    select.onblur = function() {
+        setTimeout(() => { if (parent.contains(select)) parent.replaceChild(tagElement, select); }, 200);
+    };
+}
+function sendUpdate(id, field, newVal) {
+    fetch('?id=<?php echo $database_id; ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=edit&id=' + id + '&field=' + field + '&value=' + encodeURIComponent(newVal) + '&csrf_token=<?php echo $csrf_token; ?>'
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            if (field === 'quantite') {
+                document.getElementById('qty-' + id).textContent = newVal;
+                // Si on a remplacé le span par un select, on rafraîchit quand même pour remettre le design propre
+                location.reload(); 
+            } else {
+                location.reload();
+            }
+        } else {
+            alert("Erreur: " + (d.message || "Impossible de mettre à jour"));
+            location.reload();
         }
     });
 }

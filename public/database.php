@@ -37,14 +37,22 @@ class DatabaseObjets {
     }
     
     public function getAll($limit = null, $offset = 0) {
-        $query = "SELECT * FROM objets WHERE database_id = ? ORDER BY id DESC";
+        $query = "SELECT objets.*, categories.nom AS nom_categorie 
+              FROM objets 
+              LEFT JOIN categories ON objets.id_categorie = categories.id 
+              WHERE objets.database_id = ? ORDER BY objets.id DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $this->database_id);
         
         if ($limit !== null) {
             $limit = intval($limit);
             $offset = intval($offset);
-            $query = "SELECT * FROM objets WHERE database_id = ? ORDER BY id DESC LIMIT $limit OFFSET $offset";
+            $query = "SELECT objets.*, categories.nom AS nom_categorie 
+                FROM objets 
+                LEFT JOIN categories ON objets.id_categorie = categories.id 
+                WHERE objets.database_id = ? 
+                ORDER BY objets.id DESC 
+                LIMIT $limit OFFSET $offset";
             $stmt = $this->conn->prepare($query);
             $stmt->bind_param("i", $this->database_id);
         }
@@ -73,14 +81,15 @@ class DatabaseObjets {
         return null;
     }
     
-    public function create($nom, $categorie, $quantite, $image_path = '') {
-        $stmt = $this->conn->prepare("INSERT INTO objets (nom, categorie, quantite, image_path, database_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssisi", $nom, $categorie, $quantite, $image_path, $this->database_id);
+    // On change 'categorie' (string) par 'id_categorie' (int)
+    public function create($nom, $id_categorie, $quantite, $image_path = '') {
+        $stmt = $this->conn->prepare("INSERT INTO objets (nom, id_categorie, quantite, image_path, database_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("siisi", $nom, $id_categorie, $quantite, $image_path, $this->database_id);
         return $stmt->execute();
     }
     
     public function update($id, $field, $value) {
-        $allowedFields = ['nom', 'categorie', 'quantite', 'image_path'];
+        $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path'];
         if (!in_array($field, $allowedFields, true)) {
             return false;
         }
@@ -88,7 +97,7 @@ class DatabaseObjets {
         $id = intval($id);
         $stmt = $this->conn->prepare("UPDATE objets SET $field = ? WHERE id = ? AND database_id = ?");
         
-        if ($field === 'quantite') {
+        if ($field === 'quantite' || $field === 'id_categorie') {
             $stmt->bind_param("iii", $value, $id, $this->database_id);
         } else {
             $stmt->bind_param("sii", $value, $id, $this->database_id);
@@ -105,17 +114,11 @@ class DatabaseObjets {
     }
     
     public function getCategories() {
-        $stmt = $this->conn->prepare("SELECT DISTINCT categorie FROM objets WHERE database_id = ? AND categorie != '' ORDER BY categorie ASC");
+        // On va chercher dans la table categories, pas dans objets
+        $stmt = $this->conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? OR database_id IS NULL ORDER BY nom ASC");
         $stmt->bind_param("i", $this->database_id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $categories = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $categories[] = $row['categorie'];
-        }
-        
-        return $categories;
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
     
     public function count() {
@@ -152,35 +155,50 @@ $objet_model = new DatabaseObjets($conn, $database_id);
 // Gérer les actions POST
 $action = $_GET['action'] ?? '';
 
-// Ajouter un objet
-if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Vérifier la permission
+// Ajouter un objetif ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($permission !== 'admin' && $permission !== 'edit') {
         FlashMessage::error('Vous n\'avez pas la permission d\'ajouter des objets');
     } elseif (!CsrfToken::verifyFromPost()) {
         FlashMessage::error('Erreur de sécurité');
     } else {
-        $nom = $_POST['nom'] ?? '';
-        $categorie = $_POST['categorie'] ?? '';
-        $quantite = intval($_POST['quantite'] ?? 1);
+        $nom = Validator::sanitizeText($_POST['nom'] ?? '', 100);
+        $quantite = Validator::validateQuantity($_POST['quantite'] ?? 1);
         
-        $nom = Validator::sanitizeText($nom, 100);
-        $categorie = Validator::validateCategory($categorie);
-        $quantite = Validator::validateQuantity($quantite);
-        
-        if ($nom && $categorie) {
-            if ($objet_model->create($nom, $categorie, $quantite)) {
+        // 1. Récupération de la catégorie (ID ou le mot "NEW")
+        $cat_value = $_POST['categorie'] ?? ''; 
+        $id_categorie = null;
+
+        if ($cat_value === 'NEW') {
+            // 2. Gestion d'une nouvelle catégorie
+            $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
+            if (!empty($new_cat_name)) {
+                // On insère la nouvelle catégorie en BDD
+                // On lui passe le database_id pour qu'elle appartienne à cette base
+                $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
+                $stmt_cat->bind_param("si", $new_cat_name, $database_id);
+                if ($stmt_cat->execute()) {
+                    $id_categorie = $conn->insert_id; // On récupère l'ID tout juste créé
+                }
+            }
+        } else {
+            // 3. Utilisation d'une catégorie existante (ID numérique)
+            $id_categorie = intval($cat_value) > 0 ? intval($cat_value) : null;
+        }
+
+        // 4. Insertion de l'objet avec l'ID de catégorie
+        if (!empty($nom)) {
+            // On appelle la méthode create du modèle (qui utilise id_categorie maintenant)
+            if ($objet_model->create($nom, $id_categorie, $quantite)) {
                 FlashMessage::success('Objet ajouté avec succès!');
                 header("Location: database.php?id=$database_id");
                 exit();
             } else {
-                FlashMessage::error('Erreur lors de l\'ajout');
+                FlashMessage::error('Erreur lors de l\'ajout en base de données');
             }
         } else {
-            FlashMessage::error('Veuillez remplir tous les champs correctement');
+            FlashMessage::error('Le nom de l\'objet est obligatoire');
         }
     }
-}
 
 // Récupérer les objets
 $objets = $objet_model->getAll();
@@ -208,7 +226,9 @@ include __DIR__ . '/../templates/includes/header.phtml';
         <select id="categoryFilter" onchange="filterItems()">
             <option value="">Toutes les catégories</option>
             <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                <option value="<?php echo htmlspecialchars($cat['nom']); ?>">
+                    <?php echo htmlspecialchars($cat['nom']); ?>
+                </option>
             <?php endforeach; ?>
         </select>
         
@@ -232,12 +252,12 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 
                 <div class="form-group">
                     <label for="categorie">Catégorie *</label>
-                    <input type="text" name="categorie" id="categorie" list="categories" required placeholder="Ex: Électronique, Outils...">
-                    <datalist id="categories">
+                    <select name="categorie" id="categorie" required class="form-input">
+                        <option value="">-- Choisir --</option>
                         <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo htmlspecialchars($cat); ?>">
+                            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nom']) ?></option>
                         <?php endforeach; ?>
-                    </datalist>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -266,9 +286,9 @@ include __DIR__ . '/../templates/includes/header.phtml';
             </div>
         <?php else: ?>
             <?php foreach ($objets as $objet): ?>
-                <div class="card" data-name="<?php echo strtolower(htmlspecialchars($objet['nom'])); ?>" data-cat="<?php echo htmlspecialchars($objet['categorie']); ?>">
-                    
-                    <?php if ($objet['image_path']): ?>
+                <div class="card" 
+                    data-name="<?php echo strtolower(htmlspecialchars($objet['nom'])); ?>" 
+                    data-cat="<?php echo htmlspecialchars($objet['nom_categorie'] ?? ''); ?>"> <?php if ($objet['image_path']): ?>
                         <img src="<?php echo htmlspecialchars($objet['image_path']); ?>" alt="<?php echo htmlspecialchars($objet['nom']); ?>">
                     <?php else: ?>
                         <div class="card-no-image">
@@ -280,9 +300,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     <div class="card-details">
                         <h3><?php echo htmlspecialchars($objet['nom']); ?></h3>
                         
-                        <span class="tag"><?php echo htmlspecialchars($objet['categorie']); ?></span>
-                        
-                        <div class="qty-zone">
+                        <span class="tag"><?php echo htmlspecialchars($objet['nom_categorie'] ?? 'Sans catégorie'); ?></span> <div class="qty-zone">
                             <?php if ($permission === 'admin' || $permission === 'edit'): ?>
                                 <button class="btn-qty" onclick="updateQuantity(<?php echo $objet['id']; ?>, 'dec')">-</button>
                             <?php endif; ?>
