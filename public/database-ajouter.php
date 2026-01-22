@@ -105,7 +105,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <div class="form-section">
                 <div class="form-group">
                     <label for="objet-nom">Nom de l'objet *</label>
-                    <input type="text" id="objet-nom" name="nom" required class="form-input" autofocus>
+                    <input type="text" id="objet-nom" name="nom" required class="form-input" autocomplete="off">
                 </div>
 
                 <div class="form-group">

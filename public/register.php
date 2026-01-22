@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if (!$success): ?>
         <form method="POST">
             <label for="username">Pseudo</label>
-            <input type="text" name="username" id="username" required placeholder="Votre pseudo (min 3 caractères)">
+            <input type="text" name="username" id="username" required placeholder="Votre pseudo (min 3 caractères)" autocomplete="username">
             
             <label for="email">Email</label>
             <input type="email" name="email" id="email" required placeholder="votre@email.com">

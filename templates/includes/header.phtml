@@ -15,7 +15,7 @@
             <?php 
             // Show action buttons only on database pages
             $current_page = basename($_SERVER['PHP_SELF']);
-            if ($current_page === 'database-view.php' && isset($_GET['id'])): 
+            if (($current_page === 'database-view.php' || $current_page === 'database-ajouter.php' || $current_page === 'database-settings.php') && isset($_GET['id'])): 
                 $db_id = $_GET['id'];
             ?>
                 <a href="database-ajouter.php?id=<?php echo $db_id; ?>" class="nav-action-btn btn-add">➕ Ajouter</a>
@@ -23,7 +23,7 @@
             
             <?php 
             // Show settings button on database-view.php for admins
-            if ($current_page === 'database-view.php' && isset($_GET['id'])): 
+            if (($current_page === 'database-view.php' || $current_page === 'database-ajouter.php' || $current_page === 'database-settings.php') && isset($_GET['id'])): 
                 $db_id = $_GET['id'];
                 // Check if admin (you might want to get this from session or pass it)
             ?>
