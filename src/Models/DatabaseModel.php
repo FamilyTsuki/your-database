@@ -233,6 +233,12 @@ class DatabaseModel {
         
         return $stmt->execute();
     }
+    public function deleteCategory2($category_id) {
+    // On prépare la requête de suppression
+        $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ?");
+        $stmt->bind_param("i", $category_id);
+        return $stmt->execute();
+    }
 
     /**
      * Met à jour le nom et la description d'une base

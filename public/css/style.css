@@ -1448,3 +1448,16 @@ form input[type="number"] {
 .placeholder {
   pointer-events: none;
 }
+.quick-add-cat input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+.db-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.footer-links {
+  display: flex;
+  justify-content: space-between;
+}

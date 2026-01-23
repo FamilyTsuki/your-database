@@ -9,13 +9,9 @@
         <select id="categoryFilter" onchange="filterItems()">
             <option value="">Toutes les catégories</option>
             <?php foreach ($categories_tree as $parent): ?>
-                <option value="<?= htmlspecialchars($parent['nom']) ?>">
-                    <?= htmlspecialchars($parent['nom']) ?>
-                </option>
+                <option value="<?= $parent['id'] ?>"><?= htmlspecialchars($parent['nom']) ?></option>
                 <?php foreach ($parent['subs'] as $sub): ?>
-                    <option value="<?= htmlspecialchars($sub['nom']) ?>">
-                        ↳ <?= htmlspecialchars($sub['nom']) ?>
-                    </option>
+                    <option value="<?= $sub['id'] ?>">↳ <?= htmlspecialchars($sub['nom']) ?></option>
                 <?php endforeach; ?>
             <?php endforeach; ?>
         </select>
@@ -27,7 +23,12 @@
         ?>
             <div class="card" 
                  data-name="<?= strtolower(htmlspecialchars($row['nom'])); ?>" 
-                 data-cat="<?= htmlspecialchars($row['nom_categorie'] ?? '') ?>">
+                 data-cat="<?= htmlspecialchars($row['nom_categorie'] ?? '') ?>"
+                 data-catid="<?= $row['id_categorie'] ?>" 
+                data-parentid="<?= $row['parent_id'] ?? '' ?>">
+                 
+                 
+                 
                 
                 <?php if($hasImg): ?>
                     <img src="uploads/<?= htmlspecialchars($row['image_path']); ?>" 

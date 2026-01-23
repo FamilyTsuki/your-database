@@ -7,7 +7,7 @@ class DatabaseController {
         require_once dirname(__DIR__) . '/Models/DatabaseModel.php';
         $this->model = new DatabaseModel($database);
     }
-
+    
     /**
      * Crée une nouvelle base de données
      */
@@ -111,5 +111,11 @@ class DatabaseController {
     public function getCategories($database_id) {
         return $this->model->getCategories($database_id);
     }
+    public function deleteCategory($category_id) {
+    // On prépare la requête de suppression
+
+        return $this->model->deleteCategory2($category_id);
+    }
+    
 }
 ?>
