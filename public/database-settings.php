@@ -129,7 +129,7 @@ if ($action === 'delete_category' && !CsrfToken::verifyFromPost()) {
 
     // Vérifier si la catégorie appartient bien à cette base avant de supprimer
     // (Sécurité supplémentaire)
-    if ($db_controller->deleteCategory($cat_id)) {
+    if ($db_controller->deleteCategory($cat_id , $database_id)) {
         FlashMessage::success('Catégorie supprimée !');
     } else {
         FlashMessage::error('Erreur lors de la suppression (vérifiez si elle est utilisée)');

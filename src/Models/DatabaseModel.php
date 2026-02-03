@@ -60,15 +60,11 @@ class DatabaseModel {
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("iii", $user_id, $user_id, $user_id);
         $stmt->execute();
+
+
         
         $result = $stmt->get_result();
-        $databases = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $databases[] = $row;
-        }
-        
-        return $databases;
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     /**
@@ -88,28 +84,7 @@ class DatabaseModel {
         return null;
     }
 
-    /**
-     * Vérifie si l'utilisateur a accès à une base
-     */
-    public function hasAccess($database_id, $user_id) {
-        $database_id = intval($database_id);
-        $user_id = intval($user_id);
-        
-        // L'owner a toujours accès
-        $stmt = $this->conn->prepare("SELECT id FROM `databases` WHERE id = ? AND owner_id = ?");
-        $stmt->bind_param("ii", $database_id, $user_id);
-        $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
-            return true;
-        }
-        
-        // Vérifier les permissions
-        $stmt = $this->conn->prepare("SELECT id FROM `database_permissions` WHERE database_id = ? AND user_id = ?");
-        $stmt->bind_param("ii", $database_id, $user_id);
-        $stmt->execute();
-        
-        return $stmt->get_result()->num_rows > 0;
-    }
+   
 
     /**
      * Vérifie si l'utilisateur est propriétaire
@@ -281,26 +256,22 @@ class DatabaseModel {
     /**
  * Récupère toutes les catégories (utilisé pour les filtres et menus)
  */
-    public function getCategories($database_id = null) {
-    // 1. Préparation de la requête
-    $stmt = $this->conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? OR database_id IS NULL ORDER BY nom ASC");
-    
-    // 2. Liaison du paramètre (i pour integer)
+   public function getCategories($database_id) {
+    $stmt = $this->conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? ORDER BY nom ASC");
     $stmt->bind_param("i", $database_id);
-    
-    // 3. EXÉCUTION (Ligne indispensable)
     $stmt->execute();
-    
-    // 4. Récupération des résultats
     $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+public function deleteCategorySecure($category_id, $database_id) {
+    $category_id = intval($category_id);
+    $database_id = intval($database_id);
+
+    // On s'assure que la catégorie appartient bien à la base en question
+    $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ? AND database_id = ?");
+    $stmt->bind_param("ii", $category_id, $database_id);
     
-    $categories = [];
-    while ($row = $result->fetch_assoc()) {
-        $categories[] = $row;
-    }
-    
-    $stmt->close();
-    return $categories;
+    return $stmt->execute();
 }
 }
 ?>

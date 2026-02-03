@@ -11,42 +11,40 @@ class ObjetModel {
      * Récupère tous les objets avec pagination optionnelle
      */
     public function getAll($limit = null, $offset = 0) {
-    // On fait une jointure pour récupérer le nom de la catégorie
-    $query = "SELECT objets.*, categories.nom AS nom_categorie 
-              FROM objets 
-              LEFT JOIN categories ON objets.id_categorie = categories.id 
-              ORDER BY objets.id DESC";
-    
-    if ($limit !== null) {
-        $limit = intval($limit);
-        $offset = intval($offset);
-        $query .= " LIMIT $limit OFFSET $offset";
+    // Utilisation de requêtes préparées pour la pagination
+        $query = "SELECT objets.*, categories.nom AS nom_categorie, p.nom AS parent_nom
+            FROM objets 
+            LEFT JOIN categories ON objets.id_categorie = categories.id
+            LEFT JOIN categories p ON categories.parent_id = p.id
+            ORDER BY objets.id DESC";
+        
+        if ($limit !== null) {
+            $stmt = $this->conn->prepare($query . " LIMIT ? OFFSET ?");
+            $l = intval($limit);
+            $o = intval($offset);
+            $stmt->bind_param("ii", $l, $o);
+            $stmt->execute();
+            return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        }
+        
+        $result = $this->conn->query($query);
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
-    
-    $result = $this->conn->query($query);
-    $objets = [];
-    while ($row = $result->fetch_assoc()) {
-        $objets[] = $row;
-    }
-    return $objets;
-}
 
     /**
      * Récupère un objet par ID
      */
     public function getById($id) {
-    $id = intval($id);
-    $result = $this->conn->query("
-        SELECT objets.*, categories.nom AS nom_categorie 
-        FROM objets 
-        LEFT JOIN categories ON objets.id_categorie = categories.id 
-        WHERE objets.id = $id
-    ");
-    
-    if ($result && $row = $result->fetch_assoc()) {
-        return $row;
-    }
-    return null;
+        $stmt = $this->conn->prepare("SELECT objets.*, categories.nom AS nom_categorie, p.nom AS parent_nom
+            FROM objets 
+            LEFT JOIN categories ON objets.id_categorie = categories.id
+            LEFT JOIN categories p ON categories.parent_id = p.id
+            WHERE objets.id = ?
+        ");
+        $id = intval($id);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc() ?: null;
 }
 
     /**
@@ -110,19 +108,6 @@ class ObjetModel {
         return $success;
     }
 
-    /**
-     * Récupère les catégories uniques
-     */
-    public function getCategories() {
-    // On récupère toutes les catégories réelles de la table categories
-        $result = $this->conn->query("SELECT id, nom, parent_id FROM categories ORDER BY nom ASC");
-        $categories = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $categories[] = $row;
-        }
-        return $categories;
-    }
 
     /**
      * Compte le nombre total d'objets

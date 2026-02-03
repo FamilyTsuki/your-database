@@ -69,10 +69,7 @@ class Auth {
             return ['success' => false, 'message' => 'Pseudo ou mot de passe incorrect'];
         }
 
-        // Créer la session
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+       
 
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];

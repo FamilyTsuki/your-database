@@ -52,9 +52,9 @@
                         style="cursor:pointer;" 
                         onclick="editFieldderoul(<?= $row['id']; ?>, 'id_categorie', '<?= addslashes($row['nom_categorie'] ?? ''); ?>', event)">
                        <?= htmlspecialchars(
-                            ($row['parent_nom'] ? $row['parent_nom'] . " -> " : "") .
-                            ($row['nom_categorie'] ?? 'Sans catégorie')
-                        ); ?>
+                        ($row['parent_nom'] ? $row['parent_nom'] . " -> " : "") .
+                        ($row['nom_categorie'] ?? 'Sans catégorie')
+                    ); ?>
                     </span>
                     
                     

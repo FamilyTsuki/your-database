@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
         $quantite = intval($_POST['quantite'] ?? 1);
         
         $id_categorie = null;
+        
         $cat_value = $_POST['categorie'] ?? '';
 
         // 1. Gestion de la catégorie
@@ -82,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
         }
     }
 }
-// 4. Données pour la vue
+
 // 4. Données pour la vue
 $cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY nom ASC");
 $all_cats = $cat_res->fetch_all(MYSQLI_ASSOC);
@@ -136,25 +137,14 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     <input type="text" id="objet-nom" name="nom" required class="form-input" autocomplete="off">
                 </div>
 
-                <div class="form-group">
-                    <label for="objet-cat">Catégorie</label>
-                    <select id="objet-cat" name="categorie" class="form-input" onchange="toggleNewCategory(this)">
-                        <option value="">-- Sans catégorie --</option>
-                        <?php foreach ($categories_tree as $parent): ?>
-                            <option value="<?= $parent['id'] ?>" style="font-weight: bold;">
-                                <?= htmlspecialchars($parent['nom']) ?>
-                            </option>
-                            
-                            <?php foreach ($parent['subs'] as $sub): ?>
-                                <option value="<?= $sub['id'] ?>">
-                                    &nbsp;&nbsp;&nbsp;↳ <?= htmlspecialchars($sub['nom']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php endforeach; ?>
-                        
-                        <option value="NEW" style="color: #3498db; font-weight: bold;">+ Créer nouvelle catégorie</option>
-                    </select>
-                    <input type="text" id="new-cat-input" name="new_category" placeholder="Nom de la catégorie" class="form-input" style="display: none; margin-top: 10px;">
+                <label>Catégorie</label>
+                <input type="hidden" name="id_categorie" id="add_item_category_id" value="">
+                
+                <div id="category_selector_trigger" 
+                    class="tag" 
+                    style="cursor:pointer; display:inline-block; padding: 8px 12px; border: 1px solid #ccc;"
+                    onclick="openCategoryPicker(event)">
+                    Choisir une catégorie...
                 </div>
 
                 <div class="form-group">

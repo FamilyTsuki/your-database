@@ -40,9 +40,7 @@ class DatabaseController {
     /**
      * Vérifie l'accès
      */
-    public function hasAccess($database_id, $user_id) {
-        return $this->model->hasAccess($database_id, $user_id);
-    }
+    
 
     /**
      * Vérifie si propriétaire
@@ -111,11 +109,21 @@ class DatabaseController {
     public function getCategories($database_id) {
         return $this->model->getCategories($database_id);
     }
-    public function deleteCategory($category_id) {
-    // On prépare la requête de suppression
-
-        return $this->model->deleteCategory2($category_id);
+    public function deleteCategory($category_id, $database_id) {
+    $user_id = Auth::getUserId();
+    
+    // 1. On vérifie si l'utilisateur est bien le propriétaire de la base
+    if (!$this->isOwner($database_id, $user_id)) {
+        return ['success' => false, 'message' => 'Action non autorisée'];
     }
+
+    // 2. On appelle la suppression
+    if ($this->model->deleteCategorySecure($category_id, $database_id)) {
+        return ['success' => true, 'message' => 'Catégorie supprimée ✓'];
+    }
+    
+    return ['success' => false, 'message' => 'Erreur lors de la suppression'];
+}
     
 }
 ?>
