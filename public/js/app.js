@@ -74,15 +74,33 @@ function previewImage(event) {
  * Filtre les items selon la recherche et catégorie
  */
 function filterItems() {
-  let search = document.getElementById("searchInput").value.toLowerCase();
-  let cat = document.getElementById("categoryFilter").value; // Récupère le NOM sélectionné
-  let cards = document.querySelectorAll(".card");
+  const searchInput = document.getElementById("searchInput");
+  const categorySelect = document.getElementById("categoryFilter");
 
-  cards.forEach((card) => {
-    let nameMatch = card.getAttribute("data-name").includes(search);
-    // On compare le NOM de la catégorie
-    let catMatch = cat === "" || card.getAttribute("data-cat") === cat;
-    card.style.display = nameMatch && catMatch ? "flex" : "none";
+  if (!searchInput || !categorySelect) return;
+
+  const search = searchInput.value.toLowerCase().trim();
+  const categoryFilter = categorySelect.value.toLowerCase().trim();
+
+  document.querySelectorAll(".card").forEach((card) => {
+    const name = (card.dataset.name || "").toLowerCase();
+    const cat = (card.dataset.cat || "").toLowerCase();
+    const parent = (card.dataset.parent || "").toLowerCase();
+    const matchesSearch = name.includes(search);
+
+    // On vérifie si le filtre est vide,
+    // OU s'il correspond à la catégorie,
+    // OU s'il correspond au parent
+    const matchesCategory =
+      categoryFilter === "" ||
+      cat === categoryFilter ||
+      parent === categoryFilter;
+
+    if (matchesSearch && matchesCategory) {
+      card.style.display = "flex";
+    } else {
+      card.style.display = "none";
+    }
   });
 }
 

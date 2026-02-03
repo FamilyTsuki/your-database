@@ -121,7 +121,7 @@
                 $new_id = $conn->insert_id;
                 
                 // 2. Assignation à l'objet
-                $result = $conn->query("UPDATE objets SET id_categorie = $new_id WHERE id = $id_objet");
+                $result = $conn->query("UPDATE objets SET id_categorie = $new_id WHERE id = $objet_id AND database_id = '$database_id'");
                 die(json_encode(['success' => $result]));
             }
             // CAS 1 : Créer une toute nouvelle catégorie et l'associer à l'objet
@@ -233,9 +233,14 @@
     // Get all objects for this database
     // 1. Récupérer les objets avec le NOM de la catégorie (via LEFT JOIN)
     $objets_res = $conn->query("
-        SELECT objets.*, categories.nom AS nom_categorie 
+        SELECT 
+            objets.*, 
+            cat.nom AS nom_categorie,
+            cat.parent_id,
+            parent_cat.nom AS parent_nom
         FROM objets 
-        LEFT JOIN categories ON objets.id_categorie = categories.id
+        LEFT JOIN categories AS cat ON objets.id_categorie = cat.id
+        LEFT JOIN categories AS parent_cat ON cat.parent_id = parent_cat.id
         WHERE objets.database_id = '$database_id' 
         ORDER BY objets.id DESC
     ");
@@ -409,30 +414,7 @@
             alert("Erreur réseau ou serveur");
         });
     }
-    function editFieldderoul(id, field, currentVal, event) {
-        const card = event.target.closest('.card');
-        // On crée le select
-        let html = `<select onchange="handleCategoryChange(this, ${id})" class="edit-select">`;
-        html += `<option value="">-- Choisir --</option>`;
-
-        // On parcourt l'arbre des catégories envoyé par PHP
-        window.globalCategories.forEach(parent => {
-            html += `<optgroup label="📂 ${parent.nom}">`;
-            html += `<option value="${parent.id}" ${currentVal == parent.nom ? 'selected' : ''}>${parent.nom} (Principal)</option>`;
-            
-            parent.subs.forEach(sub => {
-                html += `<option value="${sub.id}" ${currentVal == sub.nom ? 'selected' : ''}>↳ ${sub.nom}</option>`;
-            });
-            
-            // OPTION SPÉCIALE : Ajouter une sous-catégorie à ce parent
-            html += `<option value="NEW_SUB_${parent.id}" style="color: blue; font-weight: bold;">+ Nouvelle sous-catégorie</option>`;
-            html += `</optgroup>`;
-        });
-        
-        html += `</select>`;
-        
-        event.target.outerHTML = html;
-    }
+    
 
     // Fonction pour gérer le choix
     function handleCategoryChange(selectElement, idObjet) {
@@ -472,7 +454,16 @@
             editField(idObjet, 'id_categorie', value);
         }
     }
+    function editField(id, field, value) {
+    // Si on clique sur une catégorie, on ne fait rien ici (c'est géré par editFieldderoul)
+    if (field === 'id_categorie' || field === 'categorie') return;
 
+    const newVal = prompt('Modifier ' + field + ':', value);
+    if (newVal === null || newVal.trim() === "") return;
+    
+    // On appelle sendUpdate pour enregistrer proprement
+    sendUpdate(id, field, newVal);
+}
     function deleteObject(id) {
         if (!confirm('Supprimer cet objet ?')) return;
         
@@ -535,19 +526,35 @@
         reader.readAsDataURL(file);
     }
 
-    function filterItems() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const category = document.getElementById('categoryFilter').value.toLowerCase();
+    /*function filterItems() {
+        const searchInput = document.getElementById('searchInput');
+        const categorySelect = document.getElementById('categoryFilter');
+        alert(searchInput , categorySelect)
+        if (!searchInput || !categorySelect) return;
+
+        const search = searchInput.value.toLowerCase().trim();
+        const categoryFilter = categorySelect.value.toLowerCase().trim();
         
         document.querySelectorAll('.card').forEach(card => {
-            const name = card.dataset.name || '';
-            const cat = card.dataset.cat.toLowerCase();
+            const name = (card.dataset.name || '').toLowerCase();
+            const cat = (card.dataset.cat || '').toLowerCase();
+            const parent = (card.dataset.parent || '').toLowerCase();
+            const matchesSearch = name.includes(search);
             
-            const matches = (!search || name.includes(search)) && 
-                        (!category || cat === category);
-            card.style.display = matches ? 'block' : 'none';
+            // On vérifie si le filtre est vide, 
+            // OU s'il correspond à la catégorie, 
+            // OU s'il correspond au parent
+            const matchesCategory = (categoryFilter === "" || 
+                                    cat === categoryFilter || 
+                                    parent === categoryFilter);
+            
+            if (matchesSearch && matchesCategory) {
+                card.style.display = "flex";
+            } else {
+                card.style.display = "none";
+            }
         });
-    }
+    }*/
 
     // Handle category "NEW" option
     document.addEventListener('DOMContentLoaded', function() {

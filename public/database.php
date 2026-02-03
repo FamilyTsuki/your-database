@@ -250,15 +250,14 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     <input type="text" name="nom" id="nom" required placeholder="Nom de l'objet" maxlength="100">
                 </div>
                 
-                <div class="form-group">
-                    <label for="categorie">Catégorie *</label>
-                    <select name="categorie" id="categorie" required class="form-input">
-                        <option value="">-- Choisir --</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nom']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <span class="tag" 
+                        style="cursor:pointer;" 
+                        onclick="editFieldderoul(<?= $row['id']; ?>, 'id_categorie', '<?= addslashes($row['nom_categorie'] ?? ''); ?>', event)">
+                       <?= htmlspecialchars(
+                            ($row['parent_nom'] ? $row['parent_nom'] . " -> " : "") .
+                            ($row['nom_categorie'] ?? 'Sans catégorie')
+                        ); ?>
+                    </span>
                 
                 <div class="form-group">
                     <label for="quantite">Quantité</label>
@@ -331,7 +330,7 @@ function toggleAddForm() {
 }
 
 // Filtre et recherche (comme l'ancienne page)
-function filterItems() {
+/*function filterItems() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     const categoryFilter = document.getElementById('categoryFilter').value;
     const cards = document.querySelectorAll('.grid .card');
@@ -345,7 +344,7 @@ function filterItems() {
         
         card.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
     });
-}
+}*/
 
 function updateQuantity(id, action) {
     const currentQty = parseInt(document.getElementById('qty-' + id).textContent);
