@@ -18,72 +18,7 @@ if (!$database_id) {
 $user_id = Auth::getUserId();
 $conn = $conn; // Assumé défini dans config.php
 
-// 3. Traitement du formulaire
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
-    if (!CsrfToken::verifyFromPost()) {
-        FlashMessage::error('Token CSRF invalide');
-    } else {
-        $nom = Validator::sanitizeText($_POST['nom'] ?? '', 100);
-        $quantite = intval($_POST['quantite'] ?? 1);
-        
-        $id_categorie = null;
-        
-        $cat_value = $_POST['categorie'] ?? '';
-
-        // 1. Gestion de la catégorie
-        if (strpos($cat_value, 'NEW:') === 0) {
-            // Nouvelle catégorie créée dans le JS
-            $new_cat_name = Validator::sanitizeText(substr($cat_value, 4), 100);
-            if (!empty($new_cat_name)) {
-                $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
-                $stmt_cat->bind_param("si", $new_cat_name, $database_id);
-                if ($stmt_cat->execute()) {
-                    $id_categorie = $conn->insert_id;
-                }
-            }
-        } elseif (!empty($cat_value) && $cat_value !== '0') {
-            $id_categorie = intval($cat_value);
-        }
-
-        if (!empty($nom)) {
-            $image_filename = '';
-
-            // 2. GESTION DE L'IMAGE (Le code manquant)
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $validation = Validator::validateImageFile($_FILES['image']);
-                if ($validation['valid']) {
-                    $uploads_dir = __DIR__ . '/uploads';
-                    if (!is_dir($uploads_dir)) {
-                        mkdir($uploads_dir, 0755, true);
-                    }
-
-                    $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-                    // Génération d'un nom unique pour éviter les doublons
-                    $image_filename = 'obj_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-                    
-                    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploads_dir . '/' . $image_filename)) {
-                        FlashMessage::error('Erreur lors du transfert physique de l\'image');
-                        $image_filename = ''; // Reset si échec
-                    }
-                } else {
-                    FlashMessage::error($validation['message']);
-                }
-            }
-
-            // 3. Insertion en base de données avec le nom de l'image
-            $stmt = $conn->prepare("INSERT INTO objets (database_id, nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("isiis", $database_id, $nom, $id_categorie, $quantite, $image_filename);
-
-            if ($stmt->execute()) {
-                FlashMessage::success('Objet ajouté avec succès');
-                header("Location: database-view.php?id=$database_id");
-                exit();
-            } else {
-                FlashMessage::error('Erreur BDD : ' . $conn->error);
-            }
-        }
-    }
-}
+// Form submit is handled client-side via public/js/app.js and the API endpoint.
 
 // 4. Données pour la vue
 $cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY parent_id ASC, nom ASC");
@@ -108,6 +43,8 @@ include __DIR__ . '/../templates/includes/header.phtml';
 <script>
     // Passer les catégories au JavaScript
     window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
+    window.csrfToken = '<?php echo $csrf_token; ?>';
+    window.databaseId = <?php echo json_encode(intval($database_id)); ?>;
 </script>
 
 <div class="ajouter-container">
@@ -181,74 +118,6 @@ include __DIR__ . '/../templates/includes/header.phtml';
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const previewImage = document.getElementById('previewImage');
-    const placeholder = document.getElementById('placeholder');
-    const categorySelect = document.getElementById('add_item_category_id');
-
-    // Gestion du select catégorie
-    categorySelect.addEventListener('change', function() {
-        if (this.value === 'NEW') {
-            const newName = prompt("Nom de la nouvelle catégorie :");
-            if (newName && newName.trim() !== "") {
-                // Marquer qu'il faut créer une nouvelle catégorie
-                this.value = 'NEW:' + newName;
-            } else {
-                // Annuler et revenir à "Sans catégorie"
-                this.value = '0';
-            }
-        }
-    });
-
-    // Déclenchement de l'input file
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    // Gestion du Drag & Drop
-    ['dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-    });
-
-    dropZone.addEventListener('dragover', () => {
-        dropZone.classList.add('drag-active');
-        dropZone.style.background = '#ecf0f1';
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.background = '#f8f9fa';
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        dropZone.style.background = '#f8f9fa';
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            handlePreview(files[0]);
-        }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) handlePreview(e.target.files[0]);
-    });
-
-    function handlePreview(file) {
-        if (!file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            previewImage.src = e.target.result;
-            previewImage.style.display = "block";
-            placeholder.style.display = "none";
-            dropZone.style.border = "2px dashed #3498db";
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-</script>
+<!-- add form behaviors (dropzone, preview, new-category prompt) handled in public/js/app.js -->
 
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>

@@ -1,4 +1,5 @@
 <?php
+
 require_once '../config/config.php';
 
 if (!Auth::isLoggedIn()) {
@@ -9,9 +10,9 @@ if (!Auth::isLoggedIn()) {
 $user_id = $_SESSION['user_id'];
 $database_id = intval($_GET['id'] ?? 0);
 
-// Vérifier que l'utilisateur a accès à cette base
 $db_controller = new DatabaseController($conn);
-if (!$db_controller->hasAccess($database_id, $user_id)) {
+$permission = $db_controller->getPermission($database_id, $user_id);
+if (!$permission) {
     FlashMessage::error('Vous n\'avez pas accès à cette base');
     header("Location: index.php");
     exit();
@@ -23,189 +24,12 @@ if (!$database) {
     header("Location: index.php");
     exit();
 }
-
-$permission = $db_controller->getPermission($database_id, $user_id);
-
-// Créer un modèle pour cette base
-class DatabaseObjets {
-    private $conn;
-    private $database_id;
-    
-    public function __construct($conn, $database_id) {
-        $this->conn = $conn;
-        $this->database_id = intval($database_id);
-    }
-    
-    public function getAll($limit = null, $offset = 0) {
-        $query = "SELECT objets.*, categories.nom AS nom_categorie 
-              FROM objets 
-              LEFT JOIN categories ON objets.id_categorie = categories.id 
-              WHERE objets.database_id = ? ORDER BY objets.id DESC";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $this->database_id);
-        
-        if ($limit !== null) {
-            $limit = intval($limit);
-            $offset = intval($offset);
-            $query = "SELECT objets.*, categories.nom AS nom_categorie 
-                FROM objets 
-                LEFT JOIN categories ON objets.id_categorie = categories.id 
-                WHERE objets.database_id = ? 
-                ORDER BY objets.id DESC 
-                LIMIT $limit OFFSET $offset";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bind_param("i", $this->database_id);
-        }
-        
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $objets = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $objets[] = $row;
-        }
-        
-        return $objets;
-    }
-    
-    public function getById($id) {
-        $id = intval($id);
-        $stmt = $this->conn->prepare("SELECT * FROM objets WHERE id = ? AND database_id = ?");
-        $stmt->bind_param("ii", $id, $this->database_id);
-        $stmt->execute();
-        
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            return $row;
-        }
-        return null;
-    }
-    
-    // On change 'categorie' (string) par 'id_categorie' (int)
-    public function create($nom, $id_categorie, $quantite, $image_path = '') {
-        $stmt = $this->conn->prepare("INSERT INTO objets (nom, id_categorie, quantite, image_path, database_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("siisi", $nom, $id_categorie, $quantite, $image_path, $this->database_id);
-        return $stmt->execute();
-    }
-    
-    public function update($id, $field, $value) {
-        $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path'];
-        if (!in_array($field, $allowedFields, true)) {
-            return false;
-        }
-        
-        $id = intval($id);
-        $stmt = $this->conn->prepare("UPDATE objets SET $field = ? WHERE id = ? AND database_id = ?");
-        
-        if ($field === 'quantite' || $field === 'id_categorie') {
-            $stmt->bind_param("iii", $value, $id, $this->database_id);
-        } else {
-            $stmt->bind_param("sii", $value, $id, $this->database_id);
-        }
-        
-        return $stmt->execute();
-    }
-    
-    public function delete($id) {
-        $id = intval($id);
-        $stmt = $this->conn->prepare("DELETE FROM objets WHERE id = ? AND database_id = ?");
-        $stmt->bind_param("ii", $id, $this->database_id);
-        return $stmt->execute();
-    }
-    
-    public function getCategories() {
-        // On va chercher dans la table categories, pas dans objets
-        $stmt = $this->conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? OR database_id IS NULL ORDER BY nom ASC");
-        $stmt->bind_param("i", $this->database_id);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-    
-    public function count() {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM objets WHERE database_id = ?");
-        $stmt->bind_param("i", $this->database_id);
-        $stmt->execute();
-        
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            return $row['total'];
-        }
-        
-        return 0;
-    }
-    
-    public function incrementQuantity($id) {
-        $id = intval($id);
-        $stmt = $this->conn->prepare("UPDATE objets SET quantite = quantite + 1 WHERE id = ? AND database_id = ?");
-        $stmt->bind_param("ii", $id, $this->database_id);
-        return $stmt->execute();
-    }
-    
-    public function decrementQuantity($id) {
-        $id = intval($id);
-        $stmt = $this->conn->prepare("UPDATE objets SET quantite = quantite - 1 WHERE id = ? AND database_id = ? AND quantite > 0");
-        $stmt->bind_param("ii", $id, $this->database_id);
-        return $stmt->execute();
-    }
-}
-
-// Créer le modèle pour cette base
-$objet_model = new DatabaseObjets($conn, $database_id);
-
-// Gérer les actions POST
-$action = $_GET['action'] ?? '';
-
-// Ajouter un objetif ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($permission !== 'admin' && $permission !== 'edit') {
-        FlashMessage::error('Vous n\'avez pas la permission d\'ajouter des objets');
-    } elseif (!CsrfToken::verifyFromPost()) {
-        FlashMessage::error('Erreur de sécurité');
-    } else {
-        $nom = Validator::sanitizeText($_POST['nom'] ?? '', 100);
-        $quantite = Validator::validateQuantity($_POST['quantite'] ?? 1);
-        
-        // 1. Récupération de la catégorie (ID ou le mot "NEW")
-        $cat_value = $_POST['categorie'] ?? ''; 
-        $id_categorie = null;
-
-        if ($cat_value === 'NEW') {
-            // 2. Gestion d'une nouvelle catégorie
-            $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
-            if (!empty($new_cat_name)) {
-                // On insère la nouvelle catégorie en BDD
-                // On lui passe le database_id pour qu'elle appartienne à cette base
-                $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
-                $stmt_cat->bind_param("si", $new_cat_name, $database_id);
-                if ($stmt_cat->execute()) {
-                    $id_categorie = $conn->insert_id; // On récupère l'ID tout juste créé
-                }
-            }
-        } else {
-            // 3. Utilisation d'une catégorie existante (ID numérique)
-            $id_categorie = intval($cat_value) > 0 ? intval($cat_value) : null;
-        }
-
-        // 4. Insertion de l'objet avec l'ID de catégorie
-        if (!empty($nom)) {
-            // On appelle la méthode create du modèle (qui utilise id_categorie maintenant)
-            if ($objet_model->create($nom, $id_categorie, $quantite)) {
-                FlashMessage::success('Objet ajouté avec succès!');
-                header("Location: database.php?id=$database_id");
-                exit();
-            } else {
-                FlashMessage::error('Erreur lors de l\'ajout en base de données');
-            }
-        } else {
-            FlashMessage::error('Le nom de l\'objet est obligatoire');
-        }
-    }
-
-// Récupérer les objets
-$objets = $objet_model->getAll();
-$categories = $objet_model->getCategories();
+// expose CSRF and ids to JS
+$csrf_token = CsrfToken::generate();
 
 include __DIR__ . '/../templates/includes/header.phtml';
 ?>
+<script>window.csrfToken = <?php echo json_encode($csrf_token); ?>; window.databaseId = <?php echo json_encode(intval($database_id)); ?>; window.userId = <?php echo json_encode(intval($user_id)); ?>;</script>
 
 <div class="container">
     <?php echo FlashMessage::render(); ?>
@@ -222,18 +46,13 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
     <!-- Barre de recherche et filtres -->
     <div class="search-zone">
-        <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="Rechercher un objet...">
-        <select id="categoryFilter" onchange="filterItems()">
+        <input type="text" id="searchInput" placeholder="Rechercher un objet...">
+        <select id="categoryFilter">
             <option value="">Toutes les catégories</option>
-            <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo htmlspecialchars($cat['nom']); ?>">
-                    <?php echo htmlspecialchars($cat['nom']); ?>
-                </option>
-            <?php endforeach; ?>
         </select>
         
         <?php if ($permission === 'admin' || $permission === 'edit'): ?>
-            <button class="btn-primary" onclick="toggleAddForm()">+ Ajouter un objet</button>
+            <button class="btn-primary" data-action="toggle-add">+ Ajouter un objet</button>
         <?php endif; ?>
         
         <?php if ($permission === 'admin'): ?>
@@ -244,31 +63,28 @@ include __DIR__ . '/../templates/includes/header.phtml';
     <!-- Formulaire d'ajout -->
     <?php if ($permission === 'admin' || $permission === 'edit'): ?>
         <div id="addForm" class="add-form" style="display:none;">
-            <form method="POST" action="?id=<?php echo $database_id; ?>&action=add">
+            <form class="add-form-full">
                 <div class="form-group">
                     <label for="nom">Nom *</label>
                     <input type="text" name="nom" id="nom" required placeholder="Nom de l'objet" maxlength="100">
                 </div>
-                
-                <span class="tag" 
-                        style="cursor:pointer;" 
-                        onclick="editFieldderoul(<?= $row['id']; ?>, 'id_categorie', '<?= addslashes($row['nom_categorie'] ?? ''); ?>', event)">
-                       <?= htmlspecialchars(
-                            ($row['parent_nom'] ? $row['parent_nom'] . " -> " : "") .
-                            ($row['nom_categorie'] ?? 'Sans catégorie')
-                        ); ?>
-                    </span>
-                
+
+                <div class="form-group">
+                    <label for="add_item_category_id">Catégorie</label>
+                    <select name="categorie" id="add_item_category_id" class="form-input">
+                        <option value="0">-- Sans catégorie --</option>
+                        <option value="NEW" style="color: #3498db; font-weight: bold;">+ Créer nouvelle catégorie</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label for="quantite">Quantité</label>
                     <input type="number" name="quantite" id="quantite" value="1" min="0">
                 </div>
-                
-                <?php echo CsrfToken::field(); ?>
-                
+
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Ajouter</button>
-                    <button type="button" class="btn-secondary" onclick="toggleAddForm()">Annuler</button>
+                    <button type="button" class="btn-secondary" data-action="toggle-add">Annuler</button>
                 </div>
             </form>
         </div>
@@ -276,48 +92,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
     <!-- Grid des objets (comme l'ancienne page) -->
     <div class="grid" id="inventoryGrid">
-        <?php if (empty($objets)): ?>
-            <div class="empty-state">
-                <p>Aucun objet dans cette base.</p>
-                <?php if ($permission === 'admin' || $permission === 'edit'): ?>
-                    <button class="btn-primary" onclick="toggleAddForm()">Ajouter le premier objet</button>
-                <?php endif; ?>
-            </div>
-        <?php else: ?>
-            <?php foreach ($objets as $objet): ?>
-                <div class="card" 
-                    data-name="<?php echo strtolower(htmlspecialchars($objet['nom'])); ?>" 
-                    data-cat="<?php echo htmlspecialchars($objet['nom_categorie'] ?? ''); ?>"> <?php if ($objet['image_path']): ?>
-                        <img src="<?php echo htmlspecialchars($objet['image_path']); ?>" alt="<?php echo htmlspecialchars($objet['nom']); ?>">
-                    <?php else: ?>
-                        <div class="card-no-image">
-                            <span>📷</span>
-                            <p>Pas de photo</p>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="card-details">
-                        <h3><?php echo htmlspecialchars($objet['nom']); ?></h3>
-                        
-                        <span class="tag"><?php echo htmlspecialchars($objet['nom_categorie'] ?? 'Sans catégorie'); ?></span> <div class="qty-zone">
-                            <?php if ($permission === 'admin' || $permission === 'edit'): ?>
-                                <button class="btn-qty" onclick="updateQuantity(<?php echo $objet['id']; ?>, 'dec')">-</button>
-                            <?php endif; ?>
-                            <span class="qty-val" id="qty-<?php echo $objet['id']; ?>">
-                                <?php echo $objet['quantite']; ?>
-                            </span>
-                            <?php if ($permission === 'admin' || $permission === 'edit'): ?>
-                                <button class="btn-qty" onclick="updateQuantity(<?php echo $objet['id']; ?>, 'inc')">+</button>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <?php if ($permission === 'admin' || $permission === 'edit'): ?>
-                            <a href="#" class="delete-link" onclick="deleteObjet(<?php echo $objet['id']; ?>); return false;">🗑 Supprimer</a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+        <!-- Client-side rendered inventory (via public/js/app.js) -->
     </div>
 </div>
 
@@ -326,43 +101,6 @@ function toggleAddForm() {
     const form = document.getElementById('addForm');
     if (form) {
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-// Filtre et recherche (comme l'ancienne page)
-/*function filterItems() {
-    const searchInput = document.getElementById('searchInput').value.toLowerCase();
-    const categoryFilter = document.getElementById('categoryFilter').value;
-    const cards = document.querySelectorAll('.grid .card');
-    
-    cards.forEach(card => {
-        const name = card.dataset.name || '';
-        const category = card.dataset.cat || '';
-        
-        const matchesSearch = name.includes(searchInput);
-        const matchesCategory = categoryFilter === '' || category === categoryFilter;
-        
-        card.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
-    });
-}*/
-
-function updateQuantity(id, action) {
-    const currentQty = parseInt(document.getElementById('qty-' + id).textContent);
-    let newQty = currentQty;
-    
-    if (action === 'inc') {
-        newQty = currentQty + 1;
-    } else if (action === 'dec' && currentQty > 0) {
-        newQty = currentQty - 1;
-    }
-    
-    // TODO: Implémenter l'appel AJAX pour mettre à jour la BD
-    document.getElementById('qty-' + id).textContent = newQty;
-}
-
-function deleteObjet(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet objet?')) {
-        // TODO: Implémenter la suppression
     }
 }
 </script>

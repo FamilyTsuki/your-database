@@ -3,13 +3,15 @@
     
     <div class="dashboard-header">
         <h1>📦 Mes Bases de Données</h1>
-        <button class="btn-primary" onclick="toggleCreateForm()">+ Créer une nouvelle base</button>
+        <button class="btn-primary" data-action="toggle-create">+ Créer une nouvelle base</button>
     </div>
 
     <!-- Formulaire de création de base -->
+    <?php $csrf_token = CsrfToken::generate(); ?>
+    <script>window.csrfToken = '<?php echo $csrf_token; ?>';</script>
     <div id="createForm" class="create-db-form" style="display:none;">
         <h2>Créer une nouvelle base de données</h2>
-        <form method="POST" action="?action=create">
+        <form method="POST" id="createDbForm">
             <div class="form-group">
                 <label for="name">Nom de la base *</label>
                 <input type="text" name="name" id="name" required placeholder="Ex: Garage, Cuisine, Bureau..." maxlength="100">
@@ -20,62 +22,17 @@
                 <textarea name="description" id="description" placeholder="Décrivez le contenu de cette base..." maxlength="255" rows="3"></textarea>
             </div>
             
-            <?php echo CsrfToken::field(); ?>
-            
-            <div class="form-actions">
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                <div class="form-actions">
                 <button type="submit" class="btn-primary">Créer</button>
-                <button type="button" class="btn-secondary" onclick="toggleCreateForm()">Annuler</button>
+                <button type="button" class="btn-secondary" data-action="toggle-create">Annuler</button>
             </div>
         </form>
     </div>
-
-    <!-- Liste des bases de données -->
-    <?php if (empty($databases)): ?>
-        <div class="no-databases">
-            <p>Vous n'avez aucune base de données pour le moment.</p>
-            <p>Créez-en une pour commencer à ajouter vos objets!</p>
-        </div>
-    <?php else: ?>
-        <div class="databases-grid">
-            <?php foreach ($databases as $db): ?>
-                <div class="database-card">
-                    <div class="db-card-header">
-                        <h3><?php echo htmlspecialchars($db['name']); ?></h3>
-                        <?php if ($db['owner_id'] == $user_id): ?>
-                            <span class="badge-owner">Propriétaire</span>
-                        <?php elseif ($db['permission']): ?>
-                            <span class="badge-permission"><?php 
-                                $perm_labels = ['admin' => 'Admin', 'edit' => 'Modif.', 'view' => 'Lecture'];
-                                echo htmlspecialchars($perm_labels[$db['permission']] ?? $db['permission']);
-                            ?></span>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <?php if ($db['description']): ?>
-                        <p class="db-description"><?php echo htmlspecialchars($db['description']); ?></p>
-                    <?php endif; ?>
-                    
-                    <div class="db-card-footer">
-                        <a href="database-view.php?id=<?php echo $db['id']; ?>" class="btn-link">Consulter</a>
-                        
-                        <?php if ($db['owner_id'] == $user_id): ?>
-                            <a href="database-settings.php?id=<?php echo $db['id']; ?>" class="btn-link">Paramètres</a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+    <!-- Liste des bases de données (remplie côté client) -->
+    <div class="databases-grid" id="databasesGrid">
+        <div class="loading">Chargement…</div>
+    </div>
 </div>
 
-<script>
-function toggleCreateForm() {
-    const form = document.getElementById('createForm');
-    if (form.style.display === 'none') {
-        form.style.display = 'block';
-        document.getElementById('name').focus();
-    } else {
-        form.style.display = 'none';
-    }
-}
-</script>
+<!-- toggleCreate handled in public/js/app.js -->

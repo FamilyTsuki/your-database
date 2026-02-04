@@ -73,21 +73,21 @@ class FlashMessage {
         $borderColor = $type === 'success' ? '#c3e6cb' : ($type === 'error' ? '#f5c6cb' : '#bee5eb');
 
         return <<<HTML
-<div class="flash-message flash-{$type}" style="
-    background-color: {$bgColor};
-    color: {$textColor};
-    border: 1px solid {$borderColor};
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-">
-    <span>{$message}</span>
-    <button onclick="this.parentElement.style.display='none';" style="background: none; border: none; cursor: pointer; font-size: 18px;">✕</button>
-</div>
-HTML;
+    <div class="flash-message flash-{$type}" style="
+        background-color: {$bgColor};
+        color: {$textColor};
+        border: 1px solid {$borderColor};
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    ">
+        <span>{$message}</span>
+        <button data-action="flash-close" aria-label="Fermer" style="background: none; border: none; cursor: pointer; font-size: 18px;">✕</button>
+    </div>
+    HTML;
     }
 }
 ?>

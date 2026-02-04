@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
                     <div class="error"><?php echo $error; ?></div>
                 <?php endif; ?>
                 
-                <form method="POST">
+                <form method="POST" id="setupForm" data-ajax="true">
                     <p>Cliquez sur le bouton ci-dessous pour créer les tables nécessaires:</p>
                     
                     <?php echo CsrfToken::field(); ?>

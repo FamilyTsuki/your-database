@@ -1,78 +1,12 @@
-<script>
-    // On récupère les catégories PHP organisées en arbre pour le JS
-    window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
-</script>
-
 <section id="page-consultation">
     <div class="search-zone">
-        <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="Rechercher un objet...">
-        <select id="categoryFilter" onchange="filterItems()">
+        <input type="text" id="searchInput" placeholder="Rechercher un objet...">
+        <select id="categoryFilter">
             <option value="">Toutes les catégories</option>
-            <?php foreach ($categories_tree as $parent): ?>
-                <option value="<?= htmlspecialchars($parent['nom']) ?>">
-                    <?= htmlspecialchars($parent['nom']) ?>
-                </option>
-                <?php foreach ($parent['subs'] as $sub): ?>
-                    <option value="<?= htmlspecialchars($sub['nom']) ?>">
-                        ↳ <?= htmlspecialchars($sub['nom']) ?>
-                    </option>
-                <?php endforeach; ?>
-            <?php endforeach; ?>
         </select>
     </div>
 
     <div class="grid" id="inventoryGrid">
-        <?php foreach ($objets as $row): 
-            $hasImg = !empty($row['image_path']);
-        ?>
-            <div class="card" 
-                data-name="<?= strtolower(htmlspecialchars($row['nom'])); ?>" 
-                data-cat="<?= htmlspecialchars($row['nom_categorie'] ?? '') ?>"
-                data-parent="<?= htmlspecialchars($row['parent_nom'] ?? '') ?>">
-                <?php if($hasImg): ?>
-                    <img src="uploads/<?= htmlspecialchars($row['image_path']); ?>" 
-                         onclick="changeImage(<?= $row['id']; ?>)" 
-                         alt="Photo objet" 
-                         style="cursor:pointer;">
-                <?php else: ?>
-                    <div class="card-no-image" onclick="changeImage(<?= $row['id']; ?>)" style="cursor:pointer;">
-                        <span>📷</span>
-                        <p>Ajouter photo</p>
-                    </div>
-                <?php endif; ?>
-
-                <div class="card-details">
-                    <h3 style="cursor:pointer; border-bottom: 1px dashed rgba(0,0,0,0.1);" 
-                        onclick="editField(<?= $row['id']; ?>, 'nom', '<?= addslashes($row['nom']); ?>')" 
-                        title="Renommer l'objet">
-                        <?= htmlspecialchars($row['nom']); ?>
-                    </h3>
-                    
-                    <span class="tag" 
-                        style="cursor:pointer;" 
-                        onclick="editFieldderoul(<?= $row['id']; ?>, 'id_categorie', '<?= addslashes($row['nom_categorie'] ?? ''); ?>', event)">
-                       <?= htmlspecialchars(
-                        ($row['parent_nom'] ? $row['parent_nom'] . " -> " : "") .
-                        ($row['nom_categorie'] ?? 'Sans catégorie')
-                    ); ?>
-                    </span>
-                    
-                    
-                    <div class="qty-zone">
-                        <button class="btn-qty" onclick="updateQuantity(<?= $row['id']; ?>, 'dec')">-</button>
-                        <span class="qty-val" 
-                              id="qty-<?= $row['id']; ?>" 
-                              style="cursor:pointer; border-bottom: 2px dashed #3498db;" 
-                              onclick="editField(<?= $row['id']; ?>, 'quantite', <?= $row['quantite']; ?>)" 
-                              title="Modifier la quantité">
-                            <?= $row['quantite']; ?>
-                        </span>
-                        <button class="btn-qty" onclick="updateQuantity(<?= $row['id']; ?>, 'inc')">+</button>
-                    </div>
-                    
-                    <a href="#" class="delete-link" onclick="deleteObject(<?= $row['id']; ?>); return false;">🗑 Supprimer</a>
-                </div>
-            </div>
-        <?php endforeach; ?>
+        <div class="loading">Chargement…</div>
     </div>
 </section>

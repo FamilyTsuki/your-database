@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <?php if (!$success): ?>
-        <form method="POST">
+            <form method="POST" id="registerForm" data-ajax="true">
             <label for="username">Pseudo</label>
             <input type="text" name="username" id="username" required placeholder="Votre pseudo (min 3 caractères)" autocomplete="username">
             
@@ -65,11 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="confirm_password">Confirmer le mot de passe</label>
             <input type="password" name="confirm_password" id="confirm_password" required placeholder="Confirmer le mot de passe">
             
-            <?php echo CsrfToken::field(); ?>
-            
-            <button type="submit">S'inscrire</button>
+                <?php echo CsrfToken::field(); ?>
+
+                <button type="submit">S'inscrire</button>
         </form>
         <?php endif; ?>
+
+            <script>window.csrfToken = <?php echo json_encode(CsrfToken::generate()); ?>;</script>
 
         <div class="login-link">
             <p>Déjà inscrit? <a href="login.php">Se connecter</a></p>
