@@ -31,8 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
         $cat_value = $_POST['categorie'] ?? '';
 
         // 1. Gestion de la catégorie
-        if ($cat_value === 'NEW') {
-            $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
+        if (strpos($cat_value, 'NEW:') === 0) {
+            // Nouvelle catégorie créée dans le JS
+            $new_cat_name = Validator::sanitizeText(substr($cat_value, 4), 100);
             if (!empty($new_cat_name)) {
                 $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
                 $stmt_cat->bind_param("si", $new_cat_name, $database_id);
@@ -40,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
                     $id_categorie = $conn->insert_id;
                 }
             }
-        } elseif (!empty($cat_value)) {
+        } elseif (!empty($cat_value) && $cat_value !== '0') {
             $id_categorie = intval($cat_value);
         }
 
@@ -85,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_object'])) {
 }
 
 // 4. Données pour la vue
-$cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY nom ASC");
+$cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY parent_id ASC, nom ASC");
 $all_cats = $cat_res->fetch_all(MYSQLI_ASSOC);
 
 $categories_tree = [];
@@ -103,6 +104,11 @@ $csrf_token = CsrfToken::generate();
 
 include __DIR__ . '/../templates/includes/header.phtml';
 ?>
+
+<script>
+    // Passer les catégories au JavaScript
+    window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
+</script>
 
 <div class="ajouter-container">
     <div class="add-page-header">
@@ -138,14 +144,28 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 </div>
 
                 <label>Catégorie</label>
-                <input type="hidden" name="id_categorie" id="add_item_category_id" value="">
-                
-                <div id="category_selector_trigger" 
-                    class="tag" 
-                    style="cursor:pointer; display:inline-block; padding: 8px 12px; border: 1px solid #ccc;"
-                    onclick="openCategoryPicker(event)">
-                    Choisir une catégorie...
-                </div>
+                <select name="categorie" id="add_item_category_id" class="form-input">
+                    <option value="0">-- Sans catégorie --</option>
+                    <?php 
+                    foreach ($categories_tree as $parent): 
+                    ?>
+                        <option value="<?= $parent['id'] ?>">
+                            <?= htmlspecialchars($parent['nom']) ?>
+                        </option>
+                        <?php 
+                        if (!empty($parent['subs'])):
+                            foreach ($parent['subs'] as $sub):
+                        ?>
+                            <option value="<?= $sub['id'] ?>">
+                                ↳ <?= htmlspecialchars($sub['nom']) ?>
+                            </option>
+                        <?php 
+                            endforeach;
+                        endif;
+                    endforeach; 
+                    ?>
+                    <option value="NEW" style="color: #3498db; font-weight: bold;">+ Créer nouvelle catégorie</option>
+                </select>
 
                 <div class="form-group">
                     <label for="objet-qty">Quantité</label>
@@ -167,6 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
     const previewImage = document.getElementById('previewImage');
     const placeholder = document.getElementById('placeholder');
+    const categorySelect = document.getElementById('add_item_category_id');
+
+    // Gestion du select catégorie
+    categorySelect.addEventListener('change', function() {
+        if (this.value === 'NEW') {
+            const newName = prompt("Nom de la nouvelle catégorie :");
+            if (newName && newName.trim() !== "") {
+                // Marquer qu'il faut créer une nouvelle catégorie
+                this.value = 'NEW:' + newName;
+            } else {
+                // Annuler et revenir à "Sans catégorie"
+                this.value = '0';
+            }
+        }
+    });
 
     // Déclenchement de l'input file
     dropZone.addEventListener('click', () => fileInput.click());
@@ -180,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     dropZone.addEventListener('dragover', () => {
-        dropZone.classList.add('drag-active'); // Ajoutez ce style en CSS si besoin
+        dropZone.classList.add('drag-active');
         dropZone.style.background = '#ecf0f1';
     });
 
@@ -214,11 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function toggleNewCategory(select) {
-    const newInput = document.getElementById('new-cat-input');
-    newInput.style.display = (select.value === 'NEW') ? 'block' : 'none';
-    if (select.value === 'NEW') newInput.focus();
-}
 </script>
 
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>

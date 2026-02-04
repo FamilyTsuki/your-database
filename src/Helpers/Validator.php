@@ -50,7 +50,7 @@ class Validator {
      */
     public static function validateFieldName($fieldName, $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path']) {
     return in_array($fieldName, $allowedFields, true);
-    }
+     }
 
     /**
      * Valide un fichier image

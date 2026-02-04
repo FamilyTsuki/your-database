@@ -125,16 +125,7 @@
                 die(json_encode(['success' => $result]));
             }
             // CAS 1 : Créer une toute nouvelle catégorie et l'associer à l'objet
-            if ($field === 'new_category_create') {
-                $cat_name = $conn->real_escape_string(trim($value));
-                // On insère la catégorie dans la table dédiée
-                $conn->query("INSERT INTO categories (nom, database_id) VALUES ('$cat_name', $database_id)");
-                $new_cat_id = $conn->insert_id;
-                
-                // On lie l'objet à cet ID
-                $result = $conn->query("UPDATE objets SET id_categorie = $new_cat_id WHERE id = $objet_id AND database_id = '$database_id'");
-                die(json_encode(['success' => $result]));
-            }
+           
 
             // CAS 2 : Mise à jour classique (nom, quantité, ou changer pour une catégorie existante)
             // On transforme 'categorie' en 'id_categorie' pour la BDD
@@ -319,6 +310,7 @@
     window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
 
     function editFieldderoul(id, field, currentValue, event) {
+        console.log(id, field, currentValue, event)
         const tagElement = event.currentTarget;
         const parent = tagElement.parentNode;
         
