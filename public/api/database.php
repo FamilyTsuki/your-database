@@ -125,6 +125,21 @@ if ($action === 'create') {
     exit;
 }
 
+// Create a category (used by client when adding objects and creating subcategories)
+if ($action === 'create_category') {
+    $name = $conn->real_escape_string(trim($_POST['name'] ?? ''));
+    $parent_id = intval($_POST['parent_id'] ?? 0);
+    if ($name === '') { http_response_code(400); echo json_encode(['error'=>'Nom requis']); exit; }
+    $ok = $conn->query("INSERT INTO categories (nom, database_id, parent_id) VALUES ('$name', '$database_id', " . ($parent_id > 0 ? $parent_id : 'NULL') . ")");
+    if ($ok) {
+        echo json_encode(['success' => true, 'id' => $conn->insert_id]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => $conn->error]);
+    }
+    exit;
+}
+
 if ($action === 'delete') {
     $objet_id = intval($_POST['id'] ?? 0);
     $objet = $conn->query("SELECT image_path FROM objets WHERE id = $objet_id AND database_id = '$database_id' LIMIT 1")->fetch_assoc();

@@ -99,6 +99,10 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         <?php 
                             endforeach;
                         endif;
+                        // option to create a new subcategory under this parent
+                        ?>
+                        <option value="NEW_SUB:<?= $parent['id'] ?>" style="color:#2c3e50;">&nbsp;&nbsp;+ Créer une sous-catégorie sous <?= htmlspecialchars($parent['nom']) ?></option>
+                        <?php
                     endforeach; 
                     ?>
                     <option value="NEW" style="color: #3498db; font-weight: bold;">+ Créer nouvelle catégorie</option>
