@@ -236,6 +236,9 @@ function deleteObject(id) {
 function editFieldderoul(id, field, currentValue, event) {
   const target = event && event.currentTarget;
   if (!target) return;
+  // Prevent double-opening when the handler is triggered twice
+  if (target.dataset.catMenuOpen === "1") return;
+  target.dataset.catMenuOpen = "1";
   const parent = target.parentNode;
 
   // Create container for category tree menu
@@ -244,7 +247,10 @@ function editFieldderoul(id, field, currentValue, event) {
 
   // Ensure parent has relative positioning for absolute positioning to work
 
-  if (!parent.style.position || parent.style.position === "static") {
+  if (
+    parent &&
+    (!parent.style.position || parent.style.position === "static")
+  ) {
     parent.style.position = "relative";
   }
 
@@ -452,6 +458,9 @@ function editFieldderoul(id, field, currentValue, event) {
         try {
           if (parent && parent.contains(menu))
             parent.replaceChild(target, menu);
+          try {
+            delete target.dataset.catMenuOpen;
+          } catch (e) {}
         } catch (e) {}
       } else {
         try {
@@ -459,6 +468,9 @@ function editFieldderoul(id, field, currentValue, event) {
         } catch (e) {}
         try {
           target.style.display = "";
+          try {
+            delete target.dataset.catMenuOpen;
+          } catch (e) {}
         } catch (e) {}
       }
     }, 150);
