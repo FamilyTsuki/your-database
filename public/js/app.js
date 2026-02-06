@@ -241,27 +241,17 @@ function editFieldderoul(id, field, currentValue, event) {
   // Create container for category tree menu
   const menu = document.createElement("div");
   menu.className = "category-tree-menu";
-  menu.style.cssText = `
-    position: absolute;
-    background: white;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    z-index: 1000;
-    min-width: 300px;
-    max-height: 400px;
-    overflow-y: auto;
-  `;
+
+  // Ensure parent has relative positioning for absolute positioning to work
+
+  if (!parent.style.position || parent.style.position === "static") {
+    parent.style.position = "relative";
+  }
 
   // "Sans catégorie" option
   const optNone = document.createElement("div");
   optNone.className = "cat-option";
-  optNone.style.cssText = `
-    padding: 10px 12px;
-    cursor: pointer;
-    color: #555;
-    border-bottom: 1px solid #ecf0f1;
-  `;
+
   optNone.textContent = "-- Sans catégorie --";
   optNone.addEventListener("click", () => {
     selectCategory("0", "");
@@ -284,23 +274,10 @@ function editFieldderoul(id, field, currentValue, event) {
       // Parent header with arrow
       const parentHeader = document.createElement("div");
       parentHeader.className = "cat-parent";
-      parentHeader.style.cssText = `
-        display: flex;
-        align-items: center;
-        padding: 10px 12px;
-        cursor: pointer;
-        user-select: none;
-      `;
 
       const arrow = document.createElement("span");
       arrow.className = "cat-arrow";
       arrow.textContent = "▼";
-      arrow.style.cssText = `
-        display: inline-block;
-        margin-right: 8px;
-        width: 16px;
-        transition: transform 0.2s;
-      `;
 
       const label = document.createElement("span");
       label.textContent = p.nom;
@@ -313,12 +290,6 @@ function editFieldderoul(id, field, currentValue, event) {
       // Children container
       const childrenContainer = document.createElement("div");
       childrenContainer.className = "cat-children";
-      childrenContainer.style.cssText = `
-        display: none;
-        background: #f8f9fa;
-        border-left: 3px solid #3498db;
-        margin-left: 0;
-      `;
 
       let isExpanded = false;
 
@@ -339,14 +310,7 @@ function editFieldderoul(id, field, currentValue, event) {
 
       // Add parent as selectable option
       const selectParent = document.createElement("div");
-      selectParent.style.cssText = `
-        padding: 8px 12px;
-        padding-left: 30px;
-        cursor: pointer;
-        color: #2c3e50;
-        font-weight: 500;
-        border-bottom: 1px solid #e0e0e0;
-      `;
+
       selectParent.textContent = "Sélectionner: " + p.nom;
       selectParent.addEventListener("click", () => {
         selectCategory(p.id, p.nom);
@@ -363,13 +327,8 @@ function editFieldderoul(id, field, currentValue, event) {
       if (p.subs && p.subs.length > 0) {
         p.subs.forEach((s) => {
           const subOption = document.createElement("div");
-          subOption.style.cssText = `
-            padding: 8px 12px;
-            padding-left: 40px;
-            cursor: pointer;
-            border-bottom: 1px solid #e0e0e0;
-          `;
-          subOption.textContent = "↳ " + s.nom;
+
+          subOption.textContent = s.nom;
           subOption.addEventListener("click", () => {
             selectCategory(s.id, s.nom);
           });
@@ -385,15 +344,8 @@ function editFieldderoul(id, field, currentValue, event) {
 
       // Add subcategory button
       const addSubBtn = document.createElement("div");
-      addSubBtn.style.cssText = `
-        padding: 8px 12px;
-        padding-left: 40px;
-        cursor: pointer;
-        color: #3498db;
-        border-bottom: 1px solid #e0e0e0;
-        font-style: italic;
-      `;
-      addSubBtn.textContent = "+ Créer une sous-catégorie";
+
+      addSubBtn.textContent = "+ New SubCategory";
       addSubBtn.addEventListener("click", () => {
         const newName = prompt(
           'Nom de la nouvelle sous-catégorie sous "' + p.nom + '":',
@@ -428,15 +380,8 @@ function editFieldderoul(id, field, currentValue, event) {
 
   // Add new category button
   const newCatDiv = document.createElement("div");
-  newCatDiv.style.cssText = `
-    padding: 10px 12px;
-    cursor: pointer;
-    color: #3498db;
-    background: #ecf0f1;
-    font-weight: 500;
-    border-top: 2px solid #bdc3c7;
-  `;
-  newCatDiv.textContent = "+ Créer nouvelle catégorie";
+
+  newCatDiv.textContent = "+ New Category";
   newCatDiv.addEventListener("click", () => {
     const newName = prompt("Nom de la nouvelle catégorie :");
     if (newName && newName.trim() !== "") {
@@ -476,14 +421,46 @@ function editFieldderoul(id, field, currentValue, event) {
     });
   };
 
-  // Position and show menu
-  parent.replaceChild(menu, target);
+  // Position and show menu (robust: handle missing parent/target)
+  let replaced = false;
+  try {
+    if (parent && parent.contains && parent.contains(target)) {
+      parent.replaceChild(menu, target);
+      replaced = true;
+    } else {
+      // Fallback: hide target and insert menu after it (or append to parent)
+      try {
+        target.style.display = "none";
+      } catch (e) {}
+      const insertParent = target.parentNode || parent || document.body;
+      if (insertParent && insertParent.insertBefore) {
+        insertParent.insertBefore(menu, target.nextSibling);
+      } else {
+        document.body.appendChild(menu);
+      }
+    }
+  } catch (e) {
+    // ultimate fallback
+    document.body.appendChild(menu);
+  }
   menu.focus();
 
-  // Close menu on blur
+  // Close menu on blur — restore DOM depending on how it was inserted
   const closeMenu = () => {
     setTimeout(() => {
-      if (parent.contains(menu)) parent.replaceChild(target, menu);
+      if (replaced) {
+        try {
+          if (parent && parent.contains(menu))
+            parent.replaceChild(target, menu);
+        } catch (e) {}
+      } else {
+        try {
+          if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+        } catch (e) {}
+        try {
+          target.style.display = "";
+        } catch (e) {}
+      }
     }, 150);
   };
 

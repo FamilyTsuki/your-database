@@ -284,6 +284,7 @@ body {
 }
 
 .card {
+  position: relative;
   background: white;
   border-radius: 12px;
   overflow: hidden;
@@ -1594,14 +1595,19 @@ form input[type="number"] {
    ========================================================================== */
 
 .category-tree-menu {
+  position: absolute;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: white;
   border: 1px solid #bdc3c7;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  max-height: 500px;
+
   overflow-y: auto;
   z-index: 1001;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  bottom: 0;
 }
 
 /* Scrollbar styling */
@@ -1705,14 +1711,14 @@ form input[type="number"] {
   transition: background-color 0.15s ease;
   position: relative;
 }
-
+/*
 .cat-children > div:not(:first-child):not(:last-child)::before {
   content: "↳";
   position: absolute;
   left: 25px;
   color: #3498db;
   opacity: 0.6;
-}
+}*/
 
 .cat-children > div:not(:first-child):not(:last-child):hover {
   background-color: #e8f4f8;
