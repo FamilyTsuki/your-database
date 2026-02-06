@@ -1461,3 +1461,290 @@ form input[type="number"] {
   display: flex;
   justify-content: space-between;
 }
+
+.category-dropdown-menu {
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.menu-item {
+  padding: 8px 15px;
+  cursor: pointer;
+}
+.menu-item:hover {
+  background-color: #f0f0f0;
+}
+.menu-item.sub {
+  padding-left: 30px;
+  font-size: 0.9em;
+  color: #666;
+}
+.menu-item.parent {
+  font-weight: bold;
+}
+/* Conteneur du menu flottant */
+.category-dropdown-menu {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 5px 0;
+  font-family: sans-serif;
+}
+
+/* Style commun aux items */
+.menu-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: #333;
+  font-size: 14px;
+}
+
+.menu-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Parents en gras */
+.parent-item {
+  border-bottom: 1px solid #f9f9f9;
+}
+
+/* Enfants décalés */
+.sub-item {
+  padding-left: 30px;
+  color: #666;
+  font-size: 13px;
+}
+
+/* Bouton spécial "Nouveau" */
+.new-category-btn:hover {
+  background-color: #eaf6ff !important;
+}
+.category-dropdown-menu {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  width: 240px;
+  padding: 0.25rem;
+}
+
+/* Chaque bloc de catégorie */
+.menu-section {
+  border-bottom: 1px solid #f3f4f6;
+  padding: 4px 0;
+}
+
+.menu-section:last-child {
+  border-bottom: none;
+}
+
+/* Éléments cliquables */
+.menu-item {
+  padding: 8px 12px;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #f3f4f6;
+}
+
+/* En-tête de section (Parent) */
+.section-header {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Sous-catégories */
+.sub-item {
+  color: #4b5563;
+  padding-left: 24px;
+  font-size: 13px;
+  position: relative;
+}
+
+.sub-item::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 6px;
+  height: 1px;
+  background: #d1d5db;
+}
+
+/* Bouton Nouveau */
+.new-btn {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.new-btn span {
+  font-weight: bold;
+}
+/* ==========================================================================
+   CATEGORY TREE MENU (editFieldderoul)
+   ========================================================================== */
+
+.category-tree-menu {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: white;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 500px;
+  overflow-y: auto;
+  z-index: 1001;
+}
+
+/* Scrollbar styling */
+.category-tree-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.category-tree-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.category-tree-menu::-webkit-scrollbar-thumb {
+  background: #bdc3c7;
+  border-radius: 4px;
+}
+
+.category-tree-menu::-webkit-scrollbar-thumb:hover {
+  background: #95a5a6;
+}
+
+/* Option "Sans catégorie" */
+.cat-option {
+  padding: 12px 14px;
+  cursor: pointer;
+  color: #555;
+  border-bottom: 1px solid #ecf0f1;
+  font-size: 14px;
+  transition: background-color 0.15s ease;
+}
+
+.cat-option:hover {
+  background-color: #f8f9fa;
+}
+
+/* Parent category header */
+.cat-parent {
+  display: flex;
+  align-items: center;
+  padding: 11px 12px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 14px;
+  transition: background-color 0.15s ease;
+}
+
+.cat-parent:hover {
+  background-color: #f8f9fa;
+}
+
+/* Arrow in parent header */
+.cat-arrow {
+  display: inline-block;
+  margin-right: 10px;
+  width: 18px;
+  text-align: center;
+  transition: transform 0.25s ease;
+  color: #3498db;
+  font-size: 12px;
+}
+
+/* Expand animation */
+.cat-parent.expanded .cat-arrow {
+  transform: rotate(180deg);
+}
+
+/* Children container */
+.cat-children {
+  display: none;
+  background: #f8f9fa;
+  border-left: 4px solid #3498db;
+}
+
+.cat-children.visible {
+  display: block;
+}
+
+/* Select parent option */
+.cat-children > div:first-child {
+  padding: 10px 12px 10px 30px;
+  cursor: pointer;
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 13px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.15s ease;
+}
+
+.cat-children > div:first-child:hover {
+  background-color: #e8f4f8;
+}
+
+/* Subcategory option */
+.cat-children > div:not(:first-child):not(:last-child) {
+  padding: 9px 12px 9px 40px;
+  cursor: pointer;
+  color: #555;
+  font-size: 13px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.cat-children > div:not(:first-child):not(:last-child)::before {
+  content: "↳";
+  position: absolute;
+  left: 25px;
+  color: #3498db;
+  opacity: 0.6;
+}
+
+.cat-children > div:not(:first-child):not(:last-child):hover {
+  background-color: #e8f4f8;
+}
+
+/* Add subcategory button */
+.cat-children > div:last-child {
+  padding: 10px 12px 10px 40px;
+  cursor: pointer;
+  color: #3498db;
+  font-size: 13px;
+  border: none;
+  font-style: italic;
+  transition: background-color 0.15s ease;
+}
+
+.cat-children > div:last-child:hover {
+  background-color: #f0f0f0;
+}
+
+/* Create new category button */
+.category-tree-menu > div:last-child {
+  padding: 12px 14px;
+  cursor: pointer;
+  color: #3498db;
+  background: #ecf0f1;
+  font-weight: 500;
+  border-top: 2px solid #bdc3c7;
+  font-size: 14px;
+  transition: background-color 0.15s ease;
+}
+
+.category-tree-menu > div:last-child:hover {
+  background-color: #d5dbdb;
+}

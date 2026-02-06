@@ -234,107 +234,261 @@ function deleteObject(id) {
 }
 
 function editFieldderoul(id, field, currentValue, event) {
-  // Delegate to global function if present (keeps compatibility)
-  // Implementation included in this file by default via editFieldderoul usage in templates
-  // For pages rendered server-side, event.currentTarget will be passed.
   const target = event && event.currentTarget;
   if (!target) return;
-  // Build select dropdown dynamically (kept minimal)
   const parent = target.parentNode;
-  const select = document.createElement("select");
-  select.className = "form-input";
-  select.size = 8;
-  const optNone = document.createElement("option");
-  optNone.value = "0";
+
+  // Create container for category tree menu
+  const menu = document.createElement("div");
+  menu.className = "category-tree-menu";
+  menu.style.cssText = `
+    position: absolute;
+    background: white;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
+    min-width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+  `;
+
+  // "Sans catégorie" option
+  const optNone = document.createElement("div");
+  optNone.className = "cat-option";
+  optNone.style.cssText = `
+    padding: 10px 12px;
+    cursor: pointer;
+    color: #555;
+    border-bottom: 1px solid #ecf0f1;
+  `;
   optNone.textContent = "-- Sans catégorie --";
-  select.appendChild(optNone);
+  optNone.addEventListener("click", () => {
+    selectCategory("0", "");
+  });
+  optNone.addEventListener("mouseover", () => {
+    optNone.style.background = "#f8f9fa";
+  });
+  optNone.addEventListener("mouseout", () => {
+    optNone.style.background = "transparent";
+  });
+  menu.appendChild(optNone);
+
+  // Build category tree
   if (window.globalCategories) {
     window.globalCategories.forEach((p) => {
-      const opt = document.createElement("option");
-      opt.value = p.id;
-      opt.textContent = p.nom;
-      if (p.nom === currentValue) opt.selected = true;
-      select.appendChild(opt);
-      if (p.subs)
+      // Parent category container
+      const parentContainer = document.createElement("div");
+      parentContainer.style.cssText = `border-bottom: 1px solid #ecf0f1;`;
+
+      // Parent header with arrow
+      const parentHeader = document.createElement("div");
+      parentHeader.className = "cat-parent";
+      parentHeader.style.cssText = `
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        cursor: pointer;
+        user-select: none;
+      `;
+
+      const arrow = document.createElement("span");
+      arrow.className = "cat-arrow";
+      arrow.textContent = "▼";
+      arrow.style.cssText = `
+        display: inline-block;
+        margin-right: 8px;
+        width: 16px;
+        transition: transform 0.2s;
+      `;
+
+      const label = document.createElement("span");
+      label.textContent = p.nom;
+      label.style.cssText = `flex: 1;`;
+
+      parentHeader.appendChild(arrow);
+      parentHeader.appendChild(label);
+      parentContainer.appendChild(parentHeader);
+
+      // Children container
+      const childrenContainer = document.createElement("div");
+      childrenContainer.className = "cat-children";
+      childrenContainer.style.cssText = `
+        display: none;
+        background: #f8f9fa;
+        border-left: 3px solid #3498db;
+        margin-left: 0;
+      `;
+
+      let isExpanded = false;
+
+      // Toggle children visibility
+      const toggleChildren = () => {
+        isExpanded = !isExpanded;
+        childrenContainer.style.display = isExpanded ? "block" : "none";
+        arrow.style.transform = isExpanded ? "rotate(180deg)" : "rotate(0deg)";
+      };
+
+      parentHeader.addEventListener("click", toggleChildren);
+      parentHeader.addEventListener("mouseover", () => {
+        parentHeader.style.background = "#f8f9fa";
+      });
+      parentHeader.addEventListener("mouseout", () => {
+        parentHeader.style.background = "transparent";
+      });
+
+      // Add parent as selectable option
+      const selectParent = document.createElement("div");
+      selectParent.style.cssText = `
+        padding: 8px 12px;
+        padding-left: 30px;
+        cursor: pointer;
+        color: #2c3e50;
+        font-weight: 500;
+        border-bottom: 1px solid #e0e0e0;
+      `;
+      selectParent.textContent = "Sélectionner: " + p.nom;
+      selectParent.addEventListener("click", () => {
+        selectCategory(p.id, p.nom);
+      });
+      selectParent.addEventListener("mouseover", () => {
+        selectParent.style.background = "#e8f4f8";
+      });
+      selectParent.addEventListener("mouseout", () => {
+        selectParent.style.background = "transparent";
+      });
+      childrenContainer.appendChild(selectParent);
+
+      // Add subcategories
+      if (p.subs && p.subs.length > 0) {
         p.subs.forEach((s) => {
-          const o = document.createElement("option");
-          o.value = s.id;
-          o.textContent = "   ↳ " + s.nom;
-          if (s.nom === currentValue) o.selected = true;
-          select.appendChild(o);
+          const subOption = document.createElement("div");
+          subOption.style.cssText = `
+            padding: 8px 12px;
+            padding-left: 40px;
+            cursor: pointer;
+            border-bottom: 1px solid #e0e0e0;
+          `;
+          subOption.textContent = "↳ " + s.nom;
+          subOption.addEventListener("click", () => {
+            selectCategory(s.id, s.nom);
+          });
+          subOption.addEventListener("mouseover", () => {
+            subOption.style.background = "#e8f4f8";
+          });
+          subOption.addEventListener("mouseout", () => {
+            subOption.style.background = "transparent";
+          });
+          childrenContainer.appendChild(subOption);
         });
-      // add an option to create a subcategory under this parent
-      const optNewSub = document.createElement("option");
-      optNewSub.value = "NEW_SUB:" + p.id;
-      optNewSub.textContent = "   + Créer une sous-catégorie sous " + p.nom;
-      optNewSub.style.color = "#2c3e50";
-      select.appendChild(optNewSub);
+      }
+
+      // Add subcategory button
+      const addSubBtn = document.createElement("div");
+      addSubBtn.style.cssText = `
+        padding: 8px 12px;
+        padding-left: 40px;
+        cursor: pointer;
+        color: #3498db;
+        border-bottom: 1px solid #e0e0e0;
+        font-style: italic;
+      `;
+      addSubBtn.textContent = "+ Créer une sous-catégorie";
+      addSubBtn.addEventListener("click", () => {
+        const newName = prompt(
+          'Nom de la nouvelle sous-catégorie sous "' + p.nom + '":',
+        );
+        if (newName && newName.trim() !== "") {
+          apiPost({
+            action: "edit",
+            id,
+            field: "new_subcategory_create",
+            value: newName,
+            parent_id: p.id,
+            csrf_token: window.csrfToken,
+            database_id: window.databaseId,
+          }).then((d) => {
+            if (d.success) location.reload();
+            else alert("Erreur création sous-catégorie");
+          });
+        }
+      });
+      addSubBtn.addEventListener("mouseover", () => {
+        addSubBtn.style.background = "#f0f0f0";
+      });
+      addSubBtn.addEventListener("mouseout", () => {
+        addSubBtn.style.background = "transparent";
+      });
+      childrenContainer.appendChild(addSubBtn);
+
+      parentContainer.appendChild(childrenContainer);
+      menu.appendChild(parentContainer);
     });
   }
-  const optNew = document.createElement("option");
-  optNew.value = "NEW";
-  optNew.textContent = "+ Créer nouvelle catégorie";
-  optNew.style.color = "#3498db";
-  select.appendChild(optNew);
-  parent.replaceChild(select, target);
-  select.focus();
-  select.onchange = function () {
-    if (this.value === "NEW") {
-      const newName = prompt("Nom de la nouvelle catégorie :");
-      if (newName && newName.trim() !== "") {
-        apiPost({
-          action: "edit",
-          id,
-          field: "new_category_create",
-          value: newName,
-          csrf_token: window.csrfToken,
-          database_id: window.databaseId,
-        }).then((d) => {
-          if (d.success) location.reload();
-          else alert("Erreur création");
-        });
-      } else parent.replaceChild(target, select);
-    } else if (this.value && this.value.indexOf("NEW_SUB:") === 0) {
-      const parts = this.value.split(":");
-      const parentId = parseInt(parts[1], 10) || 0;
-      const newName = prompt(
-        'Nom de la nouvelle sous-catégorie pour "' +
-          (parentId ? parentId : "") +
-          '":',
-      );
-      if (newName && newName.trim() !== "") {
-        apiPost({
-          action: "edit",
-          id,
-          field: "new_subcategory_create",
-          value: newName,
-          parent_id: parentId,
-          csrf_token: window.csrfToken,
-          database_id: window.databaseId,
-        }).then((d) => {
-          if (d.success) location.reload();
-          else alert("Erreur création sous-catégorie");
-        });
-      } else parent.replaceChild(target, select);
-    } else {
+
+  // Add new category button
+  const newCatDiv = document.createElement("div");
+  newCatDiv.style.cssText = `
+    padding: 10px 12px;
+    cursor: pointer;
+    color: #3498db;
+    background: #ecf0f1;
+    font-weight: 500;
+    border-top: 2px solid #bdc3c7;
+  `;
+  newCatDiv.textContent = "+ Créer nouvelle catégorie";
+  newCatDiv.addEventListener("click", () => {
+    const newName = prompt("Nom de la nouvelle catégorie :");
+    if (newName && newName.trim() !== "") {
       apiPost({
         action: "edit",
         id,
-        field: "id_categorie",
-        value: this.value,
+        field: "new_category_create",
+        value: newName,
         csrf_token: window.csrfToken,
         database_id: window.databaseId,
       }).then((d) => {
         if (d.success) location.reload();
-        else alert("Erreur mise à jour");
+        else alert("Erreur création");
       });
     }
+  });
+  newCatDiv.addEventListener("mouseover", () => {
+    newCatDiv.style.background = "#d5dbdb";
+  });
+  newCatDiv.addEventListener("mouseout", () => {
+    newCatDiv.style.background = "#ecf0f1";
+  });
+  menu.appendChild(newCatDiv);
+
+  // Function to select a category
+  const selectCategory = (catId, catName) => {
+    apiPost({
+      action: "edit",
+      id,
+      field: "id_categorie",
+      value: catId,
+      csrf_token: window.csrfToken,
+      database_id: window.databaseId,
+    }).then((d) => {
+      if (d.success) location.reload();
+      else alert("Erreur mise à jour");
+    });
   };
-  select.onblur = function () {
+
+  // Position and show menu
+  parent.replaceChild(menu, target);
+  menu.focus();
+
+  // Close menu on blur
+  const closeMenu = () => {
     setTimeout(() => {
-      if (parent.contains(select)) parent.replaceChild(target, select);
-    }, 200);
+      if (parent.contains(menu)) parent.replaceChild(target, menu);
+    }, 150);
   };
+
+  menu.addEventListener("blur", closeMenu);
+  menu.tabIndex = 0;
 }
 
 /**

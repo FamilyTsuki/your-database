@@ -81,47 +81,83 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 </div>
 
                 <label>Catégorie</label>
-                <select name="categorie" id="add_item_category_id" class="form-input">
+                <select name="parent_category" id="main_category_select" class="form-input">
                     <option value="0">-- Sans catégorie --</option>
-                    <?php 
-                    foreach ($categories_tree as $parent): 
-                    ?>
+                    <?php foreach ($categories_tree as $parent): ?>
                         <option value="<?= $parent['id'] ?>">
                             <?= htmlspecialchars($parent['nom']) ?>
                         </option>
-                        <?php 
-                        if (!empty($parent['subs'])):
-                            foreach ($parent['subs'] as $sub):
-                        ?>
-                            <option value="<?= $sub['id'] ?>">
-                                ↳ <?= htmlspecialchars($sub['nom']) ?>
-                            </option>
-                        <?php 
-                            endforeach;
-                        endif;
-                        // option to create a new subcategory under this parent
-                        ?>
-                        <option value="NEW_SUB:<?= $parent['id'] ?>" style="color:#2c3e50;">&nbsp;&nbsp;+ Créer une sous-catégorie sous <?= htmlspecialchars($parent['nom']) ?></option>
-                        <?php
-                    endforeach; 
-                    ?>
-                    <option value="NEW" style="color: #3498db; font-weight: bold;">+ Créer nouvelle catégorie</option>
+                    <?php endforeach; ?>
+                    <option value="NEW" style="color:#2c3e50; font-weight: bold;">+ Créer une nouvelle catégorie</option>
                 </select>
+            </div>
 
+            <div class="form-group" id="sub_category_container" style="display:none; margin-top: 10px;">
+                <label>Sous-catégorie</label>
+                <select name="categorie" id="sub_category_select" class="form-input">
+                    </select>
+            </div>
                 <div class="form-group">
                     <label for="objet-qty">Quantité</label>
                     <input type="number" id="objet-qty" name="quantite" value="1" min="0" class="form-input">
                 </div>
-            </div>
-
-            <div class="form-buttons-section">
+                <div class="form-buttons-section">
                 <button type="submit" name="add_object" class="btn btn-primary">✓ Ajouter</button>
                 <a href="database-view.php?id=<?= $database_id ?>" class="btn btn-secondary">Annuler</a>
             </div>
+            </div>
+
+            
         </form>
     </div>
 </div>
 
 <!-- add form behaviors (dropzone, preview, new-category prompt) handled in public/js/app.js -->
 
+<script>document.addEventListener('DOMContentLoaded', function() {
+    const mainSelect = document.getElementById('main_category_select');
+    const subSelect = document.getElementById('sub_category_select');
+    const subContainer = document.getElementById('sub_category_container');
+
+    mainSelect.addEventListener('change', function() {
+        const parentId = this.value;
+        
+        // Réinitialiser le menu des sous-catégories
+        subSelect.innerHTML = '';
+        
+        if (parentId === 'NEW') {
+            subContainer.style.display = 'none';
+            // Ici, ton app.js devrait déjà gérer l'ouverture du prompt pour "NEW"
+            return;
+        }
+
+        if (parentId === '0') {
+            subContainer.style.display = 'none';
+            return;
+        }
+
+        // Trouver les données de la catégorie parente sélectionnée
+        const parentData = window.globalCategories.find(c => c.id == parentId);
+
+        if (parentData) {
+            // Ajouter l'option par défaut (l'objet appartient à la catégorie parente elle-même)
+            let optionsHtml = `<option value="${parentId}">-- Utiliser la catégorie principale --</option>`;
+            
+            // Ajouter les sous-catégories existantes
+            if (parentData.subs && parentData.subs.length > 0) {
+                parentData.subs.forEach(sub => {
+                    optionsHtml += `<option value="${sub.id}">${sub.nom}</option>`;
+                });
+            }
+
+            // Ajouter l'option pour créer une nouvelle sous-catégorie
+            optionsHtml += `<option value="NEW_SUB:${parentId}" style="color:#2c3e50; font-weight: bold;">+ Ajouter une sous-catégorie</option>`;
+            
+            subSelect.innerHTML = optionsHtml;
+            subContainer.style.display = 'block';
+        } else {
+            subContainer.style.display = 'none';
+        }
+    });
+});</script>
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>
