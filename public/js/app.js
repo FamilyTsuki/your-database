@@ -158,6 +158,18 @@ function openSourceChoice(onChoice) {
 }
 
 /**
+ * Affiche l'image en plein écran
+ */
+function viewFullImage(src) {
+  const modal = document.getElementById("imageViewerModal");
+  const img = document.getElementById("fullImage");
+  if (modal && img) {
+    img.src = src;
+    modal.style.display = "flex";
+  }
+}
+
+/**
  * Ouvre le sélecteur d'image pour une fiche
  */
 function changeImage(id) {
@@ -1071,6 +1083,66 @@ function initAddFormListeners() {
 
 document.addEventListener("DOMContentLoaded", initAddFormListeners);
 
+/**
+ * Trie les objets selon le critère choisi
+ */
+function sortObjects(objects, sortType) {
+  const sorted = [...objects];
+  switch (sortType) {
+    case "date_desc": // Plus récent (ID desc)
+      return sorted.sort((a, b) => b.id - a.id);
+    case "date_asc": // Plus ancien (ID asc)
+      return sorted.sort((a, b) => a.id - b.id);
+    case "alpha_asc": // A-Z
+      return sorted.sort((a, b) => a.nom.localeCompare(b.nom));
+    case "alpha_desc": // Z-A
+      return sorted.sort((a, b) => b.nom.localeCompare(a.nom));
+    case "qty_desc": // Quantité High-Low
+      return sorted.sort((a, b) => b.quantite - a.quantite);
+    case "qty_asc": // Quantité Low-High
+      return sorted.sort((a, b) => a.quantite - b.quantite);
+    default:
+      return sorted;
+  }
+}
+
+/**
+ * Injecte le menu de tri dans la zone de recherche
+ */
+function setupSortDropdown() {
+  const searchZone = document.querySelector(".search-zone");
+  if (!searchZone || document.getElementById("sortOrder")) return;
+
+  const select = document.createElement("select");
+  select.id = "sortOrder";
+
+  const options = [
+    { val: "date_desc", text: "📅 Plus récent" },
+    { val: "date_asc", text: "📅 Plus ancien" },
+    { val: "alpha_asc", text: "🔤 Nom (A - Z)" },
+    { val: "alpha_desc", text: "🔤 Nom (Z - A)" },
+    { val: "qty_desc", text: "🔢 Quantité ( - )" },
+    { val: "qty_asc", text: "🔢 Quantité ( + )" },
+  ];
+
+  options.forEach((opt) => {
+    const o = document.createElement("option");
+    o.value = opt.val;
+    o.textContent = opt.text;
+    select.appendChild(o);
+  });
+
+  select.addEventListener("change", () => {
+    if (window.currentObjects) {
+      const grid = document.getElementById("inventoryGrid");
+      const sorted = sortObjects(window.currentObjects, select.value);
+      renderInventory(sorted, grid);
+    }
+  });
+
+  searchZone.appendChild(select);
+}
+
 async function fetchAndRenderInventory() {
   const grid = document.getElementById("inventoryGrid");
   const catSelect = document.getElementById("categoryFilter");
@@ -1086,8 +1158,11 @@ async function fetchAndRenderInventory() {
       return;
     }
     const objects = data.objects || [];
+    window.currentObjects = objects; // Stockage global pour le tri
+
     const categories = data.categories || [];
     renderCategories(categories, catSelect);
+    setupSortDropdown(); // Initialisation du menu de tri
     renderInventory(objects, grid);
   } catch (e) {
     grid.innerHTML = '<div class="error">Erreur réseau</div>';
@@ -1302,14 +1377,30 @@ function renderInventory(objects, gridEl) {
     card.dataset.cat = row.nom_categorie || "";
     card.dataset.parent = row.parent_nom || "";
 
-    const imgContainer = document.createElement(hasImg ? "img" : "div");
+    let imgContainer;
     if (hasImg) {
-      imgContainer.src = "uploads/" + row.image_path;
+      imgContainer = document.createElement("div");
+      imgContainer.className = "card-image-wrapper";
       imgContainer.setAttribute("data-action", "change-image");
       imgContainer.setAttribute("data-id", row.id);
-      imgContainer.alt = "Photo objet";
-      imgContainer.style.cursor = "pointer";
+
+      const img = document.createElement("img");
+      img.src = "uploads/" + row.image_path;
+      img.alt = "Photo objet";
+
+      const eye = document.createElement("div");
+      eye.className = "view-image-icon";
+      eye.innerHTML = "👁️";
+      eye.title = "Voir en grand";
+      eye.onclick = (e) => {
+        e.stopPropagation();
+        viewFullImage("uploads/" + row.image_path);
+      };
+
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(eye);
     } else {
+      imgContainer = document.createElement("div");
       imgContainer.className = "card-no-image";
       imgContainer.setAttribute("data-action", "change-image");
       imgContainer.setAttribute("data-id", row.id);

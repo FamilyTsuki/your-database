@@ -382,13 +382,47 @@ a:hover {
   box-shadow: var(--shadow-lg);
 }
 
-.card img {
+/* Wrapper pour l'image et l'icône */
+.card-image-wrapper {
+  position: relative;
   width: 100%;
   height: 180px; /* Plus grand pour un look moderne */
-  object-fit: cover;
   cursor: pointer;
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.card-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
   transition: opacity 0.2s;
+}
+
+.view-image-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.7); /* Fond sombre semi-transparent */
+  backdrop-filter: blur(4px);
+  color: var(--text-main);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s var(--ease);
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-image-icon:hover {
+  transform: scale(1.1);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 /* État sans image pour la carte */
