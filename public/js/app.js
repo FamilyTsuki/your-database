@@ -326,6 +326,7 @@ function editFieldderoul(id, field, currentValue, event) {
 
       // Add subcategory button
       const addSubBtn = document.createElement("div");
+      addSubBtn.className = "btn-add-sub";
 
       addSubBtn.textContent = "+ New SubCategory";
       addSubBtn.addEventListener("click", () => {
@@ -356,6 +357,7 @@ function editFieldderoul(id, field, currentValue, event) {
 
   // Add new category button
   const newCatDiv = document.createElement("div");
+  newCatDiv.className = "btn-new-cat";
 
   newCatDiv.textContent = "+ New Category";
   newCatDiv.addEventListener("click", () => {
@@ -999,7 +1001,10 @@ function renderCategories(categories, selectEl) {
     if (c.parent_id == null) roots.push(map[c.id]);
     else if (map[c.parent_id]) map[c.parent_id].subs.push(map[c.id]);
   });
-  // Clear and add options
+  // expose globalCategories for other functions
+  window.globalCategories = roots;
+
+  // Populate hidden select for compatibility
   selectEl.innerHTML = '<option value="">Toutes les catégories</option>';
   roots.forEach((p) => {
     const o = document.createElement("option");
@@ -1014,15 +1019,174 @@ function renderCategories(categories, selectEl) {
         selectEl.appendChild(so);
       });
   });
-  // expose globalCategories for other functions
-  window.globalCategories = roots;
+
+  // Setup custom dropdown
+  selectEl.style.display = "none";
+  let trigger = document.getElementById("categoryFilterTrigger");
+  if (!trigger) {
+    trigger = document.createElement("div");
+    trigger.id = "categoryFilterTrigger";
+    trigger.className = "form-input";
+    trigger.style.cursor = "pointer";
+    trigger.style.display = "flex";
+    trigger.style.alignItems = "center";
+    trigger.style.justifyContent = "space-between";
+    trigger.style.minWidth = "250px";
+    trigger.innerHTML =
+      '<span id="catFilterLabel">Toutes les catégories</span> <span style="font-size: 0.8em">▼</span>';
+
+    if (selectEl.parentNode) {
+      selectEl.parentNode.insertBefore(trigger, selectEl.nextSibling);
+    }
+
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openFilterMenu(trigger, selectEl);
+    });
+  }
+}
+
+function openFilterMenu(trigger, selectEl) {
+  const existing = document.querySelector(".category-tree-menu.filter-menu");
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const menu = document.createElement("div");
+  menu.className = "category-tree-menu filter-menu";
+
+  const rect = trigger.getBoundingClientRect();
+  menu.style.position = "absolute";
+  menu.style.top = window.scrollY + rect.bottom + 5 + "px";
+  menu.style.left = window.scrollX + rect.left + "px";
+  menu.style.width = rect.width + "px";
+  menu.style.zIndex = 2000;
+  menu.style.maxHeight = "300px";
+
+  // Option: Toutes les catégories
+  const optAll = document.createElement("div");
+  optAll.className = "cat-option";
+  optAll.textContent = "Toutes les catégories";
+  optAll.addEventListener("click", () => {
+    selectEl.value = "";
+    document.getElementById("catFilterLabel").textContent =
+      "Toutes les catégories";
+    filterItems();
+    menu.remove();
+  });
+  menu.appendChild(optAll);
+
+  if (window.globalCategories) {
+    window.globalCategories.forEach((p) => {
+      const parentContainer = document.createElement("div");
+      parentContainer.style.cssText = `border-bottom: 1px solid var(--border);`;
+
+      const parentHeader = document.createElement("div");
+      parentHeader.className = "cat-parent";
+
+      const arrow = document.createElement("span");
+      arrow.className = "cat-arrow";
+      arrow.textContent = "▼";
+
+      const label = document.createElement("span");
+      label.textContent = p.nom;
+      label.style.flex = "1";
+
+      parentHeader.appendChild(arrow);
+      parentHeader.appendChild(label);
+      parentContainer.appendChild(parentHeader);
+
+      const childrenContainer = document.createElement("div");
+      childrenContainer.className = "cat-children";
+
+      let isExpanded = false;
+      const toggleChildren = (e) => {
+        e.stopPropagation();
+        isExpanded = !isExpanded;
+        childrenContainer.style.display = isExpanded ? "block" : "none";
+        arrow.style.transform = isExpanded ? "rotate(180deg)" : "rotate(0deg)";
+      };
+      parentHeader.addEventListener("click", toggleChildren);
+
+      // Select Parent
+      const selectParent = document.createElement("div");
+      selectParent.textContent = "Sélectionner: " + p.nom;
+      selectParent.style.padding = "10px 12px 10px 30px";
+      selectParent.style.cursor = "pointer";
+      selectParent.style.borderBottom = "1px solid var(--border)";
+      selectParent.style.color = "var(--text-main)";
+      selectParent.style.fontSize = "13px";
+
+      selectParent.addEventListener("click", () => {
+        selectEl.value = p.nom;
+        document.getElementById("catFilterLabel").textContent = p.nom;
+        filterItems();
+        menu.remove();
+      });
+      selectParent.addEventListener(
+        "mouseover",
+        () => (selectParent.style.backgroundColor = "rgba(255,255,255,0.05)"),
+      );
+      selectParent.addEventListener(
+        "mouseout",
+        () => (selectParent.style.backgroundColor = "transparent"),
+      );
+
+      childrenContainer.appendChild(selectParent);
+
+      // Subcategories
+      if (p.subs && p.subs.length > 0) {
+        p.subs.forEach((s) => {
+          const subOption = document.createElement("div");
+          subOption.textContent = s.nom;
+          subOption.style.padding = "9px 12px 9px 40px";
+          subOption.style.cursor = "pointer";
+          subOption.style.borderBottom = "1px solid var(--border)";
+          subOption.style.color = "var(--text-muted)";
+          subOption.style.fontSize = "13px";
+
+          subOption.addEventListener("click", () => {
+            selectEl.value = s.nom;
+            document.getElementById("catFilterLabel").textContent = s.nom;
+            filterItems();
+            menu.remove();
+          });
+          subOption.addEventListener("mouseover", () => {
+            subOption.style.backgroundColor = "rgba(255,255,255,0.05)";
+            subOption.style.color = "var(--text-main)";
+          });
+          subOption.addEventListener("mouseout", () => {
+            subOption.style.backgroundColor = "transparent";
+            subOption.style.color = "var(--text-muted)";
+          });
+
+          childrenContainer.appendChild(subOption);
+        });
+      }
+      parentContainer.appendChild(childrenContainer);
+      menu.appendChild(parentContainer);
+    });
+  }
+
+  document.body.appendChild(menu);
+
+  const closeHandler = (e) => {
+    if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+      menu.remove();
+      document.removeEventListener("click", closeHandler);
+    }
+  };
+  setTimeout(() => document.addEventListener("click", closeHandler), 0);
 }
 
 function renderInventory(objects, gridEl) {
   gridEl.innerHTML = "";
   if (!objects.length) {
     gridEl.innerHTML =
-      '<div class="empty-state">Aucun objet dans cette base.</div>';
+      '<div class="empty-state" onclick="window.location.href=\'database-ajouter.php?id=' +
+      window.databaseId +
+      '\'" style="cursor: pointer;">Aucun objet dans cette base.<br><strong>Cliquez ici pour en ajouter un.</strong></div>';
     return;
   }
   objects.forEach((row) => {

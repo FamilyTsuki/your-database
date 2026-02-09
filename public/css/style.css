@@ -189,7 +189,16 @@ a:hover {
   color: #fff;
   box-shadow: 0 0 15px var(--primary-glow);
 }
+.nav-action-btn.btn-vewe {
+  background: var(--bg-surface);
+}
 
+.nav-action-btn.btn-vewe:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
 .top-nav button {
   background: transparent;
   border: 1px solid var(--border);
@@ -312,7 +321,8 @@ a:hover {
 }
 
 .search-zone input,
-.search-zone select {
+.search-zone select,
+.search-zone #categoryFilterTrigger {
   flex: 1 1 250px; /* S'étire, mais fait au moins 250px avant de sauter à la ligne */
   padding: 0.8rem;
   border-radius: var(--radius);
@@ -324,7 +334,8 @@ a:hover {
 }
 
 .search-zone input:focus,
-.search-zone select:focus {
+.search-zone select:focus,
+.search-zone #categoryFilterTrigger:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-glow);
@@ -940,6 +951,12 @@ form input:focus {
   background: var(--bg-surface);
   border-radius: var(--radius);
   color: var(--text-muted);
+}
+
+.empty-state[onclick]:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  box-shadow: var(--shadow-md);
 }
 
 .objets-grid {
@@ -1850,7 +1867,7 @@ form input:focus {
 }
 
 /* Subcategory option */
-.cat-children > div:not(:first-child):not(:last-child) {
+.cat-children > div:not(:first-child):not(.btn-add-sub) {
   padding: 9px 12px 9px 40px;
   cursor: pointer;
   color: var(--text-muted);
@@ -1874,7 +1891,7 @@ form input:focus {
 }
 
 /* Add subcategory button */
-.cat-children > div:last-child {
+.cat-children .btn-add-sub {
   padding: 10px 12px 10px 40px;
   cursor: pointer;
   color: var(--primary);
@@ -1884,12 +1901,12 @@ form input:focus {
   transition: background-color 0.15s ease;
 }
 
-.cat-children > div:last-child:hover {
+.cat-children .btn-add-sub:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Create new category button */
-.category-tree-menu > div:last-child {
+.category-tree-menu .btn-new-cat {
   padding: 12px 14px;
   cursor: pointer;
   color: var(--primary);
@@ -1900,6 +1917,6 @@ form input:focus {
   transition: background-color 0.15s ease;
 }
 
-.category-tree-menu > div:last-child:hover {
+.category-tree-menu .btn-new-cat:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
