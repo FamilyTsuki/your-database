@@ -540,6 +540,85 @@ function initConsultationListeners() {
 
 document.addEventListener("DOMContentLoaded", initConsultationListeners);
 
+/**
+ * Initialise les sections de paramètres pour qu'elles soient repliables
+ * - transforme chaque .settings-section en entête cliquable + body
+ * - par défaut les sections sont fermées (classe .collapsed)
+ */
+function initSettingsCollapsible() {
+  const sections = document.querySelectorAll(".settings-section");
+  if (!sections || sections.length === 0) return;
+
+  sections.forEach((section) => {
+    // skip if already transformed
+    if (section.dataset.collapsible === "1") return;
+
+    const h2 = section.querySelector("h2");
+    if (!h2) return;
+
+    // create span container with arrow
+    const span = document.createElement("div");
+    span.className = "section-header";
+    span.tabIndex = 0;
+
+    const arrow = document.createElement("span");
+    arrow.className = "section-arrow";
+    arrow.textContent = "▸";
+    arrow.classList.add("box");
+    h2.classList.add("box");
+
+    span.appendChild(h2); // moves the h2 into span
+    span.appendChild(arrow);
+    // create body and move all remaining nodes (including text nodes) into it
+    const body = document.createElement("span");
+    body.className = "section-body";
+
+    // Insert header as first child
+    section.insertBefore(span, section.firstChild);
+
+    // Move remaining nodes (including text nodes) into body
+    while (section.childNodes.length > 1) {
+      body.appendChild(section.childNodes[1]);
+    }
+
+    section.appendChild(body);
+
+    // start collapsed: hide body via inline style to ensure everything is hidden
+    section.classList.add("collapsed");
+    body.style.display = "none";
+    section.dataset.collapsible = "1";
+    span.setAttribute("role", "button");
+    span.setAttribute("aria-expanded", "false");
+
+    const toggle = () => {
+      const nowCollapsed = section.classList.toggle("collapsed");
+      if (nowCollapsed) {
+        body.style.display = "none";
+        arrow.textContent = "▸";
+        span.setAttribute("aria-expanded", "false");
+      } else {
+        body.style.display = "";
+        arrow.textContent = "▾";
+        span.setAttribute("aria-expanded", "true");
+      }
+    };
+
+    span.addEventListener("click", toggle);
+    span.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSettingsCollapsible);
+} else {
+  initSettingsCollapsible();
+}
+
 function initGlobalListeners() {
   // data-action delegation
   document.addEventListener("click", function (e) {
@@ -550,10 +629,12 @@ function initGlobalListeners() {
     if (action === "toggle-create") {
       const form = document.getElementById("createForm");
       if (!form) return;
+      console.log(form.style.display);
       form.style.display =
         form.style.display === "none" || form.style.display === ""
           ? "block"
           : "none";
+      console.log(form.style.display);
       const name = document.getElementById("name");
       if (name) name.focus();
       return;
