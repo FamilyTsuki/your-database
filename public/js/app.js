@@ -719,6 +719,30 @@ function initGlobalListeners() {
       return;
     }
 
+    // Settings: add root category
+    if (action === "add-root-category") {
+      const input = document.getElementById("new-root-cat-name");
+      const name = input ? input.value.trim() : "";
+      if (!name) {
+        alert("Nom requis");
+        return;
+      }
+      apiPost({
+        action: "create_category",
+        name: name,
+        parent_id: 0,
+        csrf_token: window.csrfToken,
+        database_id: window.databaseId,
+      })
+        .then((d) => {
+          if (d.success) {
+            location.reload();
+          } else alert("Erreur création: " + (d.error || ""));
+        })
+        .catch(() => alert("Erreur réseau"));
+      return;
+    }
+
     // Settings: add subcategory
     if (action === "add-subcategory") {
       const parentId = el.dataset.parentId;

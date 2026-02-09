@@ -190,7 +190,7 @@ a:hover {
   box-shadow: 0 0 15px var(--primary-glow);
 }
 .nav-action-btn.btn-vewe {
-  background: var(--bg-surface);
+  background: #00028c;
 }
 
 .nav-action-btn.btn-vewe:hover {
@@ -1919,4 +1919,10 @@ form input:focus {
 
 .category-tree-menu .btn-new-cat:hover {
   background-color: rgba(255, 255, 255, 0.05);
+}
+.parent-cat-box {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }

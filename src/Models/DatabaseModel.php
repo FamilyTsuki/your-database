@@ -267,7 +267,13 @@ public function deleteCategorySecure($category_id, $database_id) {
     $category_id = intval($category_id);
     $database_id = intval($database_id);
 
-    // On s'assure que la catégorie appartient bien à la base en question
+    // 1. Supprimer d'abord les sous-catégories (enfants)
+    $stmt = $this->conn->prepare("DELETE FROM categories WHERE parent_id = ? AND database_id = ?");
+    $stmt->bind_param("ii", $category_id, $database_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // 2. Supprimer la catégorie parente
     $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ? AND database_id = ?");
     $stmt->bind_param("ii", $category_id, $database_id);
     

@@ -66,7 +66,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
     <!-- Partage d'accès -->
     <div class="settings-section">
-        <h2>Partage d'accès</h2>
+        <h2>Utilisateurs</h2>
         
         <div class="share-form">
             <h3>Ajouter un utilisateur</h3>
@@ -129,53 +129,53 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
     <!-- Catégories -->
      
-    <?php if (!empty($categories)): 
-        $parents = array_filter($categories, fn($c) => is_null($c['parent_id']));
-        ?>
-        <div class="settings-section">
-            <h2>Renommer les catégories</h2>
-            <div class="categories-list">
-                <?php foreach ($parents as $category): ?>
-                    <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items:center;">
-                        <input type="text" id="cat-name-<?php echo $category['id']; ?>" value="<?php echo htmlspecialchars($category['nom']); ?>" required class="form-input">
-                        <button type="button" class="btn-small" data-action="rename-category" data-category-id="<?php echo $category['id']; ?>">Enregistrer</button>
-                        <button type="button" class="btn-danger-small" data-action="delete-category" data-category-id="<?php echo $category['id']; ?>" data-confirm="Supprimer ?">Supprimer</button>
+    <div class="settings-section">
+        <h2>Gestion des catégories</h2>
+        
+        
+
+        <div class="categories-hierarchy">
+            <?php 
+            $parents = !empty($categories) ? array_filter($categories, fn($c) => is_null($c['parent_id'])) : [];
+            
+            if (empty($parents)): ?>
+                <p style="color: var(--text-muted); font-style: italic;">Aucune catégorie pour le moment.</p>
+            <?php else: ?>
+                <?php foreach ($parents as $parent): ?>
+                    <div class="parent-cat-box">
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 1.2em;">🗃️</span>
+                            <input type="text" id="cat-name-<?php echo $parent['id']; ?>" value="<?php echo htmlspecialchars($parent['nom']); ?>" required class="form-input" style="flex: 1;">
+                            <button type="button" class="btn-small" data-action="rename-category" data-category-id="<?php echo $parent['id']; ?>">Enregistrer</button>
+                            <button type="button" class="btn-danger-small" data-action="delete-category" data-category-id="<?php echo $parent['id']; ?>" data-confirm="Supprimer cette catégorie et ses sous-catégories ?">Supprimer</button>
+                        </div>
+
+                        <ul style="list-style: none; margin: 10px 0 10px 20px; padding: 0;">
+                            <?php foreach ($categories as $child): ?>
+                                <?php if ($child['parent_id'] == $parent['id']): ?>
+                                    <li style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
+                                        <span style="color: var(--text-muted);">↳ 🗂️</span>
+                                        <input type="text" id="cat-name-<?php echo $child['id']; ?>" value="<?php echo htmlspecialchars($child['nom']); ?>" required class="form-input" style="padding: 6px; font-size: 0.9em; flex: 1;">
+                                        <button type="button" class="btn-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="rename-category" data-category-id="<?php echo $child['id']; ?>">OK</button>
+                                        <button type="button" class="btn-danger-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="delete-category" data-category-id="<?php echo $child['id']; ?>">Suppr.</button>
+                                    </li>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </ul>
+
+                        <div style="display: flex; gap: 5px; align-items:center; margin-left: 20px;">
+                            <input type="text" id="subcat-input-<?php echo $parent['id']; ?>" placeholder="Nouvelle sous-catégorie..." required class="form-input" style="font-size: 0.9em;">
+                            <button type="button" class="btn-small" data-action="add-subcategory" data-parent-id="<?php echo $parent['id']; ?>">Ajouter</button>
+                        </div>
                     </div>
                 <?php endforeach; ?>
-            </div>
+            <?php endif; ?>
         </div>
-        <div class="settings-section">
-    <h2>Gestion des catégories et sous-catégories</h2>
-    <div class="categories-hierarchy">
-        <?php 
-        // Filtrer pour n'avoir que les catégories qui n'ont pas de parent
-        
-        foreach ($parents as $parent): ?>
-            <div class="parent-cat-box" style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3498db;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong>📁 <?php echo htmlspecialchars($parent['nom']); ?></strong>
-                </div>
-
-                <ul style="list-style: none; margin: 10px 0 10px 20px; padding: 0;">
-                    <?php foreach ($categories as $child): ?>
-                        <?php if ($child['parent_id'] == $parent['id']): ?>
-                            <li style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
-                                ↳ 📄 <?php echo htmlspecialchars($child['nom']); ?>
-                                <button type="button" style="color:red; background:none; border:none; cursor:pointer; font-size: 0.8em;" data-action="delete-category" data-category-id="<?php echo $child['id']; ?>">[Supprimer]</button>
-                            </li>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </ul>
-
-                <div style="display: flex; gap: 5px; align-items:center;">
-                    <input type="text" id="subcat-input-<?php echo $parent['id']; ?>" placeholder="Nouvelle sous-catégorie..." required class="form-input" style="font-size: 0.9em;">
-                    <button type="button" class="btn-small" data-action="add-subcategory" data-parent-id="<?php echo $parent['id']; ?>">Ajouter</button>
-                </div>
-            </div>
-        <?php endforeach; ?>
+        <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="new-root-cat-name" placeholder="Nouvelle catégorie principale..." class="form-input">
+            <button type="button" class="btn-primary" data-action="add-root-category">Ajouter</button>
+        </div>
     </div>
-</div>
-    <?php endif; ?>
 
     <!-- Supprimer la base -->
     <div class="settings-section danger-zone">

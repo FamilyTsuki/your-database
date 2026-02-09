@@ -119,7 +119,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
     const subSelect = document.getElementById('sub_category_select');
     const subContainer = document.getElementById('sub_category_container');
 
-    mainSelect.addEventListener('change', function() {
+    mainSelect.addEventListener('change', async function() {
         const parentId = this.value;
         
         // Réinitialiser le menu des sous-catégories
@@ -127,7 +127,34 @@ include __DIR__ . '/../templates/includes/header.phtml';
         
         if (parentId === 'NEW') {
             subContainer.style.display = 'none';
-            // Ici, ton app.js devrait déjà gérer l'ouverture du prompt pour "NEW"
+            const newName = prompt("Nom de la nouvelle catégorie :");
+            if (newName && newName.trim() !== "") {
+                try {
+                    const d = await apiPost({
+                        action: "create_category",
+                        name: newName,
+                        parent_id: 0,
+                        csrf_token: window.csrfToken,
+                        database_id: window.databaseId,
+                    });
+                    if (d && d.success) {
+                        // 1. Mise à jour des données globales pour que la logique continue de fonctionner
+                        const newCat = { id: d.id, nom: newName, parent_id: null, subs: [] };
+                        window.globalCategories.push(newCat);
+
+                        // 2. Ajout visuel de l'option dans le menu déroulant (avant le bouton "Créer")
+                        const opt = new Option(newName, d.id);
+                        this.add(opt, this.options.length - 1);
+                        
+                        // 3. Sélection automatique et mise à jour de l'interface
+                        this.value = d.id;
+                        this.dispatchEvent(new Event('change'));
+                    }
+                    else { alert("Erreur: " + (d.message || d.error || "Impossible de créer")); this.value = "0"; }
+                } catch (e) { alert("Erreur réseau"); this.value = "0"; }
+            } else {
+                this.value = "0";
+            }
             return;
         }
 
@@ -157,6 +184,43 @@ include __DIR__ . '/../templates/includes/header.phtml';
             subContainer.style.display = 'block';
         } else {
             subContainer.style.display = 'none';
+        }
+    });
+
+    subSelect.addEventListener('change', async function() {
+        if (this.value && this.value.indexOf("NEW_SUB:") === 0) {
+            const parts = this.value.split(":");
+            const parentId = parseInt(parts[1], 10);
+            const newName = prompt("Nom de la nouvelle sous-catégorie :");
+            if (newName && newName.trim() !== "") {
+                try {
+                    const d = await apiPost({
+                        action: "create_category",
+                        name: newName,
+                        parent_id: parentId,
+                        csrf_token: window.csrfToken,
+                        database_id: window.databaseId,
+                    });
+                    if (d && d.success) {
+                        // 1. Mise à jour des données globales (ajout dans les subs du parent)
+                        const parentCat = window.globalCategories.find(c => c.id == parentId);
+                        if (parentCat) {
+                            if (!parentCat.subs) parentCat.subs = [];
+                            parentCat.subs.push({ id: d.id, nom: newName, parent_id: parentId });
+                        }
+
+                        // 2. Ajout visuel de l'option dans le sous-menu (avant le bouton "Ajouter")
+                        const opt = new Option(newName, d.id);
+                        this.add(opt, this.options.length - 1);
+                        
+                        // 3. Sélection automatique (sans recharger la page, donc le parent reste sélectionné)
+                        this.value = d.id;
+                    }
+                    else { alert("Erreur: " + (d.message || d.error || "Impossible de créer")); this.value = parentId; }
+                } catch (e) { alert("Erreur réseau"); this.value = parentId; }
+            } else {
+                this.value = parentId;
+            }
         }
     });
 });</script>
