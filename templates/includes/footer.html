@@ -14,6 +14,24 @@
     </div>
 </footer>
 
+<!-- Modal de choix de source (Caméra / Galerie) -->
+<div id="sourceChoiceModal" class="custom-modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Choisir une source</h3>
+        <div class="choice-container">
+            <div class="choice-option" id="btnCamera">
+                <span style="font-size: 3rem;">📷</span>
+                <p>Appareil Photo</p>
+            </div>
+            <div class="choice-option" id="btnGallery">
+                <span style="font-size: 3rem;">🖼️</span>
+                <p>Galerie</p>
+            </div>
+        </div>
+        <button type="button" class="btn-secondary" id="closeSourceModal" style="margin-top: 15px; width: 100%;">Annuler</button>
+    </div>
+</div>
+
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 <script src="js/app.js"></script>
 </body>

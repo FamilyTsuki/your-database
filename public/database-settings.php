@@ -150,7 +150,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <?php else: ?>
                 <?php foreach ($parents as $parent): ?>
                     <div class="parent-cat-box">
-                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                        <div class="cat-row">
                             <span style="font-size: 1.2em;">🗃️</span>
                             <input type="text" id="cat-name-<?php echo $parent['id']; ?>" value="<?php echo htmlspecialchars($parent['nom']); ?>" required class="form-input" style="flex: 1;">
                             <button type="button" class="btn-small" data-action="rename-category" data-category-id="<?php echo $parent['id']; ?>">Enregistrer</button>
@@ -160,7 +160,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         <ul style="list-style: none; margin: 10px 0 10px 20px; padding: 0;">
                             <?php foreach ($categories as $child): ?>
                                 <?php if ($child['parent_id'] == $parent['id']): ?>
-                                    <li style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
+                                    <li class="subcat-row">
                                         <span style="color: var(--text-muted);">↳ 🗂️</span>
                                         <input type="text" id="cat-name-<?php echo $child['id']; ?>" value="<?php echo htmlspecialchars($child['nom']); ?>" required class="form-input" style="padding: 6px; font-size: 0.9em; flex: 1;">
                                         <button type="button" class="btn-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="rename-category" data-category-id="<?php echo $child['id']; ?>">OK</button>
@@ -170,16 +170,16 @@ include __DIR__ . '/../templates/includes/header.phtml';
                             <?php endforeach; ?>
                         </ul>
 
-                        <div style="display: flex; gap: 5px; align-items:center; margin-left: 20px;">
-                            <input type="text" id="subcat-input-<?php echo $parent['id']; ?>" placeholder="Nouvelle sous-catégorie..." required class="form-input" style="font-size: 0.9em;">
+                        <div class="add-subcat-row">
+                            <input type="text" id="subcat-input-<?php echo $parent['id']; ?>" placeholder="Nouvelle sous-catégorie..." required class="form-input" style="font-size: 0.9em; flex: 1;">
                             <button type="button" class="btn-small" data-action="add-subcategory" data-parent-id="<?php echo $parent['id']; ?>">Ajouter</button>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-        <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-            <input type="text" id="new-root-cat-name" placeholder="Nouvelle catégorie principale..." class="form-input">
+        <div class="add-root-cat-row">
+            <input type="text" id="new-root-cat-name" placeholder="Nouvelle catégorie principale..." class="form-input" style="flex: 1;">
             <button type="button" class="btn-primary" data-action="add-root-category">Ajouter</button>
         </div>
     </div>

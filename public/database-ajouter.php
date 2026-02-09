@@ -19,7 +19,7 @@ $user_id = Auth::getUserId();
 $conn = $conn; // Assumé défini dans config.php
 
 // 3. Récupérer les infos de la base (pour le paramètre de redirection)
-$db_info = $conn->query("SELECT redirect_on_add FROM `databases` WHERE id = $database_id LIMIT 1")->fetch_assoc();
+$db_info = $conn->query("SELECT * FROM `databases` WHERE id = $database_id LIMIT 1")->fetch_assoc();
 
 // Form submit is handled client-side via public/js/app.js and the API endpoint.
 
@@ -49,6 +49,9 @@ include __DIR__ . '/../templates/includes/header.phtml';
     window.csrfToken = '<?php echo $csrf_token; ?>';
     window.databaseId = <?php echo json_encode(intval($database_id)); ?>;
     window.dbRedirectOnAdd = <?php echo json_encode((bool)($db_info['redirect_on_add'] ?? true)); ?>;
+    window.dbCameraEnabled = <?php echo json_encode((bool)($db_info['camera_enabled'] ?? true)); ?>;
+    window.dbSkipSourceModal = <?php echo json_encode((bool)($db_info['skip_source_modal'] ?? false)); ?>;
+    window.dbPreferGallery = <?php echo json_encode((bool)($db_info['prefer_gallery'] ?? false)); ?>;
 </script>
 
 <div class="ajouter-container">

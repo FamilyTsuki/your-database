@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
                 description TEXT,
                 owner_id INT NOT NULL,
                 redirect_on_add TINYINT(1) DEFAULT 1,
+                camera_enabled TINYINT(1) DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
                 UNIQUE KEY unique_owner_db (name, owner_id)
@@ -61,7 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
             "ALTER TABLE objets ADD COLUMN database_id INT DEFAULT 1",
             "ALTER TABLE objets ADD FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE",
             
-            "ALTER TABLE `databases` ADD COLUMN redirect_on_add TINYINT(1) DEFAULT 1"
+            "ALTER TABLE `databases` ADD COLUMN redirect_on_add TINYINT(1) DEFAULT 1",
+            "ALTER TABLE `databases` ADD COLUMN camera_enabled TINYINT(1) DEFAULT 1",
+            "ALTER TABLE `databases` ADD COLUMN skip_source_modal TINYINT(1) DEFAULT 0",
+            "ALTER TABLE `databases` ADD COLUMN prefer_gallery TINYINT(1) DEFAULT 0"
         ];
         
         $all_ok = true;

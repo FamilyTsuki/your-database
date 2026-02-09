@@ -111,27 +111,70 @@ function filterItems() {
 }
 
 /**
+ * Ouvre la modale de choix de source (Caméra vs Galerie)
+ * @param {Function} onChoice - Callback appelée avec 'camera' ou 'gallery'
+ */
+function openSourceChoice(onChoice) {
+  const modal = document.getElementById("sourceChoiceModal");
+  if (!modal) {
+    // Fallback si la modale n'est pas trouvée
+    onChoice("gallery");
+    return;
+  }
+
+  const btnCamera = document.getElementById("btnCamera");
+  const btnGallery = document.getElementById("btnGallery");
+  const btnClose = document.getElementById("closeSourceModal");
+
+  // Configuration des actions
+  btnCamera.onclick = () => {
+    modal.style.display = "none";
+    onChoice("camera");
+  };
+
+  btnGallery.onclick = () => {
+    modal.style.display = "none";
+    onChoice("gallery");
+  };
+
+  const close = () => (modal.style.display = "none");
+  btnClose.onclick = close;
+  modal.onclick = (e) => {
+    if (e.target === modal) close();
+  };
+
+  // Affichage
+  modal.style.display = "flex";
+}
+
+/**
  * Ouvre le sélecteur d'image pour une fiche
  */
 function changeImage(id) {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append("action", "updateImage");
-    fd.append("id", id);
-    fd.append("csrf_token", window.csrfToken);
-    fd.append("database_id", window.databaseId);
-    fd.append("image", file);
-    const res = await fetch("api/database.php", { method: "POST", body: fd });
-    const d = await res.json();
-    if (d.success) location.reload();
-    else alert("Erreur: " + (d.error || "upload"));
-  };
-  input.click();
+  openSourceChoice((source) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    if (source === "camera") {
+      input.setAttribute("capture", "environment");
+    }
+
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append("action", "updateImage");
+      fd.append("id", id);
+      fd.append("csrf_token", window.csrfToken);
+      fd.append("database_id", window.databaseId);
+      fd.append("image", file);
+      const res = await fetch("api/database.php", { method: "POST", body: fd });
+      const d = await res.json();
+      if (d.success) location.reload();
+      else alert("Erreur: " + (d.error || "upload"));
+    };
+    input.click();
+  });
 }
 
 // Generic AJAX submit handler for forms marked with data-ajax="true"
@@ -613,6 +656,7 @@ function initGlobalListeners() {
       const redirectOnAdd = document.getElementById("redirect_on_add")?.checked
         ? 1
         : 0;
+
       apiPost({
         action: "update",
         name,
@@ -900,7 +944,13 @@ function initAddFormListeners() {
 
   if (!dropZone || !fileInput) return;
 
-  dropZone.addEventListener("click", () => fileInput.click());
+  dropZone.addEventListener("click", () => {
+    openSourceChoice((source) => {
+      if (source === "camera") fileInput.setAttribute("capture", "environment");
+      else fileInput.removeAttribute("capture");
+      fileInput.click();
+    });
+  });
 
   ["dragover", "dragleave", "drop"].forEach((eventName) => {
     dropZone.addEventListener(eventName, (e) => {

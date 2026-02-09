@@ -69,6 +69,9 @@ include __DIR__ . '/../templates/includes/header.phtml';
 window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
 window.csrfToken = '<?php echo $csrf_token; ?>';
 window.databaseId = <?php echo json_encode(intval($database_id)); ?>;
+window.dbCameraEnabled = <?php echo json_encode((bool)($db_info['camera_enabled'] ?? true)); ?>;
+window.dbSkipSourceModal = <?php echo json_encode((bool)($db_info['skip_source_modal'] ?? false)); ?>;
+window.dbPreferGallery = <?php echo json_encode((bool)($db_info['prefer_gallery'] ?? false)); ?>;
 </script>
 
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>
