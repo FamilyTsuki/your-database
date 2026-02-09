@@ -262,12 +262,6 @@ function editFieldderoul(id, field, currentValue, event) {
   optNone.addEventListener("click", () => {
     selectCategory("0", "");
   });
-  optNone.addEventListener("mouseover", () => {
-    optNone.style.background = "#f8f9fa";
-  });
-  optNone.addEventListener("mouseout", () => {
-    optNone.style.background = "transparent";
-  });
   menu.appendChild(optNone);
 
   // Build category tree
@@ -307,12 +301,6 @@ function editFieldderoul(id, field, currentValue, event) {
       };
 
       parentHeader.addEventListener("click", toggleChildren);
-      parentHeader.addEventListener("mouseover", () => {
-        parentHeader.style.background = "#f8f9fa";
-      });
-      parentHeader.addEventListener("mouseout", () => {
-        parentHeader.style.background = "transparent";
-      });
 
       // Add parent as selectable option
       const selectParent = document.createElement("div");
@@ -320,12 +308,6 @@ function editFieldderoul(id, field, currentValue, event) {
       selectParent.textContent = "Sélectionner: " + p.nom;
       selectParent.addEventListener("click", () => {
         selectCategory(p.id, p.nom);
-      });
-      selectParent.addEventListener("mouseover", () => {
-        selectParent.style.background = "#e8f4f8";
-      });
-      selectParent.addEventListener("mouseout", () => {
-        selectParent.style.background = "transparent";
       });
       childrenContainer.appendChild(selectParent);
 
@@ -337,12 +319,6 @@ function editFieldderoul(id, field, currentValue, event) {
           subOption.textContent = s.nom;
           subOption.addEventListener("click", () => {
             selectCategory(s.id, s.nom);
-          });
-          subOption.addEventListener("mouseover", () => {
-            subOption.style.background = "#e8f4f8";
-          });
-          subOption.addEventListener("mouseout", () => {
-            subOption.style.background = "transparent";
           });
           childrenContainer.appendChild(subOption);
         });
@@ -371,12 +347,6 @@ function editFieldderoul(id, field, currentValue, event) {
           });
         }
       });
-      addSubBtn.addEventListener("mouseover", () => {
-        addSubBtn.style.background = "#f0f0f0";
-      });
-      addSubBtn.addEventListener("mouseout", () => {
-        addSubBtn.style.background = "transparent";
-      });
       childrenContainer.appendChild(addSubBtn);
 
       parentContainer.appendChild(childrenContainer);
@@ -403,12 +373,6 @@ function editFieldderoul(id, field, currentValue, event) {
         else alert("Erreur création");
       });
     }
-  });
-  newCatDiv.addEventListener("mouseover", () => {
-    newCatDiv.style.background = "#d5dbdb";
-  });
-  newCatDiv.addEventListener("mouseout", () => {
-    newCatDiv.style.background = "#ecf0f1";
   });
   menu.appendChild(newCatDiv);
 
