@@ -11,8 +11,9 @@ $database_id = intval($_GET['id'] ?? 0);
 
 // Vérifier que l'utilisateur est propriétaire
 $db_controller = new DatabaseController($conn);
-if (!$db_controller->isOwner($database_id, $user_id)) {
-    FlashMessage::error('Vous n\'avez pas accès aux paramètres de cette base');
+$permission = $db_controller->getPermission($database_id, $user_id);
+if ($permission !== 'admin' && $permission !== 'edit') {
+    FlashMessage::error('Vous n\'avez pas accès aux paramètres');
     header("Location: index.php");
     exit();
 }
@@ -23,6 +24,8 @@ if (!$database) {
     header("Location: index.php");
     exit();
 }
+
+$is_admin = ($permission === 'admin');
 
 // All settings actions are handled via API endpoints (public/api/database.php)
 // Récupérer les données
@@ -49,17 +52,17 @@ include __DIR__ . '/../templates/includes/header.phtml';
         <h2>Informations générales</h2>
         <form id="updateDatabaseForm">
             <input type="hidden" name="action" value="update">
-            
+            <?php if ($is_admin): ?>
             <div class="form-group">
                 <label for="name">Nom de la base</label>
-                <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($database['name']); ?>" required>
+                <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($database['name']); ?>" required <?php echo !$is_admin ? 'disabled' : ''; ?>>
             </div>
             
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea name="description" id="description" rows="3"><?php echo htmlspecialchars($database['description'] ?? ''); ?></textarea>
+                <textarea name="description" id="description" rows="3" <?php echo !$is_admin ? 'disabled' : ''; ?>><?php echo htmlspecialchars($database['description'] ?? ''); ?></textarea>
             </div>
-            
+             <?php endif; ?>
             <div class="form-group">
                 <label for="redirect_on_add" class="checkbox-label">
                     <input type="checkbox" name="redirect_on_add" id="redirect_on_add" value="1" <?php echo ($database['redirect_on_add'] ?? 1) ? 'checked' : ''; ?>>
@@ -81,11 +84,14 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 </label>
             </div>
             
-            <button type="button" class="btn-primary" data-action="update-database">Enregistrer</button>
+            <?php if ($is_admin): ?>
+                <button type="button" class="btn-primary" data-action="update-database">Enregistrer</button>
+            <?php endif; ?>
         </form>
     </div>
 
     <!-- Partage d'accès -->
+    <?php if ($is_admin): ?>
     <div class="settings-section">
         <h2>Utilisateurs</h2>
         
@@ -147,9 +153,11 @@ include __DIR__ . '/../templates/includes/header.phtml';
             </div>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
 
     <!-- Catégories -->
      
+    
     <div class="settings-section">
         <h2>Gestion des catégories</h2>
         
@@ -168,7 +176,9 @@ include __DIR__ . '/../templates/includes/header.phtml';
                             <span style="font-size: 1.2em;">🗃️</span>
                             <input type="text" id="cat-name-<?php echo $parent['id']; ?>" value="<?php echo htmlspecialchars($parent['nom']); ?>" required class="form-input" style="flex: 1;">
                             <button type="button" class="btn-small" data-action="rename-category" data-category-id="<?php echo $parent['id']; ?>">Enregistrer</button>
+                            <?php if ($is_admin): ?>
                             <button type="button" class="btn-danger-small" data-action="delete-category" data-category-id="<?php echo $parent['id']; ?>" data-confirm="Supprimer cette catégorie et ses sous-catégories ?">Supprimer</button>
+                            <?php endif; ?>
                         </div>
 
                         <ul style="list-style: none; margin: 10px 0 10px 20px; padding: 0;">
@@ -178,7 +188,9 @@ include __DIR__ . '/../templates/includes/header.phtml';
                                         <span style="color: var(--text-muted);">↳ 🗂️</span>
                                         <input type="text" id="cat-name-<?php echo $child['id']; ?>" value="<?php echo htmlspecialchars($child['nom']); ?>" required class="form-input" style="padding: 6px; font-size: 0.9em; flex: 1;">
                                         <button type="button" class="btn-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="rename-category" data-category-id="<?php echo $child['id']; ?>">OK</button>
+                                        <?php if ($is_admin): ?>
                                         <button type="button" class="btn-danger-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="delete-category" data-category-id="<?php echo $child['id']; ?>">Suppr.</button>
+                                        <?php endif; ?>
                                     </li>
                                 <?php endif; ?>
                             <?php endforeach; ?>
@@ -190,15 +202,17 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         </div>
                     </div>
                 <?php endforeach; ?>
-            <?php endif; ?>
+            
         </div>
         <div class="add-root-cat-row">
             <input type="text" id="new-root-cat-name" placeholder="Nouvelle catégorie principale..." class="form-input" style="flex: 1;">
             <button type="button" class="btn-primary" data-action="add-root-category">Ajouter</button>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Supprimer la base -->
+    <?php if ($is_admin): ?>
     <div class="settings-section danger-zone">
         <h2>⚠️ Zone de danger</h2>
         
@@ -220,6 +234,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
             </form>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <!-- submitDelete handled in public/js/app.js -->

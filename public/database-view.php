@@ -72,6 +72,7 @@ window.databaseId = <?php echo json_encode(intval($database_id)); ?>;
 window.dbCameraEnabled = <?php echo json_encode((bool)($db_info['camera_enabled'] ?? true)); ?>;
 window.dbSkipSourceModal = <?php echo json_encode((bool)($db_info['skip_source_modal'] ?? false)); ?>;
 window.dbPreferGallery = <?php echo json_encode((bool)($db_info['prefer_gallery'] ?? false)); ?>;
+window.userPermission = <?php echo json_encode($permission); ?>;
 </script>
 
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>

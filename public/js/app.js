@@ -1461,13 +1461,15 @@ function renderInventory(objects, gridEl) {
     qtyZone.appendChild(btnInc);
     details.appendChild(qtyZone);
 
-    const del = document.createElement("a");
-    del.href = "#";
-    del.className = "delete-link";
-    del.setAttribute("data-action", "delete");
-    del.setAttribute("data-id", row.id);
-    del.textContent = "🗑 Supprimer";
-    details.appendChild(del);
+    if (window.userPermission === "admin") {
+      const del = document.createElement("a");
+      del.href = "#";
+      del.className = "delete-link";
+      del.setAttribute("data-action", "delete");
+      del.setAttribute("data-id", row.id);
+      del.textContent = "🗑 Supprimer";
+      details.appendChild(del);
+    }
 
     card.appendChild(imgContainer);
     card.appendChild(details);
