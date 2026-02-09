@@ -115,6 +115,16 @@ function filterItems() {
  * @param {Function} onChoice - Callback appelée avec 'camera' ou 'gallery'
  */
 function openSourceChoice(onChoice) {
+  // Si l'option "Ne pas demander" est activée
+  if (window.dbSkipSourceModal) {
+    if (window.dbPreferGallery) {
+      onChoice("gallery");
+    } else {
+      onChoice("camera");
+    }
+    return;
+  }
+
   const modal = document.getElementById("sourceChoiceModal");
   if (!modal) {
     // Fallback si la modale n'est pas trouvée
@@ -656,12 +666,21 @@ function initGlobalListeners() {
       const redirectOnAdd = document.getElementById("redirect_on_add")?.checked
         ? 1
         : 0;
+      const skipSourceModal = document.getElementById("skip_source_modal")
+        ?.checked
+        ? 1
+        : 0;
+      const preferGallery = document.getElementById("prefer_gallery")?.checked
+        ? 1
+        : 0;
 
       apiPost({
         action: "update",
         name,
         description,
         redirect_on_add: redirectOnAdd,
+        skip_source_modal: skipSourceModal,
+        prefer_gallery: preferGallery,
         csrf_token: window.csrfToken,
         database_id: window.databaseId,
       })

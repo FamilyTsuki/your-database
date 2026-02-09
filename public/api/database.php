@@ -294,8 +294,10 @@ if ($action === 'update') {
     $name = $_POST['name'] ?? '';
     $description = $_POST['description'] ?? '';
     $redirect_on_add = intval($_POST['redirect_on_add'] ?? 1);
+    $skip_source_modal = intval($_POST['skip_source_modal'] ?? 0);
+    $prefer_gallery = intval($_POST['prefer_gallery'] ?? 0);
     
-    $ok = $db_controller->update($database_id, $name, $description, $redirect_on_add);
+    $ok = $db_controller->update($database_id, $name, $description, $redirect_on_add, $skip_source_modal, $prefer_gallery);
     echo json_encode(['success'=>(bool)$ok]);
     exit;
 }

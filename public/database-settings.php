@@ -61,9 +61,23 @@ include __DIR__ . '/../templates/includes/header.phtml';
             </div>
             
             <div class="form-group">
-                <label for="redirect_on_add" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <label for="redirect_on_add" class="checkbox-label">
                     <input type="checkbox" name="redirect_on_add" id="redirect_on_add" value="1" <?php echo ($database['redirect_on_add'] ?? 1) ? 'checked' : ''; ?>>
                     Rediriger vers la liste après un ajout
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="skip_source_modal" class="checkbox-label">
+                    <input type="checkbox" name="skip_source_modal" id="skip_source_modal" value="1" <?php echo ($database['skip_source_modal'] ?? 0) ? 'checked' : ''; ?>>
+                    Ne pas demander la source (ouvrir directement)
+                </label>
+            </div>
+
+            <div class="form-group" id="prefer_gallery_group" style="display:none; margin-left: 20px;">
+                <label for="prefer_gallery" class="checkbox-label">
+                    <input type="checkbox" name="prefer_gallery" id="prefer_gallery" value="1" <?php echo ($database['prefer_gallery'] ?? 0) ? 'checked' : ''; ?>>
+                    Toujours utiliser la galerie (sinon Caméra)
                 </label>
             </div>
             
@@ -196,7 +210,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 <input type="hidden" name="action" value="delete">
                 
                 <div class="form-group">
-                    <label>
+                    <label class="checkbox-label">
                         <input type="checkbox" name="confirm" value="no" id="confirmCheck">
                         Je comprends que cette action est irréversible
                     </label>
@@ -210,4 +224,14 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
 <!-- submitDelete handled in public/js/app.js -->
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const skipCheck = document.getElementById('skip_source_modal');
+    const galleryGroup = document.getElementById('prefer_gallery_group');
+    const toggle = () => {
+        if(skipCheck && galleryGroup) galleryGroup.style.display = skipCheck.checked ? 'block' : 'none';
+    };
+    if(skipCheck) { skipCheck.addEventListener('change', toggle); toggle(); }
+});
+</script>
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>

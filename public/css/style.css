@@ -514,18 +514,33 @@ form label {
   color: var(--text-muted);
 }
 
+/* Style générique pour tous les champs de formulaire */
 form input[type="text"],
-form input[type="number"] {
+form input[type="number"],
+form input[type="email"],
+form input[type="password"],
+form textarea,
+form select {
+  width: 100%; /* Pleine largeur pour le responsive */
   padding: 12px;
   border: 1px solid var(--border);
   background: var(--input-bg);
   color: var(--text-main);
   border-radius: var(--radius);
   font-size: 16px;
+  font-family: inherit;
   transition: all 0.2s var(--ease);
+  box-sizing: border-box;
 }
 
-form input:focus {
+form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-glow);
@@ -615,6 +630,13 @@ form input:focus {
   width: 100%;
   border-radius: var(--radius);
   margin-top: 10px;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
 }
 .category-group {
@@ -1117,14 +1139,19 @@ form input:focus {
   font-size: 0.9rem;
 }
 
+/* Reset container inside footer */
+.site-footer .container {
+  margin-bottom: 0;
+  padding: 0 10px;
+}
+
 .footer-compact {
   display: flex;
-  margin-bottom: -20px;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 15px;
-  padding-bottom: -10px;
+  width: 100%;
 }
 
 .footer-copyright {
@@ -1396,6 +1423,7 @@ form input:focus {
 .setup-container {
   max-width: 500px;
   margin: 50px auto;
+  width: 95%;
   background: var(--bg-surface);
   padding: 40px;
   border-radius: var(--radius);
@@ -1452,6 +1480,7 @@ form input:focus {
 .login-container {
   max-width: 400px;
   margin: 50px auto;
+  width: 95%;
   background: var(--bg-surface);
   padding: 40px;
   border-radius: var(--radius);
@@ -1522,6 +1551,7 @@ form input:focus {
 .register-container {
   max-width: 400px;
   margin: 30px auto;
+  width: 95%;
   background: var(--bg-surface);
   padding: 40px;
   border-radius: var(--radius);
@@ -1594,8 +1624,23 @@ form input:focus {
   text-decoration: underline;
 }
 
+@media (max-width: 480px) {
+  .login-container,
+  .register-container,
+  .setup-container {
+    padding: 25px 20px;
+  }
+
+  .container,
+  .container-narrow,
+  .ajouter-container {
+    padding: 20px 15px;
+  }
+}
+
 .ajouter-container {
-  width: 60vw;
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto 90px;
   padding: 20px;
 }
