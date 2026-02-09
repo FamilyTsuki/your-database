@@ -1168,6 +1168,8 @@ form select:focus {
   padding: 0;
   margin: 0;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
 }
 
@@ -1185,6 +1187,10 @@ form select:focus {
   .footer-compact {
     flex-direction: column;
     text-align: center;
+    gap: 15px;
+  }
+  .footer-nav {
+    gap: 15px;
   }
 }
 

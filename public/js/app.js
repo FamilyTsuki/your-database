@@ -139,12 +139,12 @@ function openSourceChoice(onChoice) {
   // Configuration des actions
   btnCamera.onclick = () => {
     modal.style.display = "none";
-    onChoice("camera");
+    setTimeout(() => onChoice("camera"), 350);
   };
 
   btnGallery.onclick = () => {
     modal.style.display = "none";
-    onChoice("gallery");
+    setTimeout(() => onChoice("gallery"), 350);
   };
 
   const close = () => (modal.style.display = "none");
@@ -962,6 +962,10 @@ function initAddFormListeners() {
   }
 
   if (!dropZone || !fileInput) return;
+
+  // Empêcher la propagation du clic pour éviter que le clic sur l'input (enfant)
+  // ne remonte à la dropZone (parent) et ne rouvre la modale immédiatement.
+  fileInput.addEventListener("click", (e) => e.stopPropagation());
 
   dropZone.addEventListener("click", () => {
     openSourceChoice((source) => {
