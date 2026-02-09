@@ -42,7 +42,9 @@ body {
   padding: 0;
   width: 100vw;
   overflow-x: hidden;
-  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -1094,6 +1096,61 @@ form input:focus {
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.site-footer {
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  padding: 20px 0;
+  font-size: 0.9rem;
+}
+
+.footer-compact {
+  display: flex;
+  margin-bottom: -20px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding-bottom: -10px;
+}
+
+.footer-copyright {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.footer-copyright strong {
+  color: var(--text-main);
+}
+
+.footer-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 20px;
+}
+
+.footer-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-nav a:hover {
+  color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .footer-compact {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 .shared-users {

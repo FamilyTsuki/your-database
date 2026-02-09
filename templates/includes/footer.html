@@ -1,3 +1,20 @@
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-compact">
+            <p class="footer-copyright">
+                &copy; <span id="year"></span> <strong>YourDatabase</strong>. Tous droits réservés.
+            </p>
+            <ul class="footer-nav">
+                <li><a href="index.php">Tableau de bord</a></li>
+                <li><a href="#">Mentions légales</a></li>
+                <li><a href="#">Confidentialité</a></li>
+                <li><a href="#">Support</a></li>
+            </ul>
+        </div>
+    </div>
+</footer>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 <script src="js/app.js"></script>
 </body>
 </html>
