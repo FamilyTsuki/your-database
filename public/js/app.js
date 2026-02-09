@@ -610,10 +610,14 @@ function initGlobalListeners() {
     if (action === "update-database") {
       const name = document.getElementById("name")?.value || "";
       const description = document.getElementById("description")?.value || "";
+      const redirectOnAdd = document.getElementById("redirect_on_add")?.checked
+        ? 1
+        : 0;
       apiPost({
         action: "update",
         name,
         description,
+        redirect_on_add: redirectOnAdd,
         csrf_token: window.csrfToken,
         database_id: window.databaseId,
       })
@@ -968,6 +972,10 @@ function initAddFormListeners() {
         });
         const d = await res.json();
         if (d.success) {
+          if (window.dbRedirectOnAdd) {
+            window.location.href = "database-view.php?id=" + window.databaseId;
+            return;
+          }
           // Append new object to grid
           const grid = document.getElementById("inventoryGrid");
           if (grid) {

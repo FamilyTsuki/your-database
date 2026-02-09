@@ -289,6 +289,17 @@ if ($action === 'delete_database') {
     exit;
 }
 
+if ($action === 'update') {
+    if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
+    $name = $_POST['name'] ?? '';
+    $description = $_POST['description'] ?? '';
+    $redirect_on_add = intval($_POST['redirect_on_add'] ?? 1);
+    
+    $ok = $db_controller->update($database_id, $name, $description, $redirect_on_add);
+    echo json_encode(['success'=>(bool)$ok]);
+    exit;
+}
+
 echo json_encode(['error' => 'Action inconnue']);
 exit;
 

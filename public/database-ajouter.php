@@ -18,6 +18,9 @@ if (!$database_id) {
 $user_id = Auth::getUserId();
 $conn = $conn; // Assumé défini dans config.php
 
+// 3. Récupérer les infos de la base (pour le paramètre de redirection)
+$db_info = $conn->query("SELECT redirect_on_add FROM `databases` WHERE id = $database_id LIMIT 1")->fetch_assoc();
+
 // Form submit is handled client-side via public/js/app.js and the API endpoint.
 
 // 4. Données pour la vue
@@ -45,6 +48,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
     window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
     window.csrfToken = '<?php echo $csrf_token; ?>';
     window.databaseId = <?php echo json_encode(intval($database_id)); ?>;
+    window.dbRedirectOnAdd = <?php echo json_encode((bool)($db_info['redirect_on_add'] ?? true)); ?>;
 </script>
 
 <div class="ajouter-container">

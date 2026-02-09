@@ -218,13 +218,14 @@ class DatabaseModel {
     /**
      * Met à jour le nom et la description d'une base
      */
-    public function update($database_id, $name, $description) {
+    public function update($database_id, $name, $description, $redirect_on_add = 1) {
         $database_id = intval($database_id);
         $name = Validator::sanitizeText($name, 100);
         $description = Validator::sanitizeText($description, 255);
+        $redirect_on_add = intval($redirect_on_add);
         
-        $stmt = $this->conn->prepare("UPDATE `databases` SET name = ?, description = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $name, $description, $database_id);
+        $stmt = $this->conn->prepare("UPDATE `databases` SET name = ?, description = ?, redirect_on_add = ? WHERE id = ?");
+        $stmt->bind_param("ssii", $name, $description, $redirect_on_add, $database_id);
         
         return $stmt->execute();
     }

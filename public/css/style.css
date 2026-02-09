@@ -63,7 +63,13 @@ a:hover {
 
 .container {
   max-width: 1400px; /* Plus large pour les écrans modernes */
-  margin: 0 auto;
+  margin: 0 auto 90px;
+  padding: 40px 20px;
+}
+
+.container-narrow {
+  width: 70vw;
+  margin: 0 auto 90px;
   padding: 40px 20px;
 }
 
@@ -72,6 +78,7 @@ a:hover {
   padding-left: 20px;
   padding-right: 20px;
   box-sizing: border-box;
+  margin-bottom: 60px;
 }
 
 /* ==========================================================================
@@ -1105,7 +1112,7 @@ form input:focus {
   background-color: var(--bg-surface);
   border-top: 1px solid var(--border);
   margin-top: auto;
-  padding: 20px 0;
+  padding: 10px 10px;
   font-size: 0.9rem;
 }
 
@@ -1472,8 +1479,8 @@ form input:focus {
 }
 
 .ajouter-container {
-  max-width: 600px;
-  margin: 0 auto;
+  width: 60vw;
+  margin: 0 auto 90px;
   padding: 20px;
 }
 

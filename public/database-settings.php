@@ -36,7 +36,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
 ?>
 <script>window.csrfToken = <?php echo json_encode($csrf_token); ?>; window.databaseId = <?php echo json_encode(intval($database_id)); ?>; window.userId = <?php echo json_encode(intval($user_id)); ?>;</script>
 
-<div class="container">
+<div class="container-narrow">
     <?php echo FlashMessage::render(); ?>
     
     <div class="settings-header">
@@ -58,6 +58,13 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <div class="form-group">
                 <label for="description">Description</label>
                 <textarea name="description" id="description" rows="3"><?php echo htmlspecialchars($database['description'] ?? ''); ?></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="redirect_on_add" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" name="redirect_on_add" id="redirect_on_add" value="1" <?php echo ($database['redirect_on_add'] ?? 1) ? 'checked' : ''; ?>>
+                    Rediriger vers la liste après un ajout
+                </label>
             </div>
             
             <button type="button" class="btn-primary" data-action="update-database">Enregistrer</button>

@@ -87,8 +87,8 @@ class DatabaseController {
     /**
      * Met à jour une base
      */
-    public function update($database_id, $name, $description) {
-        return $this->model->update($database_id, $name, $description);
+    public function update($database_id, $name, $description, $redirect_on_add = 1) {
+        return $this->model->update($database_id, $name, $description, $redirect_on_add);
     }
 
     /**
