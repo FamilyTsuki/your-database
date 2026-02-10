@@ -335,6 +335,7 @@ function openObjectDetails(row) {
       if (d.success) {
         showFlash("Détails enregistrés", "success");
         modal.style.display = "none";
+        document.body.classList.remove("modal-open");
         fetchAndRenderInventory(); // Rafraîchir la grille
       } else showFlash("Erreur: " + (d.error || "Erreur sauvegarde"), "error");
     } catch (err) {
