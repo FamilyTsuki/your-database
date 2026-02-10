@@ -48,7 +48,6 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
                 $db_id = $_GET['id'];
                 // Check if admin (you might want to get this from session or pass it)
             ?>
-                <a href="export.php?id=<?php echo $db_id; ?>" class="nav-action-btn" target="_blank">📄 Exporter</a>
                 <a href="database/settings/<?php echo $db_id; ?>" class="nav-action-btn btn-settings">⚙️ Paramètres</a>
             <?php endif; ?>
             

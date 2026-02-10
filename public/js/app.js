@@ -1992,6 +1992,12 @@ async function fetchAndRenderDatabases() {
       a.className = "btn-link";
       a.textContent = "Consulter";
       footer.appendChild(a);
+      const btnExport = document.createElement("a");
+      btnExport.href = "export.php?id=" + db.id;
+      btnExport.className = "btn-link";
+      btnExport.textContent = "Exporter";
+      btnExport.target = "_blank";
+      footer.appendChild(btnExport);
       if (db.owner_id == (window.userId || "")) {
         const s2 = document.createElement("a");
         s2.href = "database/settings/" + db.id;
