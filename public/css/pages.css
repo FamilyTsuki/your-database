@@ -61,7 +61,7 @@
 
 .create-db-form h2 {
   margin-top: 0;
-  color: var(--primary);
+  color: var(--text-main); /* Contraste RGAA */
 }
 
 .create-db-form .form-group {
@@ -121,7 +121,7 @@
 .btn-secondary {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--text-main); /* Contraste RGAA */
 }
 
 .btn-secondary:hover {
@@ -131,7 +131,7 @@
 
 .btn-link {
   display: inline-block;
-  color: var(--primary);
+  color: var(--text-main); /* Contraste RGAA */
   text-decoration: none;
   padding: 8px 12px;
   transition: all 0.2s;
@@ -147,17 +147,19 @@
 
 .btn-danger {
   background: var(--danger);
-  color: white;
+  color: var(--bg-body); /* Texte sombre pour contraste RGAA */
+  font-weight: 700;
 }
 
 .btn-danger:hover {
   background: #dc2626;
+  color: var(--bg-body);
 }
 
 .btn-danger-small {
   padding: 6px 12px;
   background: transparent;
-  color: var(--danger);
+  color: var(--text-main); /* Contraste RGAA */
   border: 1px solid var(--danger);
   border-radius: 4px;
   cursor: pointer;
@@ -205,8 +207,9 @@
 }
 
 .badge-owner {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success);
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--text-main); /* Contraste amélioré */
+  border: 1px solid var(--success);
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 12px;
@@ -214,8 +217,9 @@
 }
 
 .badge-permission {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--primary);
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--text-main); /* Contraste amélioré */
+  border: 1px solid var(--primary);
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 12px;
@@ -262,7 +266,7 @@
 }
 
 .back-link {
-  color: var(--primary);
+  color: var(--text-main); /* Contraste RGAA */
   text-decoration: none;
   font-size: 14px;
   display: inline-block;
@@ -385,7 +389,7 @@
 
 .categorie-badge {
   display: inline-block;
-  background: #3498db;
+  background: var(--primary); /* Utilisation de la couleur du thème (RGAA OK) */
   color: white;
   padding: 4px 10px;
   border-radius: 20px;
@@ -444,7 +448,7 @@
 
 .settings-section h2 {
   margin-top: 0;
-  color: var(--primary);
+  color: var(--text-main); /* Contraste RGAA */
   border-bottom: 2px solid var(--primary);
   padding-bottom: 15px;
 }
@@ -547,27 +551,33 @@
 }
 
 .badge-admin {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--text-main);
+  border: 1px solid var(--danger);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .badge-edit {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fcd34d;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--text-main);
+  border: 1px solid var(--warning);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .badge-view {
-  background: rgba(16, 185, 129, 0.2);
-  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--text-main);
+  border: 1px solid var(--success);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .categories-list {

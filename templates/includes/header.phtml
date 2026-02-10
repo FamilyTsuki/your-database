@@ -22,7 +22,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
 <body>
     <nav class="top-nav">
         <div class="div-modif-inv">
-            <a href="index" class="nav-link">📦 Mes Bases</a>
+            <a href="index" class="nav-link">📦 Your DataBase</a>
             <?php 
             // Show action buttons only on database pages
             $current_page = basename($_SERVER['PHP_SELF']);
@@ -58,15 +58,18 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
             $user = Auth::getUser();
             if ($user): 
             ?>
+                <a href="logout" class="nav-action-btn btn-logout">Déconnexion</a>
+
                 <a href="profile" class="user-profile-link">
+                    
+                    <span><?php echo htmlspecialchars($user['username']); ?></span>
                     <?php if (!empty($user['profile_image'])): ?>
                         <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
                     <?php else: ?>
                         <span class="nav-profile-icon">👤</span>
                     <?php endif; ?>
-                    <span><?php echo htmlspecialchars($user['username']); ?></span>
                 </a>
-                <a href="logout" class="nav-action-btn btn-logout">Déconnexion</a>
+                
             <?php endif; ?>
         </div>
     </nav>

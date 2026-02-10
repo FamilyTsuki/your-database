@@ -185,13 +185,15 @@
   font-size: 1.1em;
   color: var(--text-main);
   font-weight: 600;
+  padding: 0 12%;
 }
 
 .tag {
   font-size: 11px;
-  color: var(--primary);
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: var(--text-main); /* Contraste amélioré pour RGAA */
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--primary);
+  font-weight: 600;
   display: inline-block;
   padding: 3px 10px;
   border-radius: 12px;
@@ -242,7 +244,7 @@
 .delete-link {
   display: block;
   margin-top: 10px;
-  color: var(--danger);
+  color: var(--text-main); /* Contraste RGAA */
   font-size: 14px;
   text-decoration: none;
   border: 1px solid transparent;
@@ -254,7 +256,7 @@
 .delete-link:hover {
   background: rgba(239, 68, 68, 0.1);
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--text-main);
   border-color: var(--danger);
 }
 

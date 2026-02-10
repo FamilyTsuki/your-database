@@ -40,14 +40,15 @@
 .nav-action-btn.btn-add {
   background: var(--success);
   border-color: var(--success);
-  color: #fff;
+  color: var(--bg-body); /* Texte sombre pour contraste RGAA */
+  font-weight: 700;
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
 }
 
 .nav-action-btn.btn-add:hover {
   background: #059669;
   border-color: #059669;
-  color: #fff;
+  color: var(--bg-body);
   border-color: #059669;
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
@@ -88,7 +89,7 @@
 .top-nav .nav-link {
   background: transparent;
   border: 1px solid transparent;
-  color: var(--text-muted);
+  color: var(--text-main); /* Contraste RGAA */
   padding: 0.5rem 1rem;
   border-radius: 9999px;
   cursor: pointer;
@@ -122,13 +123,16 @@
 
 .div-modif-inv {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap-reverse;
+  flex-direction: row-reverse;
   gap: 10px;
   align-items: center;
-  /* On retire justify-content: space-around car on veut que les liens restent groupés */
-  order: 5; /* Toujours en premier */
+  order: 5;
+  justify-content: flex-end;
 }
-
+.div-modif-inv .nav-link:first-child {
+  order: 10;
+}
 .user-info {
   display: flex;
   gap: 15px;

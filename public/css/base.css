@@ -81,6 +81,12 @@ a:hover {
   text-decoration: none;
 }
 
+/* Accessibilité (RGAA) : Focus visible pour la navigation clavier */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .container {
   max-width: 1400px; /* Plus large pour les écrans modernes */
   margin: 0 auto 90px;
