@@ -147,13 +147,13 @@
 
 .btn-danger {
   background: var(--danger);
-  color: var(--bg-body); /* Texte sombre pour contraste RGAA */
+  color: #0f172a; /* Texte sombre fixe pour contraste RGAA (Rouge) */
   font-weight: 700;
 }
 
 .btn-danger:hover {
   background: #dc2626;
-  color: var(--bg-body);
+  color: #0f172a;
 }
 
 .btn-danger-small {

@@ -2,7 +2,7 @@
    NAVIGATION
    ========================================================================== */
 .top-nav {
-  background: rgba(15, 23, 42, 0.8); /* Semi-transparent Slate 900 */
+  background: var(--bg-nav);
   backdrop-filter: blur(12px); /* Effet verre dépoli */
   border-bottom: 1px solid var(--border);
   padding: 1rem 2rem;
@@ -13,6 +13,8 @@
   top: 0;
   z-index: 1000;
   flex-direction: row-reverse;
+  flex-direction: row; /* Direction standard : Logo à gauche, reste à droite */
+  flex-wrap: wrap;
 }
 
 .nav-action-btn {
@@ -40,7 +42,7 @@
 .nav-action-btn.btn-add {
   background: var(--success);
   border-color: var(--success);
-  color: var(--bg-body); /* Texte sombre pour contraste RGAA */
+  color: #0f172a; /* Texte sombre fixe pour contraste RGAA (Vert) */
   font-weight: 700;
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
 }
@@ -48,7 +50,7 @@
 .nav-action-btn.btn-add:hover {
   background: #059669;
   border-color: #059669;
-  color: var(--bg-body);
+  color: #0f172a;
   border-color: #059669;
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
@@ -65,6 +67,7 @@
 }
 .nav-action-btn.btn-vewe {
   background: #00028c;
+  color: #ffffff; /* Texte blanc fixe sur fond foncé */
 }
 
 .nav-action-btn.btn-vewe:hover {
@@ -121,6 +124,67 @@
   transform: translateY(-1px);
 }
 
+/* Logo principal */
+.nav-logo {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  text-decoration: none;
+  margin-right: auto; /* Pousse le reste vers la droite */
+}
+
+/* Bouton Burger */
+.burger-btn {
+  display: none; /* Caché sur PC */
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  margin-left: 10px;
+}
+
+.burger-icon {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--text-main);
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.burger-icon::before,
+.burger-icon::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 2px;
+  background-color: var(--text-main);
+  transition:
+    transform 0.3s,
+    top 0.3s;
+  left: 0;
+}
+
+.burger-icon::before {
+  top: -8px;
+}
+.burger-icon::after {
+  top: 8px;
+}
+
+/* Animation Burger Ouvert */
+.top-nav.nav-open .burger-icon {
+  background-color: transparent;
+}
+.top-nav.nav-open .burger-icon::before {
+  transform: rotate(45deg);
+  top: 0;
+}
+.top-nav.nav-open .burger-icon::after {
+  transform: rotate(-45deg);
+  top: 0;
+}
+
 .div-modif-inv {
   display: flex;
   flex-wrap: wrap-reverse;
@@ -133,38 +197,64 @@
 .div-modif-inv .nav-link:first-child {
   order: 10;
 }
+
 .user-info {
   display: flex;
   gap: 15px;
   align-items: center;
   margin-left: auto;
   order: 1; /* Toujours en dernier */
+  margin-left: 15px;
 }
 @media (max-width: 768px) {
   .top-nav {
     padding: 10px;
     justify-content: center; /* Centre tout sur mobile */
     gap: 10px;
+    padding: 10px 15px;
+    align-items: center;
+  }
+
+  .burger-btn {
+    display: block; /* Afficher le burger sur mobile */
   }
 
   .div-modif-inv {
     justify-content: center;
     width: 100%; /* Prend toute la largeur pour forcer user-info en dessous */
+    display: none; /* Cacher les boutons par défaut */
+    width: 100%;
+    flex-direction: column;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+    margin-top: 10px;
   }
 
   .user-info {
     margin-left: 0; /* Retire le décalage à droite */
+    display: none; /* Cacher le profil par défaut */
     width: 100%;
+    flex-direction: column;
     justify-content: center;
 
+    margin-left: 0;
+    margin-top: 10px;
     padding-top: 10px;
     font-size: 0.9em;
-    flex-wrap: wrap; /* Permet aux éléments de passer à la ligne si nécessaire */
+    flex-wrap: wrap-reverse; /* Permet aux éléments de passer à la ligne si nécessaire */
+    border-top: 1px solid var(--border);
+  }
+
+  /* Afficher le menu quand la classe .nav-open est présente */
+  .top-nav.nav-open .div-modif-inv,
+  .top-nav.nav-open .user-info {
+    display: flex;
+    animation: slideDown 0.3s ease forwards;
   }
 }
 
 .user-info span {
-  color: var(--text-muted);
+  color: var(--text-main);
   font-size: 14px;
   font-weight: 500;
 }

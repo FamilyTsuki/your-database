@@ -63,27 +63,34 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 <textarea name="description" id="description" rows="3" <?php echo !$is_admin ? 'disabled' : ''; ?>><?php echo htmlspecialchars($database['description'] ?? ''); ?></textarea>
             </div>
              <?php endif; ?>
-            <div class="form-group">
-                <label for="redirect_on_add" class="checkbox-label">
+            
+            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+                <label for="redirect_on_add" style="margin: 0;">Rediriger vers la liste après un ajout</label>
+                <label class="switch">
                     <input type="checkbox" name="redirect_on_add" id="redirect_on_add" value="1" <?php echo ($database['redirect_on_add'] ?? 1) ? 'checked' : ''; ?>>
-                    Rediriger vers la liste après un ajout
+                    <span class="slider round"></span>
                 </label>
             </div>
 
-            <div class="form-group">
-                <label for="skip_source_modal" class="checkbox-label">
+            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+                <label for="skip_source_modal" style="margin: 0;">Ne pas demander la source (ouvrir directement)</label>
+                <label class="switch">
                     <input type="checkbox" name="skip_source_modal" id="skip_source_modal" value="1" <?php echo ($database['skip_source_modal'] ?? 0) ? 'checked' : ''; ?>>
-                    Ne pas demander la source (ouvrir directement)
+                    <span class="slider round"></span>
                 </label>
             </div>
 
-            <div class="form-group margin-left-20" id="prefer_gallery_group" style="display:none;">
-                <label for="prefer_gallery" class="checkbox-label">
+            <div class="form-group margin-left-20" id="prefer_gallery_group" style="display:none; flex-direction: row; align-items: center; justify-content: space-between;">
+                <label for="prefer_gallery" style="margin: 0;">Toujours utiliser la galerie (sinon Caméra)</label>
+                <label class="switch">
                     <input type="checkbox" name="prefer_gallery" id="prefer_gallery" value="1" <?php echo ($database['prefer_gallery'] ?? 0) ? 'checked' : ''; ?>>
-                    Toujours utiliser la galerie (sinon Caméra)
+                    <span class="slider round"></span>
                 </label>
             </div>
-             <button id="theme-toggle" class="theme-btn" title="Changer de thème">☀️</button>
+            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <label for="theme-toggle" style="margin: 0;">Mode Sombre</label>
+                <label class="switch"><input type="checkbox" id="theme-toggle"><span class="slider round"></span></label>
+            </div>
             <?php if ($is_admin): ?>
                 <button type="button" class="btn-primary" data-action="update-database">Enregistrer</button>
             <?php endif; ?>

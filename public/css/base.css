@@ -9,6 +9,7 @@
   --bg-body: #0f172a; /* Slate 900 - Deep Blue/Black */
   --bg-surface: #1e293b; /* Slate 800 - Lighter Blue/Black */
   --bg-surface-hover: #334155;
+  --bg-nav: rgba(15, 23, 42, 0.8);
 
   --text-main: #f8fafc; /* Slate 50 */
   --text-muted: #94a3b8; /* Slate 400 */
@@ -33,6 +34,7 @@
   --bg-body: #f1f5f9; /* Gris très clair (Slate 100) */
   --bg-surface: #ffffff; /* Blanc pur */
   --bg-surface-hover: #f8fafc; /* Slate 50 */
+  --bg-nav: rgba(255, 255, 255, 0.8);
 
   --text-main: #0f172a; /* Texte très sombre (Slate 900) */
   --text-muted: #64748b; /* Gris moyen (Slate 500) */
