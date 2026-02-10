@@ -24,6 +24,19 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
         <!-- Logo (Toujours visible) -->
         <a href="index" class="nav-logo">📦 Your DataBase</a>
 
+        <?php $user = Auth::getUser(); ?>
+
+        <!-- Mobile Profile (Visible uniquement sur mobile à côté du burger) -->
+        <?php if ($user): ?>
+            <a href="profile" class="mobile-profile-link">
+                <?php if (!empty($user['profile_image'])): ?>
+                    <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                <?php else: ?>
+                    <span class="nav-profile-icon" style="font-size: 1.5rem;">👤</span>
+                <?php endif; ?>
+            </a>
+        <?php endif; ?>
+
         <!-- Bouton Burger (Visible uniquement sur mobile) -->
         <button class="burger-btn" aria-label="Menu" onclick="this.closest('.top-nav').classList.toggle('nav-open')">
             <span class="burger-icon"></span>
@@ -61,10 +74,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
         </div>
         <div class="user-info">
            
-            <?php 
-            $user = Auth::getUser();
-            if ($user): 
-            ?>
+            <?php if ($user): ?>
                 <a href="logout" class="nav-action-btn btn-logout">Déconnexion</a>
 
                 <a href="profile" class="user-profile-link">

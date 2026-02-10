@@ -132,14 +132,30 @@
   margin-right: auto; /* Pousse le reste vers la droite */
 }
 
+/* Mobile Profile Icon */
+.mobile-profile-link {
+  display: none; /* Caché par défaut (Desktop) */
+}
+
 /* Bouton Burger */
-.burger-btn {
+.top-nav .burger-btn {
   display: none; /* Caché sur PC */
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 10px;
+  padding: 0;
+  width: 44px; /* Dimensions fixes pour un cercle parfait */
+  height: 44px;
   margin-left: 10px;
+  border-radius: 50%; /* Force un cercle au lieu de la forme "pill" des autres boutons */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Annuler l'effet de survol gris qui reste bloqué sur mobile */
+.top-nav .burger-btn:hover,
+.top-nav .burger-btn:focus {
+  background: transparent;
 }
 
 .burger-icon {
@@ -202,8 +218,14 @@
     align-items: center;
   }
 
-  .burger-btn {
-    display: block; /* Afficher le burger sur mobile */
+  .top-nav .burger-btn {
+    display: flex; /* Afficher le burger sur mobile (flex pour centrer) */
+  }
+
+  .mobile-profile-link {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
   }
 
   .div-modif-inv {
@@ -218,7 +240,7 @@
   .user-info {
     display: none; /* Cacher le profil par défaut */
     width: 100%;
-    flex-direction: column;
+    flex-direction: column-reverse; /* Profil en haut, Déconnexion en bas */
     justify-content: center;
     margin-left: 0;
     margin-top: 10px;
@@ -231,6 +253,10 @@
   .top-nav.nav-open .user-info {
     display: flex;
     animation: slideDown 0.3s ease forwards;
+  }
+
+  .user-info .user-profile-link {
+    margin-right: 0; /* Centre le profil sur mobile */
   }
 }
 
