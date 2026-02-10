@@ -1,0 +1,250 @@
+/* ==========================================================================
+   VARIABLES & RESET (MODERN SAAS DESIGN)
+   ========================================================================== */
+:root {
+  --primary: #6366f1; /* Indigo Vibrant */
+  --primary-hover: #4f46e5;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+
+  --bg-body: #0f172a; /* Slate 900 - Deep Blue/Black */
+  --bg-surface: #1e293b; /* Slate 800 - Lighter Blue/Black */
+  --bg-surface-hover: #334155;
+
+  --text-main: #f8fafc; /* Slate 50 */
+  --text-muted: #94a3b8; /* Slate 400 */
+
+  --border: #334155; /* Slate 700 */
+  --input-bg: #020617; /* Slate 950 */
+
+  --success: #10b981; /* Emerald */
+  --danger: #ef4444; /* Red */
+  --warning: #f59e0b; /* Amber */
+
+  --radius: 12px;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Thème Clair (Override) */
+[data-theme="light"] {
+  --bg-body: #f1f5f9; /* Gris très clair (Slate 100) */
+  --bg-surface: #ffffff; /* Blanc pur */
+  --bg-surface-hover: #f8fafc; /* Slate 50 */
+
+  --text-main: #0f172a; /* Texte très sombre (Slate 900) */
+  --text-muted: #64748b; /* Gris moyen (Slate 500) */
+
+  --border: #cbd5e1; /* Bordure grise (Slate 300) */
+  --input-bg: #ffffff; /* Fond input blanc */
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s var(--ease);
+}
+
+a:hover {
+  color: var(--primary-hover);
+
+  text-decoration: none;
+}
+
+.container {
+  max-width: 1400px; /* Plus large pour les écrans modernes */
+  margin: 0 auto 90px;
+  padding: 40px 20px;
+}
+
+.container-narrow {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 90px;
+  padding: 40px 20px;
+}
+
+.database-view-container {
+  text-align: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  box-sizing: border-box;
+  margin-bottom: 60px;
+}
+
+/* ==========================================================================
+   UTILITIES & HELPER CLASSES (Refactoring)
+   ========================================================================== */
+.margin-top-20 {
+  margin-top: 20px;
+}
+.margin-left-20 {
+  margin-left: 20px;
+}
+.text-muted-small {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+.text-muted-italic {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.flex-1 {
+  flex: 1;
+}
+
+/* Login Password Toggle */
+.password-wrapper {
+  position: relative;
+}
+.password-input {
+  width: 100%;
+  padding-right: 40px;
+}
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Profile */
+.profile-avatar-placeholder {
+  background: var(--bg-surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+/* Support */
+.support-email {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* Header */
+.btn-logout {
+  padding: 5px 10px;
+  font-size: 0.8em;
+  border: 1px solid var(--border);
+}
+
+/* Database Settings */
+.cat-list-ul {
+  list-style: none;
+  margin: 10px 0 10px 20px;
+  padding: 0;
+}
+.input-small {
+  padding: 6px;
+  font-size: 0.9em;
+  flex: 1;
+}
+.btn-small-padding {
+  padding: 6px 10px;
+  font-size: 0.8em;
+}
+
+/* Database Add */
+.option-new {
+  color: var(--text-main);
+  font-weight: bold;
+}
+.sub-category-container {
+  display: none;
+  margin-top: 10px;
+}
+
+/* Footer Modals */
+.source-icon {
+  font-size: 3rem;
+}
+.btn-cancel-source {
+  margin-top: 15px;
+  width: 100%;
+}
+.modal-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(100, 100, 100, 0.5);
+  backdrop-filter: blur(5px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: white;
+  cursor: pointer;
+  z-index: 3001;
+}
+.full-image {
+  max-width: 95%;
+  max-height: 95%;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  object-fit: contain;
+}
+.modal-content-large {
+  width: 600px;
+  max-width: 95%;
+}
+.modal-title {
+  margin-top: 0;
+  color: var(--primary);
+}
+.details-subtitle {
+  text-align: left;
+  margin: 10px 0 5px;
+  color: var(--text-muted);
+}
+.input-available {
+  background: var(--success);
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.input-opacity-70 {
+  opacity: 0.7;
+}

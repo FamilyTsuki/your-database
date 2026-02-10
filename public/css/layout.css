@@ -1,0 +1,340 @@
+/* ==========================================================================
+   NAVIGATION
+   ========================================================================== */
+.top-nav {
+  background: rgba(15, 23, 42, 0.8); /* Semi-transparent Slate 900 */
+  backdrop-filter: blur(12px); /* Effet verre dépoli */
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  flex-direction: row-reverse;
+}
+
+.nav-action-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px; /* Pill shape */
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.nav-action-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+  transform: translateY(-2px);
+}
+
+.nav-action-btn.btn-add {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.nav-action-btn.btn-add:hover {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+  border-color: #059669;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.nav-action-btn.btn-settings {
+  background: var(--bg-surface);
+}
+
+.nav-action-btn.btn-settings:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+.nav-action-btn.btn-vewe {
+  background: #00028c;
+}
+
+.nav-action-btn.btn-vewe:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+.top-nav button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-weight: 500;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.top-nav .nav-link {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.top-nav .nav-link:hover,
+.top-nav button:hover {
+  color: var(--text-main);
+  background: var(--bg-surface-hover);
+}
+
+.top-nav .btn-add-nav {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.top-nav .btn-add-nav:hover {
+  background: var(--primary-hover) !important;
+  color: #fff !important;
+  border: none !important;
+  transform: translateY(-1px);
+}
+
+.div-modif-inv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  /* On retire justify-content: space-around car on veut que les liens restent groupés */
+  order: 5; /* Toujours en premier */
+}
+
+.user-info {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-left: auto;
+  order: 1; /* Toujours en dernier */
+}
+@media (max-width: 768px) {
+  .top-nav {
+    padding: 10px;
+    justify-content: center; /* Centre tout sur mobile */
+    gap: 10px;
+  }
+
+  .div-modif-inv {
+    justify-content: center;
+    width: 100%; /* Prend toute la largeur pour forcer user-info en dessous */
+  }
+
+  .user-info {
+    margin-left: 0; /* Retire le décalage à droite */
+    width: 100%;
+    justify-content: center;
+
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    font-size: 0.9em;
+    flex-wrap: wrap; /* Permet aux éléments de passer à la ligne si nécessaire */
+  }
+}
+
+.user-info span {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-main);
+  margin-right: 15px;
+  transition: opacity 0.2s;
+}
+
+.user-profile-link:hover {
+  opacity: 0.8;
+}
+
+.nav-profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.profile-avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 10px;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--bg-surface);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.profile-avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 3px solid var(--bg-surface);
+  transition: transform 0.2s;
+}
+
+.profile-avatar-edit:hover {
+  transform: scale(1.1);
+}
+
+.user-info a {
+  color: var(--text-main);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.user-info a:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+/* Bouton de thème (Rond et compact pour ne pas casser le header) */
+.theme-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-size: 1.2rem;
+  padding: 0;
+  flex-shrink: 0; /* Empêche le bouton de s'écraser */
+}
+
+.theme-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.site-footer {
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  padding: 10px 10px;
+  font-size: 0.9rem;
+}
+
+/* Reset container inside footer */
+.site-footer .container {
+  margin-bottom: 0;
+  padding: 0 10px;
+}
+
+.footer-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  width: 100%;
+}
+
+.footer-copyright {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.footer-copyright strong {
+  color: var(--text-main);
+}
+
+.footer-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.footer-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-nav a:hover {
+  color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .footer-compact {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  .footer-nav {
+    gap: 15px;
+  }
+}
