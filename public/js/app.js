@@ -1153,7 +1153,36 @@ function initGlobalListeners() {
   });
 }
 
+/**
+ * Gestion du Thème (Clair / Sombre)
+ */
+function initTheme() {
+  const toggle = document.getElementById("theme-toggle");
+  const stored = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  // Appliquer le thème au chargement
+  if (stored === "light" || (!stored && !prefersDark)) {
+    document.documentElement.setAttribute("data-theme", "light");
+    if (toggle) toggle.textContent = "🌙"; // Lune pour passer en sombre
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    if (toggle) toggle.textContent = "☀️"; // Soleil pour passer en clair
+  }
+
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      const next = current === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+      toggle.textContent = next === "light" ? "🌙" : "☀️";
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", initGlobalListeners);
+document.addEventListener("DOMContentLoaded", initTheme);
 
 function initAddFormListeners() {
   const dropZone = document.getElementById("dropZone");

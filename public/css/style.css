@@ -28,6 +28,23 @@
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Thème Clair (Override) */
+[data-theme="light"] {
+  --bg-body: #f1f5f9; /* Gris très clair (Slate 100) */
+  --bg-surface: #ffffff; /* Blanc pur */
+  --bg-surface-hover: #f8fafc; /* Slate 50 */
+
+  --text-main: #0f172a; /* Texte très sombre (Slate 900) */
+  --text-muted: #64748b; /* Gris moyen (Slate 500) */
+
+  --border: #cbd5e1; /* Bordure grise (Slate 300) */
+  --input-bg: #ffffff; /* Fond input blanc */
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
 *,
 *::before,
 *::after {
@@ -305,6 +322,7 @@ a:hover {
     border-top: 1px solid var(--border);
     padding-top: 10px;
     font-size: 0.9em;
+    flex-wrap: wrap; /* Permet aux éléments de passer à la ligne si nécessaire */
   }
 }
 
@@ -393,6 +411,31 @@ a:hover {
   background: var(--bg-surface-hover);
   color: var(--text-main);
   border-color: var(--text-muted);
+}
+
+/* Bouton de thème (Rond et compact pour ne pas casser le header) */
+.theme-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  font-size: 1.2rem;
+  padding: 0;
+  flex-shrink: 0; /* Empêche le bouton de s'écraser */
+}
+
+.theme-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px var(--primary-glow);
 }
 
 /* ==========================================================================
