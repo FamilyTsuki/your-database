@@ -596,6 +596,7 @@ a:hover {
   font-size: 1.1em;
   color: var(--text-main);
   font-weight: 600;
+  padding: 0 35px;
 }
 
 .tag {

@@ -1841,7 +1841,7 @@ function renderInventory(objects, gridEl) {
 
       const eye = document.createElement("div");
       eye.className = "view-image-icon";
-      eye.innerHTML = "👁️";
+      eye.innerHTML = "🔍";
       eye.title = "Voir en grand";
       eye.onclick = (e) => {
         e.stopPropagation();
