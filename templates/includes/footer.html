@@ -33,9 +33,51 @@
 </div>
 
 <!-- Modal Visualisation Image Plein Écran -->
-<div id="imageViewerModal" class="custom-modal" style="display: none;" onclick="if(event.target === this) this.style.display='none'">
-    <span style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; background: rgba(100, 100, 100, 0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; cursor: pointer; z-index: 3001;" onclick="document.getElementById('imageViewerModal').style.display='none'">&times;</span>
+<div id="imageViewerModal" class="custom-modal" style="display: none;">
+    <span id="closeImageViewer" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; background: rgba(100, 100, 100, 0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; cursor: pointer; z-index: 3001;">&times;</span>
     <img id="fullImage" style="max-width: 95%; max-height: 95%; border-radius: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.8); object-fit: contain;">
+</div>
+
+<!-- Modal Détails Objet -->
+<div id="objectDetailsModal" class="custom-modal" style="display: none;">
+    <div class="modal-content" style="width: 600px; max-width: 95%;">
+        <h3 id="detailTitle" style="margin-top:0; color: var(--primary);">Détails de l'objet</h3>
+        <form id="detailsForm">
+            <input type="hidden" name="id" id="detailId">
+            
+            <div class="details-grid">
+                <div class="form-group">
+                    <label>Modèle / Référence</label>
+                    <input type="text" name="model" id="detailModel" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Position (théorique)</label>
+                    <input type="text" name="position" id="detailPosition" class="form-input">
+                </div>
+                <div class="form-group details-full">
+                    <label>Lien d'achat</label>
+                    <input type="text" name="purchase_link" id="detailLink" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-group details-full">
+                    <label>Description précise</label>
+                    <textarea name="description" id="detailDesc" class="form-input" rows="3"></textarea>
+                </div>
+            </div>
+
+            <h4 style="text-align:left; margin: 10px 0 5px; color: var(--text-muted);">État du stock</h4>
+            <div class="details-grid">
+                <div class="form-group"><label>Total</label><input type="number" name="quantite" id="detailQtyTotal" class="form-input" min="0"></div>
+                <div class="form-group"><label>En utilisation</label><input type="number" name="qty_used" id="detailQtyUsed" class="form-input" min="0"></div>
+                <div class="form-group"><label>Dégradé / HS</label><input type="number" name="qty_degraded" id="detailQtyDegraded" class="form-input" min="0"></div>
+                <div class="form-group"><label>Disponible</label><input type="text" id="detailQtyAvailable" class="form-input" readonly style="background: var(--success); color:white; font-weight:bold; border:none;"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="submit" class="btn-primary">Enregistrer</button>
+                <button type="button" class="btn-secondary" id="closeDetailsModal">Fermer</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>

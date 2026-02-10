@@ -68,7 +68,7 @@ class ObjetModel {
      */
     public function update($id, $field, $value) {
         // Mise à jour de la whitelist : on remplace 'categorie' par 'id_categorie'
-        $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path'];
+        $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path', 'position', 'model', 'purchase_link', 'description', 'qty_used', 'qty_degraded'];
         if (!in_array($field, $allowedFields, true)) {
             return false;
         }
@@ -79,7 +79,7 @@ class ObjetModel {
         if (!$stmt) return false;
 
         // Si on modifie la catégorie ou la quantité, c'est un entier (i)
-        if ($field === 'quantite' || $field === 'id_categorie') {
+        if (in_array($field, ['quantite', 'id_categorie', 'qty_used', 'qty_degraded'])) {
             $stmt->bind_param("ii", $value, $id);
         } else {
             $stmt->bind_param("si", $value, $id);
@@ -88,6 +88,39 @@ class ObjetModel {
         $success = $stmt->execute();
         $stmt->close();
         return $success;
+    }
+
+    /**
+     * Met à jour plusieurs champs d'un objet
+     */
+    public function updateFull($id, $data) {
+        $id = intval($id);
+        $updates = [];
+        $types = "";
+        $params = [];
+
+        $allowed = ['nom', 'id_categorie', 'quantite', 'position', 'model', 'purchase_link', 'description', 'qty_used', 'qty_degraded'];
+
+        foreach ($data as $key => $val) {
+            if (in_array($key, $allowed)) {
+                $updates[] = "`$key` = ?";
+                if (in_array($key, ['id_categorie', 'quantite', 'qty_used', 'qty_degraded'])) {
+                    $types .= "i";
+                    $params[] = intval($val);
+                } else {
+                    $types .= "s";
+                    $params[] = Validator::sanitizeText($val, 2000); // Allow longer text for description
+                }
+            }
+        }
+
+        if (empty($updates)) return false;
+        $sql = "UPDATE objets SET " . implode(", ", $updates) . " WHERE id = ?";
+        $types .= "i";
+        $params[] = $id;
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        return $stmt->execute();
     }
 
     /**

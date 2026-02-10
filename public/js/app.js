@@ -185,24 +185,29 @@ function openSourceChoice(onChoice) {
   const btnGallery = document.getElementById("btnGallery");
   const btnClose = document.getElementById("closeSourceModal");
 
+  const close = () => {
+    modal.style.display = "none";
+    document.body.classList.remove("modal-open");
+  };
+
   // Configuration des actions
   btnCamera.onclick = () => {
-    modal.style.display = "none";
+    close();
     setTimeout(() => onChoice("camera"), 350);
   };
 
   btnGallery.onclick = () => {
-    modal.style.display = "none";
+    close();
     setTimeout(() => onChoice("gallery"), 350);
   };
 
-  const close = () => (modal.style.display = "none");
   btnClose.onclick = close;
   modal.onclick = (e) => {
     if (e.target === modal) close();
   };
 
   // Affichage
+  document.body.classList.add("modal-open");
   modal.style.display = "flex";
 }
 
@@ -212,10 +217,144 @@ function openSourceChoice(onChoice) {
 function viewFullImage(src) {
   const modal = document.getElementById("imageViewerModal");
   const img = document.getElementById("fullImage");
-  if (modal && img) {
+  const closeBtn = document.getElementById("closeImageViewer");
+
+  if (modal && img && closeBtn) {
     img.src = src;
+    document.body.classList.add("modal-open");
     modal.style.display = "flex";
+
+    const close = () => {
+      modal.style.display = "none";
+      document.body.classList.remove("modal-open");
+    };
+
+    closeBtn.onclick = close;
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        close();
+      }
+    };
   }
+}
+
+/**
+ * Ouvre la modale de détails pour un objet
+ */
+function openObjectDetails(row) {
+  const modal = document.getElementById("objectDetailsModal");
+  if (!modal) return;
+
+  // Remplir les champs
+  document.getElementById("detailTitle").textContent = row.nom;
+  document.getElementById("detailId").value = row.id;
+  document.getElementById("detailModel").value = row.model || "";
+  document.getElementById("detailPosition").value = row.position || "";
+  document.getElementById("detailLink").value = row.purchase_link || "";
+  document.getElementById("detailDesc").value = row.description || "";
+
+  const total = parseInt(row.quantite) || 0;
+  const used = parseInt(row.qty_used) || 0;
+  const degraded = parseInt(row.qty_degraded) || 0;
+
+  document.getElementById("detailQtyTotal").value = total;
+  document.getElementById("detailQtyUsed").value = used;
+  document.getElementById("detailQtyDegraded").value = degraded;
+
+  const updateAvailable = () => {
+    const tInput = document.getElementById("detailQtyTotal");
+    const uInput = document.getElementById("detailQtyUsed");
+    const dInput = document.getElementById("detailQtyDegraded");
+
+    const t = parseInt(tInput.value) || 0;
+    let u = parseInt(uInput.value) || 0;
+    let d = parseInt(dInput.value) || 0;
+
+    // Contraintes dynamiques des inputs
+    // Le total ne peut pas être inférieur à ce qui est déjà utilisé/HS
+    tInput.min = u + d;
+
+    // On ne peut pas déclarer plus d'utilisé que ce qui reste (Total - HS)
+    const maxUsed = Math.max(0, t - d);
+    uInput.max = maxUsed;
+    if (u > maxUsed) {
+      u = maxUsed;
+      uInput.value = u;
+    }
+
+    // On ne peut pas déclarer plus de HS que ce qui reste (Total - Utilisé)
+    const maxDegraded = Math.max(0, t - u);
+    dInput.max = maxDegraded;
+    if (d > maxDegraded) {
+      d = maxDegraded;
+      dInput.value = d;
+    }
+
+    const available = t - u - d;
+    const availInput = document.getElementById("detailQtyAvailable");
+
+    if (available < 0) {
+      availInput.value = "Erreur (" + available + ")";
+      availInput.style.background = "var(--danger)";
+    } else {
+      availInput.value = available;
+      availInput.style.background = "var(--success)";
+    }
+  };
+
+  document.getElementById("detailQtyTotal").oninput = updateAvailable;
+  document.getElementById("detailQtyUsed").oninput = updateAvailable;
+  document.getElementById("detailQtyDegraded").oninput = updateAvailable;
+  updateAvailable();
+
+  // Gestionnaire de soumission
+  const form = document.getElementById("detailsForm");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    // Validation avant envoi
+    const t = parseInt(document.getElementById("detailQtyTotal").value) || 0;
+    const u = parseInt(document.getElementById("detailQtyUsed").value) || 0;
+    const d = parseInt(document.getElementById("detailQtyDegraded").value) || 0;
+    if (u + d > t) {
+      showFlash(
+        "Erreur: La somme (Utilisé + Dégradé) dépasse le total !",
+        "error",
+      );
+      return;
+    }
+
+    const fd = new FormData(form);
+    fd.append("action", "update_full");
+    fd.append("csrf_token", window.csrfToken);
+    fd.append("database_id", window.databaseId);
+
+    try {
+      const res = await fetch("api/database.php", { method: "POST", body: fd });
+      const d = await res.json();
+      if (d.success) {
+        showFlash("Détails enregistrés", "success");
+        modal.style.display = "none";
+        fetchAndRenderInventory(); // Rafraîchir la grille
+      } else showFlash("Erreur: " + (d.error || "Erreur sauvegarde"), "error");
+    } catch (err) {
+      showFlash("Erreur réseau", "error");
+    }
+  };
+
+  // Close logic
+  const closeBtn = document.getElementById("closeDetailsModal");
+  const close = () => {
+    modal.style.display = "none";
+    document.body.classList.remove("modal-open");
+  };
+  if (closeBtn) closeBtn.onclick = close;
+  modal.onclick = (e) => {
+    if (e.target === modal) close();
+  };
+
+  document.body.classList.add("modal-open");
+  modal.style.display = "flex";
 }
 
 /**
@@ -326,6 +465,7 @@ async function updateQuantity(id, action) {
       database_id: window.databaseId,
     });
     if (d.success && qtySpan) qtySpan.textContent = newQty;
+    else if (d.error) showFlash(d.error, "error");
   } catch (e) {
     showFlash("Erreur lors de la mise à jour", "error");
   }
@@ -1574,6 +1714,17 @@ function renderInventory(objects, gridEl) {
       imgContainer.style.cursor = "pointer";
       imgContainer.innerHTML = "<span>📷</span><p>Ajouter photo</p>";
     }
+
+    // Icône Info (Détails) - En haut à gauche
+    const infoIcon = document.createElement("div");
+    infoIcon.className = "info-icon";
+    infoIcon.innerHTML = "ℹ️";
+    infoIcon.title = "Détails complets";
+    infoIcon.onclick = (e) => {
+      e.stopPropagation();
+      openObjectDetails(row);
+    };
+    imgContainer.appendChild(infoIcon);
 
     const details = document.createElement("div");
     details.className = "card-details";

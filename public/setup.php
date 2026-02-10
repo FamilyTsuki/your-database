@@ -66,7 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
             "ALTER TABLE `databases` ADD COLUMN camera_enabled TINYINT(1) DEFAULT 1",
             "ALTER TABLE `databases` ADD COLUMN skip_source_modal TINYINT(1) DEFAULT 0",
             "ALTER TABLE `databases` ADD COLUMN prefer_gallery TINYINT(1) DEFAULT 0",
-            "ALTER TABLE `users` ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL"
+            "ALTER TABLE `users` ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL",
+            "ALTER TABLE objets ADD COLUMN position VARCHAR(255) DEFAULT NULL",
+            "ALTER TABLE objets ADD COLUMN model VARCHAR(255) DEFAULT NULL",
+            "ALTER TABLE objets ADD COLUMN purchase_link TEXT DEFAULT NULL",
+            "ALTER TABLE objets ADD COLUMN description TEXT DEFAULT NULL",
+            "ALTER TABLE objets ADD COLUMN qty_used INT DEFAULT 0",
+            "ALTER TABLE objets ADD COLUMN qty_degraded INT DEFAULT 0"
         ];
         
         $all_ok = true;

@@ -63,6 +63,17 @@ $db_controller = new DatabaseController($conn);
 if ($action === 'updateQty') {
     $objet_id = intval($_POST['id'] ?? 0);
     $new_qty = intval($_POST['qty'] ?? 0);
+    
+    // Vérification de cohérence : Total >= Utilisé + Dégradé
+    $obj = $conn->query("SELECT qty_used, qty_degraded FROM objets WHERE id = $objet_id LIMIT 1")->fetch_assoc();
+    if ($obj) {
+        $min_required = intval($obj['qty_used']) + intval($obj['qty_degraded']);
+        if ($new_qty < $min_required) {
+            echo json_encode(['success' => false, 'error' => "Impossible : Quantité inférieure à la somme (Utilisé + HS = $min_required)"]);
+            exit;
+        }
+    }
+
     $result = $conn->query("UPDATE objets SET quantite = $new_qty WHERE id = $objet_id AND database_id = '$database_id' LIMIT 1");
     echo json_encode(['success' => (bool)$result, 'qty' => $new_qty]);
     exit;
@@ -178,13 +189,25 @@ if ($action === 'edit') {
 
     if ($field === 'categorie') $field = 'id_categorie';
 
-    $allowedFields = ['nom', 'id_categorie', 'quantite'];
+    $allowedFields = ['nom', 'id_categorie', 'quantite', 'position', 'model', 'purchase_link', 'description', 'qty_used', 'qty_degraded'];
     if (in_array($field, $allowedFields)) {
         if ($field === 'nom') {
             $clean_val = "'" . $conn->real_escape_string($value) . "'";
         } else {
             $clean_val = intval($value);
             if ($field === 'id_categorie' && $clean_val === 0) $clean_val = "NULL";
+            
+            // Vérification si on modifie la quantité
+            if ($field === 'quantite') {
+                $obj = $conn->query("SELECT qty_used, qty_degraded FROM objets WHERE id = $objet_id LIMIT 1")->fetch_assoc();
+                if ($obj) {
+                    $min_required = intval($obj['qty_used']) + intval($obj['qty_degraded']);
+                    if ($clean_val < $min_required) {
+                        echo json_encode(['success' => false, 'message' => "Impossible : Quantité inférieure à la somme (Utilisé + HS = $min_required)"]);
+                        exit;
+                    }
+                }
+            }
         }
         $result = $conn->query("UPDATE objets SET `$field` = $clean_val WHERE id = $objet_id AND database_id = '$database_id' LIMIT 1");
         echo json_encode(['success' => (bool)$result]);
@@ -192,6 +215,30 @@ if ($action === 'edit') {
     }
 
     echo json_encode(['success' => false, 'message' => 'Champ non autorisé']);
+    exit;
+}
+
+if ($action === 'update_full') {
+    $objet_id = intval($_POST['id'] ?? 0);
+    // On récupère tout le POST sauf action, id, csrf_token, database_id
+    $data = $_POST;
+    unset($data['action'], $data['id'], $data['csrf_token'], $data['database_id']);
+    
+    // Validation de cohérence des stocks
+    $q = intval($data['quantite'] ?? 0);
+    $u = intval($data['qty_used'] ?? 0);
+    $d = intval($data['qty_degraded'] ?? 0);
+    if ($u + $d > $q) {
+        echo json_encode(['success' => false, 'error' => 'Incohérence: Utilisé + Dégradé > Total']);
+        exit;
+    }
+
+    $objetModel = new ObjetModel($conn);
+    if ($objetModel->updateFull($objet_id, $data)) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Erreur mise à jour']);
+    }
     exit;
 }
 
