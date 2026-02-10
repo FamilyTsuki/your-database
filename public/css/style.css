@@ -545,6 +545,7 @@ a:hover {
   padding: 12px;
   text-align: center;
   flex-grow: 1;
+  position: relative;
 }
 
 .card-details h3 {
@@ -1415,6 +1416,153 @@ form select:focus {
   border-radius: var(--radius);
   margin-top: 10px;
   font-size: 0.9em;
+}
+
+/* ==========================================================================
+   UTILITIES & HELPER CLASSES (Refactoring)
+   ========================================================================== */
+.margin-top-20 {
+  margin-top: 20px;
+}
+.margin-left-20 {
+  margin-left: 20px;
+}
+.text-muted-small {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+.text-muted-italic {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.flex-1 {
+  flex: 1;
+}
+
+/* Login Password Toggle */
+.password-wrapper {
+  position: relative;
+}
+.password-input {
+  width: 100%;
+  padding-right: 40px;
+}
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Profile */
+.profile-avatar-placeholder {
+  background: var(--bg-surface-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+/* Support */
+.support-email {
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* Header */
+.btn-logout {
+  padding: 5px 10px;
+  font-size: 0.8em;
+  border: 1px solid var(--border);
+}
+
+/* Database Settings */
+.cat-list-ul {
+  list-style: none;
+  margin: 10px 0 10px 20px;
+  padding: 0;
+}
+.input-small {
+  padding: 6px;
+  font-size: 0.9em;
+  flex: 1;
+}
+.btn-small-padding {
+  padding: 6px 10px;
+  font-size: 0.8em;
+}
+
+/* Database Add */
+.option-new {
+  color: var(--text-main);
+  font-weight: bold;
+}
+.sub-category-container {
+  display: none;
+  margin-top: 10px;
+}
+
+/* Footer Modals */
+.source-icon {
+  font-size: 3rem;
+}
+.btn-cancel-source {
+  margin-top: 15px;
+  width: 100%;
+}
+.modal-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(100, 100, 100, 0.5);
+  backdrop-filter: blur(5px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: white;
+  cursor: pointer;
+  z-index: 3001;
+}
+.full-image {
+  max-width: 95%;
+  max-height: 95%;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  object-fit: contain;
+}
+.modal-content-large {
+  width: 600px;
+  max-width: 95%;
+}
+.modal-title {
+  margin-top: 0;
+  color: var(--primary);
+}
+.details-subtitle {
+  text-align: left;
+  margin: 10px 0 5px;
+  color: var(--text-muted);
+}
+.input-available {
+  background: var(--success);
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.input-opacity-70 {
+  opacity: 0.7;
 }
 
 .shared-users {

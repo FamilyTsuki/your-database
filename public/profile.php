@@ -25,7 +25,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     <?php if (!empty($user['profile_image'])): ?>
                         <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar" class="profile-avatar" id="profileAvatarPreview">
                     <?php else: ?>
-                        <div class="profile-avatar" id="profileAvatarPreview" style="background: var(--bg-surface-hover); display: flex; align-items: center; justify-content: center; font-size: 3rem;">👤</div>
+                        <div class="profile-avatar profile-avatar-placeholder" id="profileAvatarPreview">👤</div>
                     <?php endif; ?>
                     
                     <label for="profileImageInput" class="profile-avatar-edit">
@@ -33,7 +33,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     </label>
                     <input type="file" name="profile_image" id="profileImageInput" accept="image/*" style="display: none;">
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.9em;">Cliquez sur le crayon pour changer votre photo</p>
+                <p class="text-muted-small">Cliquez sur le crayon pour changer votre photo</p>
             </div>
 
             <div class="form-group">
@@ -46,7 +46,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
             </div>
 
-            <button type="submit" class="btn-primary" style="margin-top: 20px;">Enregistrer les modifications</button>
+            <button type="submit" class="btn-primary margin-top-20">Enregistrer les modifications</button>
         </form>
     </div>
 </div>

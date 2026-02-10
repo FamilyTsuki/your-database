@@ -20,7 +20,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
     <div class="settings-section">
         <h2>Contacter le support</h2>
         <p>Pour toute question technique, suggestion ou problème non résolu par la FAQ, vous pouvez nous contacter par email à l'adresse suivante :</p>
-        <p style="text-align: center; font-size: 1.2em; font-weight: bold;"><a href="mailto:alban.elie590@gmail.com">alban.elie590@gmail.com</a></p>
+        <p class="support-email"><a href="mailto:alban.elie590@gmail.com">alban.elie590@gmail.com</a></p>
         <p>Nous nous efforçons de répondre dans les plus brefs délais.</p>
     </div>
 </div>

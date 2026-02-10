@@ -56,7 +56,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
 <div class="ajouter-container">
     <div class="add-page-header">
-        <a href="database-view.php?id=<?= $database_id ?>" class="back-link">← Retour à l'inventaire</a>
+        <a href="database/<?= $database_id ?>" class="back-link">← Retour à l'inventaire</a>
     </div>
 
     <div class="add-page-form">
@@ -95,11 +95,11 @@ include __DIR__ . '/../templates/includes/header.phtml';
                             <?= htmlspecialchars($parent['nom']) ?>
                         </option>
                     <?php endforeach; ?>
-                    <option value="NEW" style="color:#2c3e50; font-weight: bold;">+ Créer une nouvelle catégorie</option>
+                    <option value="NEW" class="option-new">+ Créer une nouvelle catégorie</option>
                 </select>
             </div>
 
-            <div class="form-group" id="sub_category_container" style="display:none; margin-top: 10px;">
+            <div class="form-group sub-category-container" id="sub_category_container">
                 <label>Sous-catégorie</label>
                 <select name="categorie" id="sub_category_select" class="form-input">
                     </select>
@@ -110,7 +110,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 </div>
                 <div class="form-buttons-section">
                 <button type="submit" name="add_object" class="btn btn-primary">✓ Ajouter</button>
-                <a href="database-view.php?id=<?= $database_id ?>" class="btn btn-secondary">Annuler</a>
+                <a href="database/<?= $database_id ?>" class="btn btn-secondary">Annuler</a>
             </div>
             </div>
 
@@ -185,7 +185,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
             }
 
             // Ajouter l'option pour créer une nouvelle sous-catégorie
-            optionsHtml += `<option value="NEW_SUB:${parentId}" style="color:#2c3e50; font-weight: bold;">+ Ajouter une sous-catégorie</option>`;
+            optionsHtml += `<option value="NEW_SUB:${parentId}" class="option-new">+ Ajouter une sous-catégorie</option>`;
             
             subSelect.innerHTML = optionsHtml;
             subContainer.style.display = 'block';

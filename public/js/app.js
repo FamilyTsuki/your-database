@@ -1058,7 +1058,7 @@ function initGlobalListeners() {
           .then((d) => {
             if (d.success) {
               showFlash("Base supprimée", "success");
-              setTimeout(() => (window.location = "index.php"), 1000);
+              setTimeout(() => (window.location = "index"), 1000);
             } else showFlash("Erreur suppression", "error");
           })
           .catch(() => showFlash("Erreur réseau", "error"));
@@ -1300,7 +1300,7 @@ function initAddFormListeners() {
 
         if (d.success) {
           if (window.dbRedirectOnAdd) {
-            window.location.href = "database-view.php?id=" + window.databaseId;
+            window.location.href = "database/" + window.databaseId;
             return;
           }
           // Append new object to grid
@@ -1671,7 +1671,7 @@ function renderInventory(objects, gridEl) {
   gridEl.innerHTML = "";
   if (!objects.length) {
     gridEl.innerHTML =
-      '<div class="empty-state" onclick="window.location.href=\'database-ajouter.php?id=' +
+      '<div class="empty-state" onclick="window.location.href=\'database/add/' +
       window.databaseId +
       '\'" style="cursor: pointer;">Aucun objet dans cette base.<br><strong>Cliquez ici pour en ajouter un.</strong></div>';
     return;
@@ -1715,17 +1715,6 @@ function renderInventory(objects, gridEl) {
       imgContainer.innerHTML = "<span>📷</span><p>Ajouter photo</p>";
     }
 
-    // Icône Info (Détails) - En haut à gauche
-    const infoIcon = document.createElement("div");
-    infoIcon.className = "info-icon";
-    infoIcon.innerHTML = "ℹ️";
-    infoIcon.title = "Détails complets";
-    infoIcon.onclick = (e) => {
-      e.stopPropagation();
-      openObjectDetails(row);
-    };
-    imgContainer.appendChild(infoIcon);
-
     const details = document.createElement("div");
     details.className = "card-details";
     const h3 = document.createElement("h3");
@@ -1738,6 +1727,16 @@ function renderInventory(objects, gridEl) {
     h3.title = "Renommer l'objet";
     h3.textContent = row.nom;
     details.appendChild(h3);
+    // Icône Info (Détails) - En haut à gauche
+    const infoIcon = document.createElement("div");
+    infoIcon.className = "info-icon";
+    infoIcon.innerHTML = "🛈";
+    infoIcon.title = "Détails complets";
+    infoIcon.onclick = (e) => {
+      e.stopPropagation();
+      openObjectDetails(row);
+    };
+    details.appendChild(infoIcon);
 
     const tag = document.createElement("span");
     tag.className = "tag";
@@ -1845,13 +1844,13 @@ async function fetchAndRenderDatabases() {
       const footer = document.createElement("div");
       footer.className = "db-card-footer";
       const a = document.createElement("a");
-      a.href = "database-view.php?id=" + db.id;
+      a.href = "database/" + db.id;
       a.className = "btn-link";
       a.textContent = "Consulter";
       footer.appendChild(a);
       if (db.owner_id == (window.userId || "")) {
         const s2 = document.createElement("a");
-        s2.href = "database-settings.php?id=" + db.id;
+        s2.href = "database/settings/" + db.id;
         s2.className = "btn-link";
         s2.textContent = "Paramètres";
         footer.appendChild(s2);

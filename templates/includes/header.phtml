@@ -1,9 +1,15 @@
+<?php
+// Définition de la base URL pour que les liens relatifs (css, js) fonctionnent partout
+$base_path = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+if (substr($base_path, -1) !== '/') $base_path .= '/';
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Inventaire</title>
+    <base href="<?php echo htmlspecialchars($base_path); ?>">
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="favicon.png">
     <!-- Icônes pour écran d'accueil mobile -->
@@ -16,7 +22,7 @@
 <body>
     <nav class="top-nav">
         <div class="div-modif-inv">
-            <a href="index.php" class="nav-link">📦 Mes Bases</a>
+            <a href="index" class="nav-link">📦 Mes Bases</a>
             <?php 
             // Show action buttons only on database pages
             $current_page = basename($_SERVER['PHP_SELF']);
@@ -25,7 +31,7 @@
                 $db_id = $_GET['id'];
                 // Check if admin (you might want to get this from session or pass it)
             ?>
-                <a href="database-view.php?id=<?php echo $db_id; ?>" class="nav-action-btn btn-vewe">👀 afficher</a>
+                <a href="database/<?php echo $db_id; ?>" class="nav-action-btn btn-vewe">👀 afficher</a>
             <?php endif; ?>
             <?php 
             
@@ -33,7 +39,7 @@
             if (($current_page === 'database-view.php' || $current_page === 'database-ajouter.php' || $current_page === 'database-settings.php') && isset($_GET['id'])): 
                 $db_id = $_GET['id'];
             ?>
-                <a href="database-ajouter.php?id=<?php echo $db_id; ?>" class="nav-action-btn btn-add">➕ Ajouter</a>
+                <a href="database/add/<?php echo $db_id; ?>" class="nav-action-btn btn-add">➕ Ajouter</a>
             <?php endif; ?>
             
             <?php 
@@ -42,7 +48,7 @@
                 $db_id = $_GET['id'];
                 // Check if admin (you might want to get this from session or pass it)
             ?>
-                <a href="database-settings.php?id=<?php echo $db_id; ?>" class="nav-action-btn btn-settings">⚙️ Paramètres</a>
+                <a href="database/settings/<?php echo $db_id; ?>" class="nav-action-btn btn-settings">⚙️ Paramètres</a>
             <?php endif; ?>
             
         </div>
@@ -51,7 +57,7 @@
             $user = Auth::getUser();
             if ($user): 
             ?>
-                <a href="profile.php" class="user-profile-link">
+                <a href="profile" class="user-profile-link">
                     <?php if (!empty($user['profile_image'])): ?>
                         <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
                     <?php else: ?>
@@ -59,7 +65,7 @@
                     <?php endif; ?>
                     <span><?php echo htmlspecialchars($user['username']); ?></span>
                 </a>
-                <a href="logout.php" class="nav-action-btn" style="padding: 5px 10px; font-size: 0.8em; border: 1px solid var(--border);">Déconnexion</a>
+                <a href="logout" class="nav-action-btn btn-logout">Déconnexion</a>
             <?php endif; ?>
         </div>
     </nav>

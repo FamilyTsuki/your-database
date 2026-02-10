@@ -5,10 +5,10 @@
                 &copy; <span id="year"></span> <strong>YourDatabase</strong>. Tous droits réservés.
             </p>
             <ul class="footer-nav">
-                <li><a href="index.php">Tableau de bord</a></li>
-                <li><a href="legal.php">Mentions légales</a></li>
-                <li><a href="privacy.php">Confidentialité</a></li>
-                <li><a href="support.php">Support</a></li>
+                <li><a href="index">Tableau de bord</a></li>
+                <li><a href="legal">Mentions légales</a></li>
+                <li><a href="privacy">Confidentialité</a></li>
+                <li><a href="support">Support</a></li>
             </ul>
         </div>
     </div>
@@ -20,28 +20,28 @@
         <h3>Choisir une source</h3>
         <div class="choice-container">
             <div class="choice-option" id="btnCamera">
-                <span style="font-size: 3rem;">📷</span>
+                <span class="source-icon">📷</span>
                 <p>Appareil Photo</p>
             </div>
             <div class="choice-option" id="btnGallery">
-                <span style="font-size: 3rem;">🖼️</span>
+                <span class="source-icon">🖼️</span>
                 <p>Galerie</p>
             </div>
         </div>
-        <button type="button" class="btn-secondary" id="closeSourceModal" style="margin-top: 15px; width: 100%;">Annuler</button>
+        <button type="button" class="btn-secondary btn-cancel-source" id="closeSourceModal">Annuler</button>
     </div>
 </div>
 
 <!-- Modal Visualisation Image Plein Écran -->
 <div id="imageViewerModal" class="custom-modal" style="display: none;">
-    <span id="closeImageViewer" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; background: rgba(100, 100, 100, 0.5); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; cursor: pointer; z-index: 3001;">&times;</span>
-    <img id="fullImage" style="max-width: 95%; max-height: 95%; border-radius: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.8); object-fit: contain;">
+    <span id="closeImageViewer" class="modal-close-btn">&times;</span>
+    <img id="fullImage" class="full-image">
 </div>
 
 <!-- Modal Détails Objet -->
 <div id="objectDetailsModal" class="custom-modal" style="display: none;">
-    <div class="modal-content" style="width: 600px; max-width: 95%;">
-        <h3 id="detailTitle" style="margin-top:0; color: var(--primary);">Détails de l'objet</h3>
+    <div class="modal-content modal-content-large">
+        <h3 id="detailTitle" class="modal-title">Détails de l'objet</h3>
         <form id="detailsForm">
             <input type="hidden" name="id" id="detailId">
             
@@ -64,15 +64,15 @@
                 </div>
             </div>
 
-            <h4 style="text-align:left; margin: 10px 0 5px; color: var(--text-muted);">État du stock</h4>
+            <h4 class="details-subtitle">État du stock</h4>
             <div class="details-grid">
                 <div class="form-group"><label>Total</label><input type="number" name="quantite" id="detailQtyTotal" class="form-input" min="0"></div>
                 <div class="form-group"><label>En utilisation</label><input type="number" name="qty_used" id="detailQtyUsed" class="form-input" min="0"></div>
                 <div class="form-group"><label>Dégradé / HS</label><input type="number" name="qty_degraded" id="detailQtyDegraded" class="form-input" min="0"></div>
-                <div class="form-group"><label>Disponible</label><input type="text" id="detailQtyAvailable" class="form-input" readonly style="background: var(--success); color:white; font-weight:bold; border:none;"></div>
+                <div class="form-group"><label>Disponible</label><input type="text" id="detailQtyAvailable" class="form-input input-available" readonly></div>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:20px;">
+            <div class="modal-actions">
                 <button type="submit" class="btn-primary">Enregistrer</button>
                 <button type="button" class="btn-secondary" id="closeDetailsModal">Fermer</button>
             </div>

@@ -43,7 +43,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
     <?php echo FlashMessage::render(); ?>
     
     <div class="settings-header">
-        <a href="database-view.php?id=<?php echo $database_id; ?>" class="back-link">← Retour</a>
+        <a href="database/<?php echo $database_id; ?>" class="back-link">← Retour</a>
         <h1>⚙️ Paramètres de <?php echo htmlspecialchars($database['name']); ?></h1>
     </div>
 
@@ -77,7 +77,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 </label>
             </div>
 
-            <div class="form-group" id="prefer_gallery_group" style="display:none; margin-left: 20px;">
+            <div class="form-group margin-left-20" id="prefer_gallery_group" style="display:none;">
                 <label for="prefer_gallery" class="checkbox-label">
                     <input type="checkbox" name="prefer_gallery" id="prefer_gallery" value="1" <?php echo ($database['prefer_gallery'] ?? 0) ? 'checked' : ''; ?>>
                     Toujours utiliser la galerie (sinon Caméra)
@@ -186,23 +186,23 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 <?php foreach ($parents as $parent): ?>
                     <div class="parent-cat-box">
                         <div class="cat-row">
-                            <span style="font-size: 1.2em;">🗃️</span>
-                            <input type="text" id="cat-name-<?php echo $parent['id']; ?>" value="<?php echo htmlspecialchars($parent['nom']); ?>" required class="form-input" style="flex: 1;">
+                            <span class="font-size-1-2">🗃️</span>
+                            <input type="text" id="cat-name-<?php echo $parent['id']; ?>" value="<?php echo htmlspecialchars($parent['nom']); ?>" required class="form-input flex-1">
                             <button type="button" class="btn-small" data-action="rename-category" data-category-id="<?php echo $parent['id']; ?>">Enregistrer</button>
                             <?php if ($is_admin): ?>
                             <button type="button" class="btn-danger-small" data-action="delete-category" data-category-id="<?php echo $parent['id']; ?>" data-confirm="Supprimer cette catégorie et ses sous-catégories ?">Supprimer</button>
                             <?php endif; ?>
                         </div>
 
-                        <ul style="list-style: none; margin: 10px 0 10px 20px; padding: 0;">
+                        <ul class="cat-list-ul">
                             <?php foreach ($categories as $child): ?>
                                 <?php if ($child['parent_id'] == $parent['id']): ?>
                                     <li class="subcat-row">
-                                        <span style="color: var(--text-muted);">↳ 🗂️</span>
-                                        <input type="text" id="cat-name-<?php echo $child['id']; ?>" value="<?php echo htmlspecialchars($child['nom']); ?>" required class="form-input" style="padding: 6px; font-size: 0.9em; flex: 1;">
-                                        <button type="button" class="btn-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="rename-category" data-category-id="<?php echo $child['id']; ?>">OK</button>
+                                        <span class="text-muted">↳ 🗂️</span>
+                                        <input type="text" id="cat-name-<?php echo $child['id']; ?>" value="<?php echo htmlspecialchars($child['nom']); ?>" required class="form-input input-small">
+                                        <button type="button" class="btn-small btn-small-padding" data-action="rename-category" data-category-id="<?php echo $child['id']; ?>">OK</button>
                                         <?php if ($is_admin): ?>
-                                        <button type="button" class="btn-danger-small" style="padding: 6px 10px; font-size: 0.8em;" data-action="delete-category" data-category-id="<?php echo $child['id']; ?>">Suppr.</button>
+                                        <button type="button" class="btn-danger-small btn-small-padding" data-action="delete-category" data-category-id="<?php echo $child['id']; ?>">Suppr.</button>
                                         <?php endif; ?>
                                     </li>
                                 <?php endif; ?>
@@ -210,7 +210,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         </ul>
 
                         <div class="add-subcat-row">
-                            <input type="text" id="subcat-input-<?php echo $parent['id']; ?>" placeholder="Nouvelle sous-catégorie..." required class="form-input" style="font-size: 0.9em; flex: 1;">
+                            <input type="text" id="subcat-input-<?php echo $parent['id']; ?>" placeholder="Nouvelle sous-catégorie..." required class="form-input input-small">
                             <button type="button" class="btn-small" data-action="add-subcategory" data-parent-id="<?php echo $parent['id']; ?>">Ajouter</button>
                         </div>
                     </div>
@@ -218,7 +218,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
             
         </div>
         <div class="add-root-cat-row">
-            <input type="text" id="new-root-cat-name" placeholder="Nouvelle catégorie principale..." class="form-input" style="flex: 1;">
+            <input type="text" id="new-root-cat-name" placeholder="Nouvelle catégorie principale..." class="form-input flex-1">
             <button type="button" class="btn-primary" data-action="add-root-category">Ajouter</button>
         </div>
     </div>
