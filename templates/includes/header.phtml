@@ -21,8 +21,15 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
 </head>
 <body>
     <nav class="top-nav">
+        <!-- Logo (Toujours visible) -->
+        <a href="index" class="nav-logo">📦 Your DataBase</a>
+
+        <!-- Bouton Burger (Visible uniquement sur mobile) -->
+        <button class="burger-btn" aria-label="Menu" onclick="this.closest('.top-nav').classList.toggle('nav-open')">
+            <span class="burger-icon"></span>
+        </button>
+
         <div class="div-modif-inv">
-            <a href="index" class="nav-link">📦 Your DataBase</a>
             <?php 
             // Show action buttons only on database pages
             $current_page = basename($_SERVER['PHP_SELF']);

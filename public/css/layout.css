@@ -12,7 +12,6 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  flex-direction: row-reverse;
   flex-direction: row; /* Direction standard : Logo à gauche, reste à droite */
   flex-wrap: wrap;
 }
@@ -187,30 +186,18 @@
 
 .div-modif-inv {
   display: flex;
-  flex-wrap: wrap-reverse;
-  flex-direction: row-reverse;
   gap: 10px;
   align-items: center;
-  order: 5;
-  justify-content: flex-end;
-}
-.div-modif-inv .nav-link:first-child {
-  order: 10;
 }
 
 .user-info {
   display: flex;
   gap: 15px;
   align-items: center;
-  margin-left: auto;
-  order: 1; /* Toujours en dernier */
   margin-left: 15px;
 }
 @media (max-width: 768px) {
   .top-nav {
-    padding: 10px;
-    justify-content: center; /* Centre tout sur mobile */
-    gap: 10px;
     padding: 10px 15px;
     align-items: center;
   }
@@ -220,8 +207,6 @@
   }
 
   .div-modif-inv {
-    justify-content: center;
-    width: 100%; /* Prend toute la largeur pour forcer user-info en dessous */
     display: none; /* Cacher les boutons par défaut */
     width: 100%;
     flex-direction: column;
@@ -231,17 +216,13 @@
   }
 
   .user-info {
-    margin-left: 0; /* Retire le décalage à droite */
     display: none; /* Cacher le profil par défaut */
     width: 100%;
     flex-direction: column;
     justify-content: center;
-
     margin-left: 0;
     margin-top: 10px;
     padding-top: 10px;
-    font-size: 0.9em;
-    flex-wrap: wrap-reverse; /* Permet aux éléments de passer à la ligne si nécessaire */
     border-top: 1px solid var(--border);
   }
 
