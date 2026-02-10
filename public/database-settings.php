@@ -83,7 +83,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     Toujours utiliser la galerie (sinon Caméra)
                 </label>
             </div>
-            
+             <button id="theme-toggle" class="theme-btn" title="Changer de thème">☀️</button>
             <?php if ($is_admin): ?>
                 <button type="button" class="btn-primary" data-action="update-database">Enregistrer</button>
             <?php endif; ?>
