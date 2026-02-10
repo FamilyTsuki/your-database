@@ -810,8 +810,9 @@
   margin-top: 20px;
 }
 .login-container .register-link a {
-  color: var(--primary);
-  text-decoration: none;
+  color: var(--text-main); /* Contraste RGAA */
+  text-decoration: underline;
+  font-weight: bold;
 }
 .login-container .register-link a:hover {
   text-decoration: underline;
@@ -889,8 +890,9 @@
   margin-top: 20px;
 }
 .register-container .login-link a {
-  color: var(--primary);
-  text-decoration: none;
+  color: var(--text-main); /* Contraste RGAA */
+  text-decoration: underline;
+  font-weight: bold;
 }
 .register-container .login-link a:hover {
   text-decoration: underline;
