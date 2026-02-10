@@ -31,16 +31,91 @@ if (!$permission) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($action === 'list' || $action === null)) {
-    // Return objects + categories
+    // 1. Récupération des paramètres de pagination et filtres
+    $page = max(1, intval($_GET['page'] ?? 1));
+    $limit = max(1, intval($_GET['limit'] ?? 50));
+    $offset = ($page - 1) * $limit;
+    
+    $search = trim($_GET['search'] ?? '');
+    $category = trim($_GET['category'] ?? '');
+    $sort = $_GET['sort'] ?? 'date_desc';
+
+    // 2. Construction de la requête dynamique
+    $whereClauses = ["objets.database_id = ?"];
+    $params = [$database_id];
+    $types = "i";
+
+    if ($search !== '') {
+        $whereClauses[] = "(objets.nom LIKE ? OR objets.description LIKE ? OR objets.model LIKE ?)";
+        $term = "%$search%";
+        $params[] = $term; $params[] = $term; $params[] = $term;
+        $types .= "sss";
+    }
+
+    if ($category !== '') {
+        $whereClauses[] = "(cat.nom = ? OR parent_cat.nom = ?)";
+        $params[] = $category; $params[] = $category;
+        $types .= "ss";
+    }
+
+    $whereSql = implode(" AND ", $whereClauses);
+
+    // 3. Compter le total (indispensable pour la pagination)
+    $countSql = "SELECT COUNT(*) as total 
+                 FROM objets 
+                 LEFT JOIN categories AS cat ON objets.id_categorie = cat.id 
+                 LEFT JOIN categories AS parent_cat ON cat.parent_id = parent_cat.id 
+                 WHERE $whereSql";
+    
+    $stmt = $conn->prepare($countSql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $total = $stmt->get_result()->fetch_assoc()['total'];
+    $stmt->close();
+
+    // 4. Récupérer les données paginées
+    $orderSql = "objets.id DESC";
+    switch ($sort) {
+        case 'date_asc': $orderSql = "objets.id ASC"; break;
+        case 'alpha_asc': $orderSql = "objets.nom ASC"; break;
+        case 'alpha_desc': $orderSql = "objets.nom DESC"; break;
+        case 'qty_desc': $orderSql = "objets.quantite DESC"; break;
+        case 'qty_asc': $orderSql = "objets.quantite ASC"; break;
+    }
+
+    $sql = "SELECT objets.*, cat.nom AS nom_categorie, cat.parent_id, parent_cat.nom AS parent_nom 
+            FROM objets 
+            LEFT JOIN categories AS cat ON objets.id_categorie = cat.id 
+            LEFT JOIN categories AS parent_cat ON cat.parent_id = parent_cat.id 
+            WHERE $whereSql 
+            ORDER BY $orderSql 
+            LIMIT ? OFFSET ?";
+    
+    // Ajout des params LIMIT et OFFSET
+    $params[] = $limit;
+    $params[] = $offset;
+    $types .= "ii";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
     $objs = [];
-    $res = $conn->query("SELECT objets.*, cat.nom AS nom_categorie, cat.parent_id, parent_cat.nom AS parent_nom FROM objets LEFT JOIN categories AS cat ON objets.id_categorie = cat.id LEFT JOIN categories AS parent_cat ON cat.parent_id = parent_cat.id WHERE objets.database_id = '$database_id' ORDER BY objets.id DESC");
     while ($r = $res->fetch_assoc()) $objs[] = $r;
+    $stmt->close();
 
     $cats = [];
     $cres = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = '$database_id' OR database_id IS NULL ORDER BY parent_id ASC, nom ASC");
     while ($c = $cres->fetch_assoc()) $cats[] = $c;
 
-    echo json_encode(['success' => true, 'objects' => $objs, 'categories' => $cats]);
+    echo json_encode([
+        'success' => true, 
+        'objects' => $objs, 
+        'categories' => $cats,
+        'total' => $total, // Renvoi du total pour le JS
+        'page' => $page
+    ]);
     exit;
 }
 

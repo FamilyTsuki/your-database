@@ -126,38 +126,21 @@ function previewImage(event) {
 }
 
 /**
- * Filtre les items selon la recherche et catégorie
+ * Filtre les items (Déclenche un rechargement serveur avec debounce)
  */
+let searchTimeout;
 function filterItems() {
-  const searchInput = document.getElementById("searchInput");
-  const categorySelect = document.getElementById("categoryFilter");
-
-  if (!searchInput || !categorySelect) return;
-
-  const search = searchInput.value.toLowerCase().trim();
-  const categoryFilter = categorySelect.value.toLowerCase().trim();
-
-  document.querySelectorAll(".card").forEach((card) => {
-    const name = (card.dataset.name || "").toLowerCase();
-    const cat = (card.dataset.cat || "").toLowerCase();
-    const parent = (card.dataset.parent || "").toLowerCase();
-    const matchesSearch = name.includes(search);
-
-    // On vérifie si le filtre est vide,
-    // OU s'il correspond à la catégorie,
-    // OU s'il correspond au parent
-    const matchesCategory =
-      categoryFilter === "" ||
-      cat === categoryFilter ||
-      parent === categoryFilter;
-
-    if (matchesSearch && matchesCategory) {
-      card.style.display = "flex";
-    } else {
-      card.style.display = "none";
-    }
-  });
+  // Debounce pour éviter de spammer l'API à chaque frappe
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    window.currentPage = 1; // Retour à la page 1 quand on change les filtres
+    fetchAndRenderInventory();
+  }, 300);
 }
+
+// État global de la pagination
+window.currentPage = 1;
+window.itemsPerPage = 50;
 
 /**
  * Ouvre la modale de choix de source (Caméra vs Galerie)
@@ -1595,11 +1578,9 @@ function setupSortDropdown() {
   });
 
   select.addEventListener("change", () => {
-    if (window.currentObjects) {
-      const grid = document.getElementById("inventoryGrid");
-      const sorted = sortObjects(window.currentObjects, select.value);
-      renderInventory(sorted, grid);
-    }
+    // Tri côté serveur maintenant
+    window.currentPage = 1;
+    fetchAndRenderInventory();
   });
 
   searchZone.appendChild(select);
@@ -1608,24 +1589,42 @@ function setupSortDropdown() {
 async function fetchAndRenderInventory() {
   const grid = document.getElementById("inventoryGrid");
   const catSelect = document.getElementById("categoryFilter");
+  const searchInput = document.getElementById("searchInput");
+  const sortSelect = document.getElementById("sortOrder");
+
   if (!grid) return;
+
+  // Récupération des valeurs de filtres
+  const search = searchInput ? searchInput.value.trim() : "";
+  const category = catSelect ? catSelect.value : "";
+  const sort = sortSelect ? sortSelect.value : "date_desc";
+
   try {
-    const res = await fetch(
-      "api/database.php?action=list&database_id=" +
-        encodeURIComponent(window.databaseId),
-    );
+    // Construction de l'URL avec pagination et filtres
+    const params = new URLSearchParams({
+      action: "list",
+      database_id: window.databaseId,
+      page: window.currentPage,
+      limit: window.itemsPerPage,
+      search: search,
+      category: category,
+      sort: sort,
+    });
+
+    const res = await fetch("api/database.php?" + params.toString());
     const data = await res.json();
     if (!data.success) {
       grid.innerHTML = '<div class="error">Erreur chargement</div>';
       return;
     }
     const objects = data.objects || [];
-    window.currentObjects = objects; // Stockage global pour le tri
+    const totalItems = data.total || objects.length; // L'API renvoie le total
 
     const categories = data.categories || [];
     renderCategories(categories, catSelect);
     setupSortDropdown(); // Initialisation du menu de tri
     renderInventory(objects, grid);
+    renderPagination(totalItems); // Affichage des contrôles de page
   } catch (e) {
     grid.innerHTML = '<div class="error">Erreur réseau</div>';
   }
@@ -1822,6 +1821,66 @@ function openFilterMenu(trigger, selectEl) {
   setTimeout(() => document.addEventListener("click", closeHandler), 0);
 }
 
+/**
+ * Génère les contrôles de pagination
+ */
+function renderPagination(totalItems) {
+  let container = document.getElementById("paginationContainer");
+  const grid = document.getElementById("inventoryGrid");
+
+  // Créer le conteneur s'il n'existe pas
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "paginationContainer";
+    container.className = "pagination-controls";
+    if (grid && grid.parentNode) {
+      grid.parentNode.insertBefore(container, grid.nextSibling);
+    }
+  }
+
+  container.innerHTML = "";
+  const totalPages = Math.ceil(totalItems / window.itemsPerPage);
+
+  if (totalPages <= 1) {
+    container.style.display = "none";
+    return;
+  }
+  container.style.display = "flex";
+
+  // Bouton Précédent
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "pagination-btn";
+  prevBtn.textContent = "← Précédent";
+  prevBtn.disabled = window.currentPage <= 1;
+  prevBtn.onclick = () => {
+    if (window.currentPage > 1) {
+      window.currentPage--;
+      fetchAndRenderInventory();
+    }
+  };
+
+  // Info Page
+  const info = document.createElement("span");
+  info.className = "pagination-info";
+  info.textContent = `Page ${window.currentPage} sur ${totalPages} (${totalItems} objets)`;
+
+  // Bouton Suivant
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "pagination-btn";
+  nextBtn.textContent = "Suivant →";
+  nextBtn.disabled = window.currentPage >= totalPages;
+  nextBtn.onclick = () => {
+    if (window.currentPage < totalPages) {
+      window.currentPage++;
+      fetchAndRenderInventory();
+    }
+  };
+
+  container.appendChild(prevBtn);
+  container.appendChild(info);
+  container.appendChild(nextBtn);
+}
+
 function renderInventory(objects, gridEl) {
   gridEl.innerHTML = "";
   if (!objects.length) {
@@ -1947,8 +2006,6 @@ function renderInventory(objects, gridEl) {
     card.appendChild(details);
     gridEl.appendChild(card);
   });
-  // Re-run filter to apply current filters
-  filterItems();
 }
 
 /* Dashboard: fetch and render databases if present */
