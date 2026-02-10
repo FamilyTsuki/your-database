@@ -54,7 +54,7 @@ class Auth {
             return ['success' => false, 'message' => 'Veuillez remplir tous les champs'];
         }
 
-        $stmt = $this->conn->prepare("SELECT id, username, email, password FROM users WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT id, username, email, password, profile_image FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -77,6 +77,7 @@ class Auth {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['email'] = $user['email'];
+        $_SESSION['profile_image'] = $user['profile_image'];
 
         return ['success' => true, 'message' => 'Connexion réussie!'];
     }
@@ -116,7 +117,8 @@ class Auth {
             return [
                 'id' => $_SESSION['user_id'],
                 'username' => $_SESSION['username'],
-                'email' => $_SESSION['email']
+                'email' => $_SESSION['email'],
+                'profile_image' => $_SESSION['profile_image'] ?? null
             ];
         }
         

@@ -167,7 +167,7 @@ class DatabaseModel {
         $database_id = intval($database_id);
         
         $stmt = $this->conn->prepare("
-            SELECT u.id, u.username, u.email, dp.permission, dp.id as permission_id
+            SELECT u.id, u.username, u.email, u.profile_image, dp.permission, dp.id as permission_id
             FROM users u
             JOIN `database_permissions` dp ON u.id = dp.user_id
             WHERE dp.database_id = ?

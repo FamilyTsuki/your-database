@@ -124,6 +124,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 <table class="users-table">
                     <thead>
                         <tr>
+                            <th>Avatar</th>
                             <th>Nom d'utilisateur</th>
                             <th>Email</th>
                             <th>Permission</th>
@@ -133,15 +134,27 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     <tbody>
                         <?php foreach ($shared_users as $user): ?>
                             <tr>
+                                <td>
+                                    <?php if (!empty($user['profile_image'])): ?>
+                                        <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar" class="nav-profile-img">
+                                    <?php else: ?>
+                                        <span style="font-size: 1.5em;">👤</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?php echo htmlspecialchars($user['username']); ?></td>
                                 <td><?php echo htmlspecialchars($user['email']); ?></td>
                                 <td>
-                                    <span class="badge badge-<?php echo $user['permission']; ?>">
-                                        <?php 
-                                            $labels = ['admin' => 'Admin', 'edit' => 'Modif.', 'view' => 'Lecture'];
-                                            echo $labels[$user['permission']] ?? $user['permission'];
-                                        ?>
-                                    </span>
+                                    <?php if ($is_admin): ?>
+                                        <select class="badge badge-<?php echo $user['permission']; ?> permission-toggle" data-action="update-permission" data-user-id="<?php echo $user['id']; ?>">
+                                            <option value="view" <?php echo $user['permission'] === 'view' ? 'selected' : ''; ?>>Lecture</option>
+                                            <option value="edit" <?php echo $user['permission'] === 'edit' ? 'selected' : ''; ?>>Modif.</option>
+                                            <option value="admin" <?php echo $user['permission'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                                        </select>
+                                    <?php else: ?>
+                                        <span class="badge badge-<?php echo $user['permission']; ?>">
+                                            <?php echo ['admin' => 'Admin', 'edit' => 'Modif.', 'view' => 'Lecture'][$user['permission']] ?? $user['permission']; ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <button type="button" class="btn-danger-small" data-action="remove-user" data-permission-id="<?php echo $user['permission_id']; ?>" data-confirm="Supprimer cet utilisateur?">Supprimer</button>

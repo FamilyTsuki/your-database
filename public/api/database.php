@@ -268,6 +268,18 @@ if ($action === 'add_user') {
     exit;
 }
 
+if ($action === 'update_permission') {
+    if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
+    $target_user_id = intval($_POST['user_id'] ?? 0);
+    $new_perm = $_POST['new_permission'] ?? 'view';
+    
+    if ($target_user_id <= 0) { http_response_code(400); echo json_encode(['error'=>'ID utilisateur invalide']); exit; }
+    
+    $ok = $db_controller->addUser($database_id, $target_user_id, $new_perm);
+    echo json_encode(['success'=>(bool)$ok]);
+    exit;
+}
+
 if ($action === 'remove_user') {
     if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
     $perm_id = intval($_POST['permission_id'] ?? 0);

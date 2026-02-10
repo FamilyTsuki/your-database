@@ -921,6 +921,36 @@ function initGlobalListeners() {
     },
     true,
   );
+
+  // Listener pour le changement de permission (select)
+  document.addEventListener("change", function (e) {
+    const el = e.target.closest("[data-action='update-permission']");
+    if (!el) return;
+
+    const userId = el.dataset.userId;
+    const newPerm = el.value;
+
+    apiPost({
+      action: "update_permission",
+      user_id: userId,
+      new_permission: newPerm,
+      csrf_token: window.csrfToken,
+      database_id: window.databaseId,
+    })
+      .then((d) => {
+        if (!d.success) {
+          alert("Erreur: " + (d.error || "Impossible de mettre à jour"));
+          location.reload();
+        } else {
+          // Met à jour la couleur du badge immédiatement
+          el.className = "badge badge-" + newPerm + " permission-toggle";
+        }
+      })
+      .catch(() => {
+        alert("Erreur réseau");
+        location.reload();
+      });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", initGlobalListeners);
@@ -1081,7 +1111,68 @@ function initAddFormListeners() {
   }
 }
 
+function initProfileListeners() {
+  const profileForm = document.getElementById("profileForm");
+  const profileInput = document.getElementById("profileImageInput");
+  const profilePreview = document.getElementById("profileAvatarPreview");
+
+  if (profileInput && profilePreview) {
+    profileInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          if (profilePreview.tagName === "IMG") {
+            profilePreview.src = ev.target.result;
+          } else {
+            // Si c'était une div (pas d'image avant), on la remplace par une img
+            const img = document.createElement("img");
+            img.src = ev.target.result;
+            img.className = "profile-avatar";
+            img.id = "profileAvatarPreview";
+            profilePreview.parentNode.replaceChild(img, profilePreview);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  if (profileForm) {
+    profileForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const fd = new FormData(profileForm);
+      fd.append("action", "update_profile");
+      fd.append("csrf_token", window.csrfToken);
+
+      try {
+        const res = await fetch("api/user.php", { method: "POST", body: fd });
+
+        // On récupère le texte d'abord pour pouvoir l'afficher si ce n'est pas du JSON
+        const text = await res.text();
+        let d;
+        try {
+          d = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Erreur serveur : " + text.substring(0, 150)); // Affiche le début de l'erreur PHP
+        }
+
+        if (d.success) {
+          alert("Profil mis à jour !");
+          location.reload();
+        } else {
+          alert("Erreur : " + (d.message || "Impossible de mettre à jour"));
+        }
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Erreur réseau");
+      }
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", initAddFormListeners);
+document.addEventListener("DOMContentLoaded", initProfileListeners);
 
 /**
  * Trie les objets selon le critère choisi

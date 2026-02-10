@@ -51,8 +51,15 @@
             $user = Auth::getUser();
             if ($user): 
             ?>
-                <span>👤 <?php echo htmlspecialchars($user['username']); ?></span>
-                <a href="logout.php">Déconnexion</a>
+                <a href="profile.php" class="user-profile-link">
+                    <?php if (!empty($user['profile_image'])): ?>
+                        <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                    <?php else: ?>
+                        <span class="nav-profile-icon">👤</span>
+                    <?php endif; ?>
+                    <span><?php echo htmlspecialchars($user['username']); ?></span>
+                </a>
+                <a href="logout.php" class="nav-action-btn" style="padding: 5px 10px; font-size: 0.8em; border: 1px solid var(--border);">Déconnexion</a>
             <?php endif; ?>
         </div>
     </nav>

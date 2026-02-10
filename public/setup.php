@@ -65,7 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
             "ALTER TABLE `databases` ADD COLUMN redirect_on_add TINYINT(1) DEFAULT 1",
             "ALTER TABLE `databases` ADD COLUMN camera_enabled TINYINT(1) DEFAULT 1",
             "ALTER TABLE `databases` ADD COLUMN skip_source_modal TINYINT(1) DEFAULT 0",
-            "ALTER TABLE `databases` ADD COLUMN prefer_gallery TINYINT(1) DEFAULT 0"
+            "ALTER TABLE `databases` ADD COLUMN prefer_gallery TINYINT(1) DEFAULT 0",
+            "ALTER TABLE `users` ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL"
         ];
         
         $all_ok = true;

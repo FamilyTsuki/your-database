@@ -68,12 +68,23 @@ class Validator {
         }
 
         // Vérifier le type MIME
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
+        $mimeType = null;
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if ($finfo) {
+                $mimeType = finfo_file($finfo, $file['tmp_name']);
+                finfo_close($finfo);
+            }
+        }
+
+        // Fallback si finfo échoue ou n'est pas dispo
+        if (!$mimeType) {
+            $info = getimagesize($file['tmp_name']);
+            if ($info) $mimeType = $info['mime'];
+        }
 
         $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (!in_array($mimeType, $allowedMimes, true)) {
+        if (!$mimeType || !in_array($mimeType, $allowedMimes, true)) {
             return ['valid' => false, 'message' => 'Format d\'image non autorisé'];
         }
 
