@@ -89,6 +89,28 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* Scrollbar Moderne (Webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-body);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Sélection de texte personnalisée */
+::selection {
+  background: var(--primary);
+  color: #fff;
+}
+
 .container {
   max-width: 1400px; /* Plus large pour les écrans modernes */
   margin: 0 auto 90px;
