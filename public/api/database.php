@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../src/Helpers/CsrfToken.php';
 require_once __DIR__ . '/../../src/Helpers/Auth.php';
+require_once __DIR__ . '/../../src/Helpers/ImageHelper.php';
 require_once __DIR__ . '/../../src/Models/DatabaseModel.php';
 require_once __DIR__ . '/../../src/Controllers/DatabaseController.php';
 
@@ -99,9 +100,11 @@ if ($action === 'create') {
         }
         $uploads_dir = __DIR__ . '/../uploads';
         if (!is_dir($uploads_dir)) mkdir($uploads_dir, 0755, true);
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $image_filename = 'obj_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], $uploads_dir . '/' . $image_filename)) {
+        
+        $filenameBase = 'obj_' . time() . '_' . bin2hex(random_bytes(4));
+        $image_filename = ImageHelper::processAndSave($file['tmp_name'], $uploads_dir, $filenameBase, 1024, 1024);
+        
+        if (!$image_filename) {
             http_response_code(500);
             echo json_encode(['error' => 'Erreur lors du transfert de l\'image']);
             exit;
@@ -225,10 +228,11 @@ if ($action === 'updateImage') {
     }
     $uploads_dir = __DIR__ . '/../uploads';
     if (!is_dir($uploads_dir)) mkdir($uploads_dir, 0755, true);
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'obj_' . $objet_id . '_' . time() . '.' . $ext;
-    $filepath = $uploads_dir . '/' . $filename;
-    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+    
+    $filenameBase = 'obj_' . $objet_id . '_' . time();
+    $filename = ImageHelper::processAndSave($file['tmp_name'], $uploads_dir, $filenameBase, 1024, 1024);
+    
+    if ($filename) {
         if ($objet && $objet['image_path']) @unlink(__DIR__ . '/../uploads/' . $objet['image_path']);
         $conn->query("UPDATE objets SET image_path = '$filename' WHERE id = $objet_id AND database_id = '$database_id' LIMIT 1");
         echo json_encode(['success' => true, 'image_path' => 'uploads/' . $filename]);

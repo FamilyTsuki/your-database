@@ -21,6 +21,48 @@ async function apiPost(data) {
 }
 
 /**
+ * Affiche un message flash (succès ou erreur)
+ */
+function showFlash(message, type = "info") {
+  const div = document.createElement("div");
+  div.className = `flash-message flash-${type}`;
+
+  const text = document.createElement("span");
+  text.textContent = message;
+
+  const btn = document.createElement("button");
+  btn.innerHTML = "&times;";
+  btn.style.position = "absolute";
+  btn.style.top = "50%";
+  btn.style.right = "10px";
+  btn.style.transform = "translateY(-50%)";
+  btn.style.background = "none";
+  btn.style.border = "none";
+  btn.style.fontSize = "20px";
+  btn.style.cursor = "pointer";
+  btn.style.color = "inherit";
+
+  btn.onclick = () => {
+    div.classList.add("fade-out");
+    setTimeout(() => div.remove(), 500);
+  };
+
+  div.appendChild(text);
+  div.appendChild(btn);
+  document.body.appendChild(div);
+
+  // Auto remove
+  setTimeout(() => {
+    if (document.body.contains(div)) {
+      div.classList.add("fade-out");
+      setTimeout(() => {
+        if (document.body.contains(div)) div.remove();
+      }, 500);
+    }
+  }, 4000);
+}
+
+/**
  * Édite un champ (nom, quantité) via prompt et envoie à l'API
  */
 function editField(id, field, currentValue) {
@@ -37,9 +79,13 @@ function editField(id, field, currentValue) {
   })
     .then((d) => {
       if (d.success) location.reload();
-      else alert("Erreur: " + (d.message || "Impossible de mettre à jour"));
+      else
+        showFlash(
+          "Erreur: " + (d.message || "Impossible de mettre à jour"),
+          "error",
+        );
     })
-    .catch(() => alert("Erreur réseau"));
+    .catch(() => showFlash("Erreur réseau", "error"));
 }
 
 /**
@@ -51,7 +97,7 @@ function previewImage(event) {
 
   // Vérifier la taille (max 5MB)
   if (file.size > 5 * 1024 * 1024) {
-    alert("L'image est trop volumineuse (max 5MB)");
+    showFlash("L'image est trop volumineuse (max 5MB)", "error");
     event.target.value = "";
     return;
   }
@@ -59,7 +105,10 @@ function previewImage(event) {
   // Vérifier le type
   const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
   if (!allowedTypes.includes(file.type)) {
-    alert("Format d'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF");
+    showFlash(
+      "Format d'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF",
+      "error",
+    );
     event.target.value = "";
     return;
   }
@@ -193,7 +242,7 @@ function changeImage(id) {
       const res = await fetch("api/database.php", { method: "POST", body: fd });
       const d = await res.json();
       if (d.success) location.reload();
-      else alert("Erreur: " + (d.error || "upload"));
+      else showFlash("Erreur: " + (d.error || "upload"), "error");
     };
     input.click();
   });
@@ -225,10 +274,10 @@ document.addEventListener("DOMContentLoaded", function () {
           window.location.reload();
         } else {
           const text = await res.text();
-          alert("Erreur: " + (text || res.statusText));
+          showFlash("Erreur: " + (text || res.statusText), "error");
         }
       } catch (err) {
-        alert("Erreur réseau");
+        showFlash("Erreur réseau", "error");
       }
     });
   });
@@ -278,7 +327,7 @@ async function updateQuantity(id, action) {
     });
     if (d.success && qtySpan) qtySpan.textContent = newQty;
   } catch (e) {
-    alert("Erreur lors de la mise à jour");
+    showFlash("Erreur lors de la mise à jour", "error");
   }
   isUpdatingQuantity = false;
 }
@@ -293,9 +342,9 @@ function deleteObject(id) {
   })
     .then((d) => {
       if (d.success) location.reload();
-      else alert("Erreur suppression");
+      else showFlash("Erreur suppression", "error");
     })
-    .catch(() => alert("Erreur réseau"));
+    .catch(() => showFlash("Erreur réseau", "error"));
 }
 
 function editFieldderoul(id, field, currentValue, event) {
@@ -409,7 +458,7 @@ function editFieldderoul(id, field, currentValue, event) {
             database_id: window.databaseId,
           }).then((d) => {
             if (d.success) location.reload();
-            else alert("Erreur création sous-catégorie");
+            else showFlash("Erreur création sous-catégorie", "error");
           });
         }
       });
@@ -437,7 +486,7 @@ function editFieldderoul(id, field, currentValue, event) {
         database_id: window.databaseId,
       }).then((d) => {
         if (d.success) location.reload();
-        else alert("Erreur création");
+        else showFlash("Erreur création", "error");
       });
     }
   });
@@ -454,7 +503,7 @@ function editFieldderoul(id, field, currentValue, event) {
       database_id: window.databaseId,
     }).then((d) => {
       if (d.success) location.reload();
-      else alert("Erreur mise à jour");
+      else showFlash("Erreur mise à jour", "error");
     });
   };
 
@@ -698,11 +747,15 @@ function initGlobalListeners() {
       })
         .then((d) => {
           if (d.success) {
-            alert("Modifications enregistrées");
-            location.reload();
-          } else alert("Erreur: " + (d.error || "Impossible de sauvegarder"));
+            showFlash("Modifications enregistrées", "success");
+            setTimeout(() => location.reload(), 1000);
+          } else
+            showFlash(
+              "Erreur: " + (d.error || "Impossible de sauvegarder"),
+              "error",
+            );
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -721,11 +774,15 @@ function initGlobalListeners() {
       })
         .then((d) => {
           if (d.success) {
-            alert("Utilisateur ajouté");
-            location.reload();
-          } else alert("Erreur: " + (d.error || "Impossible d'ajouter"));
+            showFlash("Utilisateur ajouté", "success");
+            setTimeout(() => location.reload(), 1000);
+          } else
+            showFlash(
+              "Erreur: " + (d.error || "Impossible d'ajouter"),
+              "error",
+            );
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -744,9 +801,9 @@ function initGlobalListeners() {
             const row = el.closest("tr");
             if (row) row.remove();
             else location.reload();
-          } else alert("Erreur suppression");
+          } else showFlash("Erreur suppression", "error");
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -756,7 +813,7 @@ function initGlobalListeners() {
       const input = document.getElementById("cat-name-" + catId);
       const newName = input ? input.value.trim() : "";
       if (!newName) {
-        alert("Nom requis");
+        showFlash("Nom requis", "error");
         return;
       }
       apiPost({
@@ -768,11 +825,11 @@ function initGlobalListeners() {
       })
         .then((d) => {
           if (d.success) {
-            alert("Renommé");
-            location.reload();
-          } else alert("Erreur renommage");
+            showFlash("Renommé", "success");
+            setTimeout(() => location.reload(), 1000);
+          } else showFlash("Erreur renommage", "error");
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -792,9 +849,9 @@ function initGlobalListeners() {
             const parent = el.closest("li") || el.closest("div");
             if (parent) parent.remove();
             else location.reload();
-          } else alert("Erreur suppression catégorie");
+          } else showFlash("Erreur suppression catégorie", "error");
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -803,7 +860,7 @@ function initGlobalListeners() {
       const input = document.getElementById("new-root-cat-name");
       const name = input ? input.value.trim() : "";
       if (!name) {
-        alert("Nom requis");
+        showFlash("Nom requis", "error");
         return;
       }
       apiPost({
@@ -816,9 +873,9 @@ function initGlobalListeners() {
         .then((d) => {
           if (d.success) {
             location.reload();
-          } else alert("Erreur création: " + (d.error || ""));
+          } else showFlash("Erreur création: " + (d.error || ""), "error");
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -828,7 +885,7 @@ function initGlobalListeners() {
       const input = document.getElementById("subcat-input-" + parentId);
       const name = input ? input.value.trim() : "";
       if (!name) {
-        alert("Nom requis");
+        showFlash("Nom requis", "error");
         return;
       }
       apiPost({
@@ -840,11 +897,11 @@ function initGlobalListeners() {
       })
         .then((d) => {
           if (d.success) {
-            alert("Sous-catégorie ajoutée");
-            location.reload();
-          } else alert("Erreur création");
+            showFlash("Sous-catégorie ajoutée", "success");
+            setTimeout(() => location.reload(), 1000);
+          } else showFlash("Erreur création", "error");
         })
-        .catch(() => alert("Erreur réseau"));
+        .catch(() => showFlash("Erreur réseau", "error"));
       return;
     }
 
@@ -860,13 +917,13 @@ function initGlobalListeners() {
         })
           .then((d) => {
             if (d.success) {
-              alert("Base supprimée");
-              window.location = "index.php";
-            } else alert("Erreur suppression");
+              showFlash("Base supprimée", "success");
+              setTimeout(() => (window.location = "index.php"), 1000);
+            } else showFlash("Erreur suppression", "error");
           })
-          .catch(() => alert("Erreur réseau"));
+          .catch(() => showFlash("Erreur réseau", "error"));
       } else {
-        alert("Veuillez cocher la case pour confirmer");
+        showFlash("Veuillez cocher la case pour confirmer", "error");
       }
       return;
     }
@@ -880,7 +937,7 @@ function initGlobalListeners() {
         if (input) input.value = "yes";
         form.submit();
       } else {
-        alert("Veuillez cocher la case pour confirmer");
+        showFlash("Veuillez cocher la case pour confirmer", "error");
       }
       return;
     }
@@ -939,16 +996,19 @@ function initGlobalListeners() {
     })
       .then((d) => {
         if (!d.success) {
-          alert("Erreur: " + (d.error || "Impossible de mettre à jour"));
-          location.reload();
+          showFlash(
+            "Erreur: " + (d.error || "Impossible de mettre à jour"),
+            "error",
+          );
+          setTimeout(() => location.reload(), 1000);
         } else {
           // Met à jour la couleur du badge immédiatement
           el.className = "badge badge-" + newPerm + " permission-toggle";
         }
       })
       .catch(() => {
-        alert("Erreur réseau");
-        location.reload();
+        showFlash("Erreur réseau", "error");
+        setTimeout(() => location.reload(), 1000);
       });
   });
 }
@@ -1049,13 +1109,16 @@ function initAddFormListeners() {
   function handlePreview(file) {
     if (!file || !file.type.startsWith("image/")) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert("L'image est trop volumineuse (max 5MB)");
+      showFlash("L'image est trop volumineuse (max 5MB)", "error");
       fileInput.value = "";
       return;
     }
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowed.includes(file.type)) {
-      alert("Format d'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF");
+      showFlash(
+        "Format d'image non autorisé. Utilisez JPG, PNG, WEBP ou GIF",
+        "error",
+      );
       fileInput.value = "";
       return;
     }
@@ -1085,7 +1148,16 @@ function initAddFormListeners() {
           method: "POST",
           body: fd,
         });
-        const d = await res.json();
+
+        // Lecture robuste de la réponse pour voir l'erreur PHP si crash
+        const text = await res.text();
+        let d;
+        try {
+          d = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Erreur serveur : " + text.substring(0, 200));
+        }
+
         if (d.success) {
           if (window.dbRedirectOnAdd) {
             window.location.href = "database-view.php?id=" + window.databaseId;
@@ -1100,12 +1172,13 @@ function initAddFormListeners() {
           addForm.reset();
           const formWrapper = document.getElementById("addForm");
           if (formWrapper) formWrapper.style.display = "none";
-          alert("Objet ajouté");
+          showFlash("Objet ajouté", "success");
         } else {
-          alert("Erreur: " + (d.error || "Impossible d'ajouter"));
+          showFlash("Erreur: " + (d.error || "Impossible d'ajouter"), "error");
         }
       } catch (err) {
-        alert("Erreur réseau");
+        console.error(err);
+        showFlash(err.message || "Erreur réseau", "error");
       }
     });
   }
@@ -1158,14 +1231,17 @@ function initProfileListeners() {
         }
 
         if (d.success) {
-          alert("Profil mis à jour !");
-          location.reload();
+          showFlash("Profil mis à jour !", "success");
+          setTimeout(() => location.reload(), 1000);
         } else {
-          alert("Erreur : " + (d.message || "Impossible de mettre à jour"));
+          showFlash(
+            "Erreur : " + (d.message || "Impossible de mettre à jour"),
+            "error",
+          );
         }
       } catch (err) {
         console.error(err);
-        alert(err.message || "Erreur réseau");
+        showFlash(err.message || "Erreur réseau", "error");
       }
     });
   }
@@ -1657,12 +1733,12 @@ document.addEventListener("DOMContentLoaded", function () {
         createForm.reset();
         const formWrapper = document.getElementById("createForm");
         if (formWrapper) formWrapper.style.display = "none";
-        alert("Base créée");
+        showFlash("Base créée", "success");
       } else {
-        alert("Erreur: " + (d.error || "Impossible de créer"));
+        showFlash("Erreur: " + (d.error || "Impossible de créer"), "error");
       }
     } catch (err) {
-      alert("Erreur réseau");
+      showFlash("Erreur réseau", "error");
     }
   });
   // fetch initial list

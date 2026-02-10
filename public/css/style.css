@@ -97,6 +97,7 @@ a:hover {
   border-radius: var(--radius);
   color: var(--text-main);
   box-shadow: var(--shadow-lg);
+  padding: 15px 40px 15px 20px; /* Espace pour le texte et le bouton X */
   z-index: 2000;
 }
 
@@ -110,6 +111,14 @@ a:hover {
 
 .flash-message button:hover {
   color: var(--text-main);
+}
+
+.flash-message.flash-success {
+  border-left-color: var(--success);
+}
+
+.flash-message.flash-error {
+  border-left-color: var(--danger);
 }
 
 @keyframes slideDown {

@@ -6,6 +6,7 @@ class UserController {
     public function __construct($database) {
         require_once dirname(__DIR__) . '/Models/UserModel.php';
         require_once dirname(__DIR__) . '/Helpers/Validator.php';
+        require_once dirname(__DIR__) . '/Helpers/ImageHelper.php';
         $this->model = new UserModel($database);
     }
 
@@ -19,14 +20,15 @@ class UserController {
                 return ['success' => false, 'message' => $val['message']];
             }
             
-            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $filename = 'user_' . $id . '_' . time() . '.' . $ext;
+            $filenameBase = 'user_' . $id . '_' . time();
             $dir = __DIR__ . '/../../public/uploads/profiles';
             
             if (!is_dir($dir)) mkdir($dir, 0755, true);
             
-            if (move_uploaded_file($file['tmp_name'], $dir . '/' . $filename)) {
-                $image_path = $filename;
+            $processedFilename = ImageHelper::processAndSave($file['tmp_name'], $dir, $filenameBase, 500, 500);
+            
+            if ($processedFilename) {
+                $image_path = $processedFilename;
             } else {
                 return ['success' => false, 'message' => 'Erreur lors de l\'enregistrement de l\'image'];
             }
