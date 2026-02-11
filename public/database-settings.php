@@ -55,12 +55,12 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <?php if ($is_admin): ?>
             <div class="form-group">
                 <label for="name">Nom de la base</label>
-                <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($database['name']); ?>" required <?php echo !$is_admin ? 'disabled' : ''; ?>>
+                <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($database['name']); ?>" required maxlength="25" <?php echo !$is_admin ? 'disabled' : ''; ?>>
             </div>
             
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea name="description" id="description" rows="3" <?php echo !$is_admin ? 'disabled' : ''; ?>><?php echo htmlspecialchars($database['description'] ?? ''); ?></textarea>
+                <textarea name="description" id="description" rows="3" maxlength="255" <?php echo !$is_admin ? 'disabled' : ''; ?>><?php echo htmlspecialchars($database['description'] ?? ''); ?></textarea>
             </div>
              <?php endif; ?>
             

@@ -15,6 +15,7 @@ class DatabaseModel {
         if (!$name || strlen($name) < 3) {
             return ['success' => false, 'message' => 'Le nom doit contenir au moins 3 caractères'];
         }
+        $name = Validator::sanitizeText($name, 100);
 
         // Vérifier que le nom n'existe pas déjà pour cet utilisateur
         $stmt = $this->conn->prepare("SELECT id FROM `databases` WHERE name = ? AND owner_id = ?");
