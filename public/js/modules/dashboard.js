@@ -30,11 +30,12 @@ export async function fetchAndRenderDatabases() {
         badges += `<span class="badge-permission">${db.permission}</span>`;
 
       card.innerHTML = `
-        <div class="db-card-header"><h3>${db.name}</h3>${badges}</div>
-        ${db.description ? `<p class="db-description">${db.description}</p>` : ""}
+        <div class="db-card-header"><h3>${db.name}</h3>${badges}<a href="export.php?id=${db.id}" class="btn-icon" target="_blank" title="Exporter">⬇️</a></div>
+        
+        ${db.description ? `<p class="db-description">${db.description}</p>` : '<p class="db-description"></p>'}
         <div class="db-card-footer">
             <a href="database/${db.id}" class="btn-link">Consulter</a>
-            <a href="export.php?id=${db.id}" class="btn-link" target="_blank">Exporter</a>
+            
             ${db.owner_id == (window.userId || "") ? `<a href="database/settings/${db.id}" class="btn-link">Paramètres</a>` : ""}
         </div>
       `;

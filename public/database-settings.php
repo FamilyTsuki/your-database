@@ -222,6 +222,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         </div>
                     </div>
                 <?php endforeach; ?>
+            <?php endif; ?>
             
         </div>
         <div class="add-root-cat-row">
@@ -229,7 +230,6 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <button type="button" class="btn-primary" data-action="add-root-category">Ajouter</button>
         </div>
     </div>
-    <?php endif; ?>
 
     <!-- Supprimer la base -->
     <?php if ($is_admin): ?>
