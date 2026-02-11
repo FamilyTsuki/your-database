@@ -30,6 +30,12 @@
   box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
+/* Sélecteur de limite plus compact */
+.search-zone #limitSelector {
+  flex: 0 1 130px; /* Ne pas s'étirer comme les autres */
+  min-width: auto;
+}
+
 /* ==========================================================================
    DASHBOARD - GESTION DES BASES DE DONNÉES
    ========================================================================== */

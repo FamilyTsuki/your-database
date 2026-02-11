@@ -1586,6 +1586,37 @@ function setupSortDropdown() {
   searchZone.appendChild(select);
 }
 
+/**
+ * Injecte le sélecteur de nombre d'éléments par page
+ */
+function setupLimitSelector() {
+  const searchZone = document.querySelector(".search-zone");
+  if (!searchZone || document.getElementById("limitSelector")) return;
+
+  const select = document.createElement("select");
+  select.id = "limitSelector";
+  select.title = "Éléments par page";
+
+  [20, 50, 100, 200].forEach((val) => {
+    const o = document.createElement("option");
+    o.value = val;
+    o.textContent = val + " / page";
+    if (val === window.itemsPerPage) o.selected = true;
+    select.appendChild(o);
+  });
+
+  select.addEventListener("change", () => {
+    window.itemsPerPage = parseInt(select.value);
+    window.currentPage = 1; // Retour page 1
+    fetchAndRenderInventory();
+  });
+
+  // Insérer avant le tri si possible, sinon à la fin
+  const sort = document.getElementById("sortOrder");
+  if (sort) searchZone.insertBefore(select, sort);
+  else searchZone.appendChild(select);
+}
+
 async function fetchAndRenderInventory() {
   const grid = document.getElementById("inventoryGrid");
   const catSelect = document.getElementById("categoryFilter");
@@ -1623,6 +1654,7 @@ async function fetchAndRenderInventory() {
     const categories = data.categories || [];
     renderCategories(categories, catSelect);
     setupSortDropdown(); // Initialisation du menu de tri
+    setupLimitSelector(); // Initialisation du sélecteur de limite
     renderInventory(objects, grid);
     renderPagination(totalItems); // Affichage des contrôles de page
   } catch (e) {
@@ -1850,7 +1882,7 @@ function renderPagination(totalItems) {
   // Bouton Précédent
   const prevBtn = document.createElement("button");
   prevBtn.className = "pagination-btn";
-  prevBtn.textContent = "← Précédent";
+  prevBtn.textContent = "←";
   prevBtn.disabled = window.currentPage <= 1;
   prevBtn.onclick = () => {
     if (window.currentPage > 1) {
@@ -1862,12 +1894,12 @@ function renderPagination(totalItems) {
   // Info Page
   const info = document.createElement("span");
   info.className = "pagination-info";
-  info.textContent = `Page ${window.currentPage} sur ${totalPages} (${totalItems} objets)`;
+  info.textContent = `Page ${window.currentPage} / ${totalPages}`;
 
   // Bouton Suivant
   const nextBtn = document.createElement("button");
   nextBtn.className = "pagination-btn";
-  nextBtn.textContent = "Suivant →";
+  nextBtn.textContent = "→";
   nextBtn.disabled = window.currentPage >= totalPages;
   nextBtn.onclick = () => {
     if (window.currentPage < totalPages) {
