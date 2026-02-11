@@ -10,25 +10,36 @@ class ObjetModel {
     /**
      * Récupère tous les objets avec pagination optionnelle
      */
-    public function getAll($limit = null, $offset = 0) {
+    public function getAll($database_id = null, $limit = null, $offset = 0) {
     // Utilisation de requêtes préparées pour la pagination
         $query = "SELECT objets.*, categories.nom AS nom_categorie, p.nom AS parent_nom
             FROM objets 
             LEFT JOIN categories ON objets.id_categorie = categories.id
             LEFT JOIN categories p ON categories.parent_id = p.id
-            ORDER BY objets.id DESC";
+            WHERE 1=1";
         
-        if ($limit !== null) {
-            $stmt = $this->conn->prepare($query . " LIMIT ? OFFSET ?");
-            $l = intval($limit);
-            $o = intval($offset);
-            $stmt->bind_param("ii", $l, $o);
-            $stmt->execute();
-            return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $params = [];
+        $types = "";
+
+        if ($database_id !== null) {
+            $query .= " AND objets.database_id = ?";
+            $params[] = intval($database_id);
+            $types .= "i";
         }
         
-        $result = $this->conn->query($query);
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $query .= " ORDER BY objets.id DESC";
+        
+        if ($limit !== null) {
+            $query .= " LIMIT ? OFFSET ?";
+            $params[] = intval($limit);
+            $params[] = intval($offset);
+            $types .= "ii";
+        }
+        
+        $stmt = $this->conn->prepare($query);
+        if (!empty($params)) $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
     /**
@@ -50,23 +61,25 @@ class ObjetModel {
     /**
      * Crée un nouvel objet
      */
-    public function create($nom, $id_categorie, $quantite, $image_path = '') {
-    $stmt = $this->conn->prepare("INSERT INTO objets (nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
+    public function create($database_id, $nom, $id_categorie, $quantite, $image_path = '') {
+    $stmt = $this->conn->prepare("INSERT INTO objets (database_id, nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?, ?)");
     
     if (!$stmt) return false;
     
+    $database_id = intval($database_id);
     // Le second paramètre devient "i" pour integer (id_categorie)
-    $stmt->bind_param("siis", $nom, $id_categorie, $quantite, $image_path);
+    $stmt->bind_param("isiss", $database_id, $nom, $id_categorie, $quantite, $image_path);
     $success = $stmt->execute();
+    $insert_id = $stmt->insert_id;
     $stmt->close();
     
-    return $success;
+    return $success ? $insert_id : false;
 }
 
     /**
      * Met à jour un objet
      */
-    public function update($id, $field, $value) {
+    public function update($id, $field, $value, $database_id = null) {
         // Mise à jour de la whitelist : on remplace 'categorie' par 'id_categorie'
         $allowedFields = ['nom', 'id_categorie', 'quantite', 'image_path', 'position', 'model', 'purchase_link', 'description', 'qty_used', 'qty_degraded'];
         if (!in_array($field, $allowedFields, true)) {
@@ -74,16 +87,41 @@ class ObjetModel {
         }
 
         $id = intval($id);
-        $stmt = $this->conn->prepare("UPDATE objets SET `$field` = ? WHERE id = ?");
+        
+        $sql = "UPDATE objets SET `$field` = ? WHERE id = ?";
+        if ($database_id !== null) {
+            $sql .= " AND database_id = ?";
+        }
+        
+        $stmt = $this->conn->prepare($sql);
         
         if (!$stmt) return false;
 
+        $types = "";
+        $params = [];
+
         // Si on modifie la catégorie ou la quantité, c'est un entier (i)
         if (in_array($field, ['quantite', 'id_categorie', 'qty_used', 'qty_degraded'])) {
-            $stmt->bind_param("ii", $value, $id);
+            $types .= "i";
+            if ($field === 'id_categorie' && $value === null) {
+                $params[] = null;
+            } else {
+                $params[] = intval($value);
+            }
         } else {
-            $stmt->bind_param("si", $value, $id);
+            $types .= "s";
+            $params[] = $value;
         }
+        
+        $types .= "i";
+        $params[] = $id;
+
+        if ($database_id !== null) {
+            $types .= "i";
+            $params[] = intval($database_id);
+        }
+
+        $stmt->bind_param($types, ...$params);
         
         $success = $stmt->execute();
         $stmt->close();
@@ -93,7 +131,7 @@ class ObjetModel {
     /**
      * Met à jour plusieurs champs d'un objet
      */
-    public function updateFull($id, $data) {
+    public function updateFull($id, $data, $database_id = null) {
         $id = intval($id);
         $updates = [];
         $types = "";
@@ -115,9 +153,17 @@ class ObjetModel {
         }
 
         if (empty($updates)) return false;
+        
         $sql = "UPDATE objets SET " . implode(", ", $updates) . " WHERE id = ?";
         $types .= "i";
         $params[] = $id;
+
+        if ($database_id !== null) {
+            $sql .= " AND database_id = ?";
+            $types .= "i";
+            $params[] = intval($database_id);
+        }
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param($types, ...$params);
         return $stmt->execute();
@@ -126,27 +172,41 @@ class ObjetModel {
     /**
      * Supprime un objet
      */
-    public function delete($id) {
+    public function delete($id, $database_id = null) {
         $id = intval($id);
-        $stmt = $this->conn->prepare("DELETE FROM objets WHERE id = ?");
+        $sql = "DELETE FROM objets WHERE id = ?";
+        if ($database_id !== null) {
+            $sql .= " AND database_id = ?";
+        }
+        
+        $stmt = $this->conn->prepare($sql);
         
         if (!$stmt) {
             return false;
         }
         
-        $stmt->bind_param("i", $id);
+        if ($database_id !== null) $stmt->bind_param("ii", $id, $database_id);
+        else $stmt->bind_param("i", $id);
+        
         $success = $stmt->execute();
         $stmt->close();
         
         return $success;
     }
 
-
+    
     /**
      * Compte le nombre total d'objets
      */
-    public function count() {
-        $result = $this->conn->query("SELECT COUNT(*) as total FROM objets");
+    public function count($database_id = null) {
+        if ($database_id !== null) {
+            $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM objets WHERE database_id = ?");
+            $stmt->bind_param("i", $database_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        } else {
+            $result = $this->conn->query("SELECT COUNT(*) as total FROM objets");
+        }
         
         if ($result && $row = $result->fetch_assoc()) {
             return $row['total'];
@@ -155,22 +215,39 @@ class ObjetModel {
         return 0;
     }
 
+    
     /**
      * Incrémente la quantité
      */
-    public function incrementQuantity($id) {
+    public function incrementQuantity($id, $database_id = null) {
         $id = intval($id);
-        $this->conn->query("UPDATE objets SET quantite = quantite + 1 WHERE id = $id");
-        return true;
+        $sql = "UPDATE objets SET quantite = quantite + 1 WHERE id = ?";
+        if ($database_id !== null) {
+            $sql .= " AND database_id = ?";
+        }
+        $stmt = $this->conn->prepare($sql);
+        
+        if ($database_id !== null) $stmt->bind_param("ii", $id, intval($database_id));
+        else $stmt->bind_param("i", $id);
+        
+        return $stmt->execute();
     }
-
+    
     /**
      * Décrémente la quantité (min 0)
      */
-    public function decrementQuantity($id) {
+    public function decrementQuantity($id, $database_id = null) {
         $id = intval($id);
-        $this->conn->query("UPDATE objets SET quantite = GREATEST(0, quantite - 1) WHERE id = $id");
-        return true;
+        $sql = "UPDATE objets SET quantite = GREATEST(0, quantite - 1) WHERE id = ?";
+        if ($database_id !== null) {
+            $sql .= " AND database_id = ?";
+        }
+        $stmt = $this->conn->prepare($sql);
+        
+        if ($database_id !== null) $stmt->bind_param("ii", $id, intval($database_id));
+        else $stmt->bind_param("i", $id);
+        
+        return $stmt->execute();
     }
 }
 ?>

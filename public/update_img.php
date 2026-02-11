@@ -1,6 +1,12 @@
 <?php
 require_once '../config/config.php';
 
+// 1. Auth Check
+if (!Auth::isLoggedIn()) {
+    header("Location: login.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id']) && isset($_FILES['new_image'])) {
     $id = intval($_POST['id']);
     
@@ -18,34 +24,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id']) && isset($_FILE
         exit();
     }
 
-    $target_dir = "uploads/";
-    
-    if (!file_exists($target_dir)) {
-        mkdir($target_dir, 0777, true);
-    }
+    // 2. Permission Check (IDOR)
+    $stmt = $conn->prepare("SELECT database_id, image_path FROM objets WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $obj = $stmt->get_result()->fetch_assoc();
 
-    // Générer un nom de fichier sécurisé
-    $ext = strtolower(pathinfo($_FILES["new_image"]["name"], PATHINFO_EXTENSION));
-    $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-    
-    if (!in_array($ext, $allowedExts, true)) {
-        FlashMessage::error('Extension non autorisée');
+    if (!$obj) {
+        FlashMessage::error('Objet introuvable');
         header("Location: index.php");
         exit();
     }
 
-    $image_name = time() . "_" . bin2hex(random_bytes(8)) . "." . $ext;
-    $target_file = $target_dir . $image_name;
+    $db_model = new DatabaseModel($conn);
+    $perm = $db_model->getPermission($obj['database_id'], $_SESSION['user_id']);
+    if ($perm !== 'admin' && $perm !== 'edit') {
+        FlashMessage::error('Action non autorisée');
+        header("Location: index.php");
+        exit();
+    }
 
-    if (move_uploaded_file($_FILES["new_image"]["tmp_name"], $target_file)) {
+    // 3. Utilisation de ImageHelper pour sécuriser l'upload (re-encoding)
+    $target_dir = __DIR__ . '/uploads';
+    if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
+    
+    $filenameBase = 'obj_' . $id . '_' . time();
+    $image_name = ImageHelper::processAndSave($_FILES["new_image"]["tmp_name"], $target_dir, $filenameBase);
+
+    if ($image_name) {
         // Récupérer l'ancienne image et la supprimer
-        $result = $conn->query("SELECT image_path FROM objets WHERE id = $id");
-        if ($result && $row = $result->fetch_assoc()) {
-            if (!empty($row['image_path'])) {
-                $oldImagePath = $target_dir . $row['image_path'];
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
+        if (!empty($obj['image_path'])) {
+            $oldImagePath = $target_dir . '/' . $obj['image_path'];
+            if (file_exists($oldImagePath)) {
+                @unlink($oldImagePath);
             }
         }
 

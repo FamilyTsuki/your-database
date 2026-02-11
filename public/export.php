@@ -49,20 +49,28 @@ fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 // En-têtes des colonnes
 fputcsv($output, ['ID', 'Nom', 'Catégorie', 'Sous-catégorie', 'Quantité', 'Modèle', 'Position', 'Description', 'Lien achat', 'Utilisé', 'Dégradé', 'Image'], ';');
 
+// Fonction pour empêcher l'injection de formules CSV (Excel)
+function secureCsvField($value) {
+    if (is_string($value) && preg_match('/^[=\+\-@]/', $value)) {
+        return "'" . $value;
+    }
+    return $value;
+}
+
 while ($row = $result->fetch_assoc()) {
     $category = $row['parent_nom'] ? $row['parent_nom'] : ($row['nom_categorie'] ?: 'Sans catégorie');
     $subcategory = $row['parent_nom'] ? $row['nom_categorie'] : '';
     
     fputcsv($output, [
         $row['id'],
-        $row['nom'],
-        $category,
-        $subcategory,
+        secureCsvField($row['nom']),
+        secureCsvField($category),
+        secureCsvField($subcategory),
         $row['quantite'],
-        $row['model'],
-        $row['position'],
-        $row['description'],
-        $row['purchase_link'],
+        secureCsvField($row['model']),
+        secureCsvField($row['position']),
+        secureCsvField($row['description']),
+        secureCsvField($row['purchase_link']),
         $row['qty_used'],
         $row['qty_degraded'],
         $row['image_path'] ? 'uploads/' . $row['image_path'] : ''

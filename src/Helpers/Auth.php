@@ -8,6 +8,26 @@ class Auth {
     }
 
     /**
+     * Démarre la session de manière sécurisée
+     */
+    public static function initSession() {
+        if (session_status() === PHP_SESSION_NONE) {
+            // Configuration sécurisée des cookies
+            session_set_cookie_params([
+                'lifetime' => 0, 'path' => '/', 'domain' => '',
+                'secure' => isset($_SERVER['HTTPS']), 'httponly' => true, 'samesite' => 'Lax'
+            ]);
+            session_start();
+        }
+        
+        // SÉCURITÉ : En-têtes HTTP pour protéger le navigateur
+        // Empêche le site d'être chargé dans une iframe (Clickjacking)
+        header('X-Frame-Options: SAMEORIGIN');
+        // Empêche le navigateur de deviner le type MIME (évite l'exécution de fichiers texte comme du JS)
+        header('X-Content-Type-Options: nosniff');
+    }
+
+    /**
      * Enregistre un nouvel utilisateur
      */
     public function register($username, $email, $password) {
@@ -20,8 +40,8 @@ class Auth {
             return ['success' => false, 'message' => 'Email invalide'];
         }
 
-        if (strlen($password) < 6) {
-            return ['success' => false, 'message' => 'Le mot de passe doit contenir au moins 6 caractères'];
+        if (strlen($password) < 8) {
+            return ['success' => false, 'message' => 'Le mot de passe doit contenir au moins 8 caractères'];
         }
 
         // Vérifier que l'utilisateur n'existe pas déjà
@@ -29,6 +49,8 @@ class Auth {
         $stmt->bind_param("ss", $username, $email);
         $stmt->execute();
         if ($stmt->get_result()->num_rows > 0) {
+            // Protection anti-énumération / spam
+            usleep(500000); // 500ms
             return ['success' => false, 'message' => 'Pseudo ou email déjà utilisé'];
         }
 
@@ -60,19 +82,24 @@ class Auth {
         $result = $stmt->get_result();
 
         if ($result->num_rows === 0) {
+            // Protection contre le brute-force : délai de 500ms
+            usleep(500000);
             return ['success' => false, 'message' => 'Pseudo ou mot de passe incorrect'];
         }
 
         $user = $result->fetch_assoc();
 
         if (!password_verify($password, $user['password'])) {
+            // Protection contre le brute-force : délai de 500ms
+            usleep(500000);
             return ['success' => false, 'message' => 'Pseudo ou mot de passe incorrect'];
         }
 
         // Créer la session
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::initSession();
+
+        // SÉCURITÉ : Régénérer l'ID de session pour éviter la fixation de session
+        session_regenerate_id(true);
 
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
@@ -86,9 +113,7 @@ class Auth {
      * Déconnecte l'utilisateur
      */
     public function logout() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::initSession();
         
         session_destroy();
         return true;
@@ -98,9 +123,7 @@ class Auth {
      * Vérifie si l'utilisateur est connecté
      */
     public static function isLoggedIn() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::initSession();
         
         return isset($_SESSION['user_id']);
     }
@@ -109,9 +132,7 @@ class Auth {
      * Récupère l'utilisateur connecté
      */
     public static function getUser() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::initSession();
         
         if (self::isLoggedIn()) {
             return [
@@ -129,9 +150,7 @@ class Auth {
      * Récupère l'ID de l'utilisateur connecté
      */
     public static function getUserId() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::initSession();
         
         return $_SESSION['user_id'] ?? null;
     }

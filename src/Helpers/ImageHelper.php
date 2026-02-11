@@ -37,19 +37,9 @@ class ImageHelper {
             default: return false;
         }
 
-        // Si GD n'a pas pu charger l'image (extension manquante ou erreur), on fait une copie simple
+        // SÉCURITÉ : Si GD n'a pas pu charger l'image, on refuse l'upload.
+        // Ne jamais copier le fichier brut (copy) pour éviter les fichiers polyglottes malveillants.
         if (!$image) {
-            $ext = image_type_to_extension($type, false);
-            if (!$ext) {
-                $map = [IMAGETYPE_JPEG=>'jpg', IMAGETYPE_PNG=>'png', IMAGETYPE_GIF=>'gif', IMAGETYPE_WEBP=>'webp'];
-                $ext = $map[$type] ?? 'jpg';
-            }
-            if ($ext === 'jpeg') $ext = 'jpg';
-            
-            $finalFilename = $filenameBase . '.' . $ext;
-            if (copy($sourcePath, $destinationDir . '/' . $finalFilename)) {
-                return $finalFilename;
-            }
             return false;
         }
 

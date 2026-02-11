@@ -1,6 +1,12 @@
 <?php
 require_once '../config/config.php';
 
+// 1. Auth Check
+if (!Auth::isLoggedIn()) {
+    header("Location: login.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Vérifier le token CSRF
     if (!CsrfToken::verifyFromPost()) {
@@ -13,7 +19,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $categorie = $_POST['categorie'] ?? '';
     $quantite = $_POST['quantite'] ?? 1;
     
-    // Validations$nom = Validator::sanitizeText($nom, 100);
+    // 2. Validation de la base de données cible
+    $database_id = intval($_POST['database_id'] ?? 0);
+    if ($database_id <= 0) {
+        FlashMessage::error('Base de données non spécifiée');
+        header("Location: index.php");
+        exit();
+    }
+
+    // 3. Vérification des permissions
+    $db_model = new DatabaseModel($conn);
+    $perm = $db_model->getPermission($database_id, $_SESSION['user_id']);
+    if ($perm !== 'admin' && $perm !== 'edit') {
+        FlashMessage::error('Action non autorisée');
+        header("Location: index.php");
+        exit();
+    }
+
+    // Validations
+    $nom = Validator::sanitizeText($nom, 100);
     $quantite = Validator::validateQuantity($quantite);
     
     // Nouvelle gestion de l'ID de catégorie
@@ -24,9 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $new_cat_name = Validator::sanitizeText($_POST['new_category'] ?? '', 100);
         if (!empty($new_cat_name)) {
             // On insère la nouvelle catégorie
-            // Note: Ajustez database_id si nécessaire selon votre contexte
-            $stmt_cat = $conn->prepare("INSERT INTO categories (nom) VALUES (?)");
-            $stmt_cat->bind_param("s", $new_cat_name);
+            $stmt_cat = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
+            $stmt_cat->bind_param("si", $new_cat_name, $database_id);
             if ($stmt_cat->execute()) {
                 $id_categorie = $conn->insert_id;
             }
@@ -42,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
     // Traiter l'image si présente
+    $image_name = '';
     if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
         $validation = Validator::validateImageFile($_FILES['image']);
         if (!$validation['valid']) {
@@ -50,48 +74,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
         }
 
-        $target_dir = "uploads/"; 
+        // Utilisation de ImageHelper
+        $target_dir = __DIR__ . '/uploads';
+        if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
         
-        if (!file_exists($target_dir)) {
-            mkdir($target_dir, 0777, true);
-        }
-
-        $ext = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
-        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        $filenameBase = 'obj_' . time() . '_' . bin2hex(random_bytes(4));
+        $image_name = ImageHelper::processAndSave($_FILES["image"]["tmp_name"], $target_dir, $filenameBase);
         
-        if (!in_array($ext, $allowedExts, true)) {
-            FlashMessage::error('Extension non autorisée');
-            header("Location: index.php");
-            exit();
-        }
-
-        $image_name = time() . "_" . bin2hex(random_bytes(8)) . "." . $ext;
-        $target_file = $target_dir . $image_name;
-
-        if (!move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-            FlashMessage::error('Erreur lors du téléchargement');
+        if (!$image_name) {
+            FlashMessage::error('Erreur lors du traitement de l\'image');
             header("Location: index.php");
             exit();
         }
     }
 
-    // Insérer en base de données (id_categorie au lieu de categorie)
-    $stmt = $conn->prepare("INSERT INTO objets (nom, id_categorie, quantite, image_path) VALUES (?, ?, ?, ?)");
-    if (!$stmt) {
-        FlashMessage::error('Erreur préparation requête');
-        header("Location: index.php");
-        exit();
-    }
+    // Utilisation du modèle pour l'insertion
+    $objet_model = new ObjetModel($conn);
+    $new_id = $objet_model->create($database_id, $nom, $id_categorie, $quantite, $image_name);
 
-    // Le type change : "siis" (string, int, int, string)
-    $stmt->bind_param("siis", $nom, $id_categorie, $quantite, $image_name);
-
-    if ($stmt->execute()) {
+    if ($new_id) {
         FlashMessage::success('Objet ajouté avec succès ✓');
     } else {
-        FlashMessage::error('Erreur lors de l\'ajout: ' . $conn->error);
+        FlashMessage::error('Erreur lors de l\'ajout');
     }
-    $stmt->close();
 }
 
 header("Location: index.php");

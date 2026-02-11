@@ -11,7 +11,7 @@ class ObjetController {
     /**
      * Ajoute un nouvel objet
      */
-    public function add($nom, $id_categorie, $quantite, $image_path = '') {
+    public function add($database_id, $nom, $id_categorie, $quantite, $image_path = '') {
         if (!Validator::isNotEmpty($nom)) {
             return ['success' => false, 'message' => 'Le nom est requis'];
         }
@@ -27,7 +27,7 @@ class ObjetController {
         $quantite = Validator::validateQuantity($quantite);
 
         // On passe id_categorie au lieu de categorie
-        if ($this->model->create($nom, $id_categorie, $quantite, $image_path)) {
+        if ($this->model->create($database_id, $nom, $id_categorie, $quantite, $image_path)) {
             return ['success' => true, 'message' => 'Objet ajouté avec succès ✓'];
         } else {
             return ['success' => false, 'message' => 'Erreur lors de l\'ajout'];
@@ -37,7 +37,7 @@ class ObjetController {
     /**
      * Met à jour un champ
      */
-    public function update($id, $field, $value) {
+    public function update($id, $field, $value, $database_id = null) {
         $id = intval($id);
         
         if ($id <= 0) {
@@ -65,7 +65,7 @@ class ObjetController {
             $value = Validator::validateQuantity($value);
         }
 
-        if ($this->model->update($id, $field, $value)) {
+        if ($this->model->update($id, $field, $value, $database_id)) {
             return ['success' => true, 'message' => 'Modification enregistrée ✓'];
         } else {
             return ['success' => false, 'message' => 'Erreur lors de la mise à jour'];
@@ -75,14 +75,14 @@ class ObjetController {
     /**
      * Supprime un objet
      */
-    public function delete($id) {
+    public function delete($id, $database_id = null) {
         $id = intval($id);
         
         if ($id <= 0) {
             return ['success' => false, 'message' => 'ID invalide'];
         }
 
-        if ($this->model->delete($id)) {
+        if ($this->model->delete($id, $database_id)) {
             return ['success' => true, 'message' => 'Objet supprimé ✓'];
         } else {
             return ['success' => false, 'message' => 'Erreur lors de la suppression'];
@@ -92,28 +92,28 @@ class ObjetController {
     /**
      * Incrémente la quantité
      */
-    public function incrementQuantity($id) {
+    public function incrementQuantity($id, $database_id = null) {
         $id = intval($id);
         
         if ($id <= 0) {
             return ['success' => false, 'message' => 'ID invalide'];
         }
 
-        $this->model->incrementQuantity($id);
+        $this->model->incrementQuantity($id, $database_id);
         return ['success' => true, 'message' => 'Quantité augmentée ✓'];
     }
 
     /**
      * Décrémente la quantité
      */
-    public function decrementQuantity($id) {
+    public function decrementQuantity($id, $database_id = null) {
         $id = intval($id);
         
         if ($id <= 0) {
             return ['success' => false, 'message' => 'ID invalide'];
         }
 
-        $this->model->decrementQuantity($id);
+        $this->model->decrementQuantity($id, $database_id);
         return ['success' => true, 'message' => 'Quantité diminuée ✓'];
     }
 

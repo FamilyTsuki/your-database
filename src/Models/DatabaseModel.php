@@ -209,12 +209,6 @@ class DatabaseModel {
         
         return $stmt->execute();
     }
-    public function deleteCategory2($category_id) {
-    // On prépare la requête de suppression
-        $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ?");
-        $stmt->bind_param("i", $category_id);
-        return $stmt->execute();
-    }
 
     /**
      * Met à jour le nom et la description d'une base
@@ -239,17 +233,18 @@ class DatabaseModel {
     /**
  * Renomme une catégorie dans la table globale des catégories
  */
-    public function renameCategory($category_id, $new_name) {
+    public function renameCategory($category_id, $new_name, $database_id) {
         $category_id = intval($category_id);
+        $database_id = intval($database_id);
         $new_name = Validator::sanitizeText($new_name, 100);
         
         if (!$new_name) {
             return false;
         }
         
-        // On met à jour le nom directement dans la table des catégories
-        $stmt = $this->conn->prepare("UPDATE categories SET nom = ? WHERE id = ?");
-        $stmt->bind_param("si", $new_name, $category_id);
+        // SÉCURITÉ : On vérifie que la catégorie appartient bien à la base de données courante
+        $stmt = $this->conn->prepare("UPDATE categories SET nom = ? WHERE id = ? AND database_id = ?");
+        $stmt->bind_param("sii", $new_name, $category_id, $database_id);
         
         return $stmt->execute();
     }
