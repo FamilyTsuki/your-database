@@ -118,6 +118,142 @@ export function initAddFormListeners() {
       }
     }
   });
+
+  // Initialisation des sélecteurs de catégories dynamiques (page Ajouter)
+  initCategorySelects();
+}
+
+function initCategorySelects() {
+  const mainSelect = document.getElementById("main_category_select");
+  const subSelect = document.getElementById("sub_category_select");
+  const subContainer = document.getElementById("sub_category_container");
+
+  if (!mainSelect || !subSelect || !subContainer) return;
+
+  mainSelect.addEventListener("change", async function () {
+    const parentId = this.value;
+
+    // Réinitialiser le menu des sous-catégories
+    subSelect.innerHTML = "";
+
+    if (parentId === "NEW") {
+      subContainer.style.display = "none";
+      const newName = prompt("Nom de la nouvelle catégorie :");
+      if (newName && newName.trim() !== "") {
+        try {
+          const d = await apiPost({
+            action: "create_category",
+            name: newName,
+            parent_id: 0,
+            csrf_token: window.csrfToken,
+            database_id: window.databaseId,
+          });
+          if (d && d.success) {
+            // 1. Mise à jour des données globales
+            const newCat = {
+              id: d.id,
+              nom: newName,
+              parent_id: null,
+              subs: [],
+            };
+            if (window.globalCategories) window.globalCategories.push(newCat);
+
+            // 2. Ajout visuel
+            const opt = new Option(newName, d.id);
+            this.add(opt, this.options.length - 1);
+
+            // 3. Sélection
+            this.value = d.id;
+            this.dispatchEvent(new Event("change"));
+          } else {
+            showFlash(
+              "Erreur: " + (d.message || d.error || "Impossible de créer"),
+              "error",
+            );
+            this.value = "0";
+          }
+        } catch (e) {
+          showFlash("Erreur réseau", "error");
+          this.value = "0";
+        }
+      } else {
+        this.value = "0";
+      }
+      return;
+    }
+
+    if (parentId === "0") {
+      subContainer.style.display = "none";
+      return;
+    }
+
+    // Trouver les données de la catégorie parente
+    const parentData = window.globalCategories
+      ? window.globalCategories.find((c) => c.id == parentId)
+      : null;
+
+    if (parentData) {
+      let optionsHtml = `<option value="${parentId}">-- Utiliser la catégorie principale --</option>`;
+
+      if (parentData.subs && parentData.subs.length > 0) {
+        parentData.subs.forEach((sub) => {
+          optionsHtml += `<option value="${sub.id}">${sub.nom}</option>`;
+        });
+      }
+      optionsHtml += `<option value="NEW_SUB:${parentId}" class="option-new">+ Ajouter une sous-catégorie</option>`;
+
+      subSelect.innerHTML = optionsHtml;
+      subContainer.style.display = "block";
+    } else {
+      subContainer.style.display = "none";
+    }
+  });
+
+  subSelect.addEventListener("change", async function () {
+    if (this.value && this.value.indexOf("NEW_SUB:") === 0) {
+      const parts = this.value.split(":");
+      const parentId = parseInt(parts[1], 10);
+      const newName = prompt("Nom de la nouvelle sous-catégorie :");
+      if (newName && newName.trim() !== "") {
+        try {
+          const d = await apiPost({
+            action: "create_category",
+            name: newName,
+            parent_id: parentId,
+            csrf_token: window.csrfToken,
+            database_id: window.databaseId,
+          });
+          if (d && d.success) {
+            const parentCat = window.globalCategories.find(
+              (c) => c.id == parentId,
+            );
+            if (parentCat) {
+              if (!parentCat.subs) parentCat.subs = [];
+              parentCat.subs.push({
+                id: d.id,
+                nom: newName,
+                parent_id: parentId,
+              });
+            }
+            const opt = new Option(newName, d.id);
+            this.add(opt, this.options.length - 1);
+            this.value = d.id;
+          } else {
+            showFlash(
+              "Erreur: " + (d.message || d.error || "Impossible de créer"),
+              "error",
+            );
+            this.value = parentId;
+          }
+        } catch (e) {
+          showFlash("Erreur réseau", "error");
+          this.value = parentId;
+        }
+      } else {
+        this.value = parentId;
+      }
+    }
+  });
 }
 
 export function initProfileListeners() {

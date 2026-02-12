@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../src/Models/DatabaseModel.php';
 
 // 1. Authentification
 if (!Auth::isLoggedIn()) {
@@ -18,13 +19,29 @@ if (!$database_id) {
 $user_id = Auth::getUserId();
 $conn = $conn; // Assumé défini dans config.php
 
+// SÉCURITÉ : Vérifier les permissions (Edit ou Admin requis)
+$db_model = new DatabaseModel($conn);
+$permission = $db_model->getPermission($database_id, $user_id);
+
+if (!$permission || ($permission !== 'admin' && $permission !== 'edit')) {
+    FlashMessage::error('Accès refusé : Vous n\'avez pas les droits pour ajouter des objets dans cette base');
+    header("Location: index.php");
+    exit();
+}
+
 // 3. Récupérer les infos de la base (pour le paramètre de redirection)
-$db_info = $conn->query("SELECT * FROM `databases` WHERE id = $database_id LIMIT 1")->fetch_assoc();
+$stmt = $conn->prepare("SELECT * FROM `databases` WHERE id = ? LIMIT 1");
+$stmt->bind_param("i", $database_id);
+$stmt->execute();
+$db_info = $stmt->get_result()->fetch_assoc();
 
 // Form submit is handled client-side via public/js/app.js and the API endpoint.
 
 // 4. Données pour la vue
-$cat_res = $conn->query("SELECT id, nom, parent_id FROM categories WHERE database_id = $database_id OR database_id IS NULL ORDER BY parent_id ASC, nom ASC");
+$stmt = $conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? OR database_id IS NULL ORDER BY parent_id ASC, nom ASC");
+$stmt->bind_param("i", $database_id);
+$stmt->execute();
+$cat_res = $stmt->get_result();
 $all_cats = $cat_res->fetch_all(MYSQLI_ASSOC);
 
 $categories_tree = [];
@@ -122,114 +139,4 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
 <!-- add form behaviors (dropzone, preview, new-category prompt) handled in public/js/app.js -->
 
-<script>document.addEventListener('DOMContentLoaded', function() {
-    const mainSelect = document.getElementById('main_category_select');
-    const subSelect = document.getElementById('sub_category_select');
-    const subContainer = document.getElementById('sub_category_container');
-
-    mainSelect.addEventListener('change', async function() {
-        const parentId = this.value;
-        
-        // Réinitialiser le menu des sous-catégories
-        subSelect.innerHTML = '';
-        
-        if (parentId === 'NEW') {
-            subContainer.style.display = 'none';
-            const newName = prompt("Nom de la nouvelle catégorie :");
-            if (newName && newName.trim() !== "") {
-                try {
-                    const d = await apiPost({
-                        action: "create_category",
-                        name: newName,
-                        parent_id: 0,
-                        csrf_token: window.csrfToken,
-                        database_id: window.databaseId,
-                    });
-                    if (d && d.success) {
-                        // 1. Mise à jour des données globales pour que la logique continue de fonctionner
-                        const newCat = { id: d.id, nom: newName, parent_id: null, subs: [] };
-                        window.globalCategories.push(newCat);
-
-                        // 2. Ajout visuel de l'option dans le menu déroulant (avant le bouton "Créer")
-                        const opt = new Option(newName, d.id);
-                        this.add(opt, this.options.length - 1);
-                        
-                        // 3. Sélection automatique et mise à jour de l'interface
-                        this.value = d.id;
-                        this.dispatchEvent(new Event('change'));
-                    }
-                    else { window.showToast("Erreur: " + (d.message || d.error || "Impossible de créer"), 'error'); this.value = "0"; }
-                } catch (e) { window.showToast("Erreur réseau", 'error'); this.value = "0"; }
-            } else {
-                this.value = "0";
-            }
-            return;
-        }
-
-        if (parentId === '0') {
-            subContainer.style.display = 'none';
-            return;
-        }
-
-        // Trouver les données de la catégorie parente sélectionnée
-        const parentData = window.globalCategories.find(c => c.id == parentId);
-
-        if (parentData) {
-            // Ajouter l'option par défaut (l'objet appartient à la catégorie parente elle-même)
-            let optionsHtml = `<option value="${parentId}">-- Utiliser la catégorie principale --</option>`;
-            
-            // Ajouter les sous-catégories existantes
-            if (parentData.subs && parentData.subs.length > 0) {
-                parentData.subs.forEach(sub => {
-                    optionsHtml += `<option value="${sub.id}">${sub.nom}</option>`;
-                });
-            }
-
-            // Ajouter l'option pour créer une nouvelle sous-catégorie
-            optionsHtml += `<option value="NEW_SUB:${parentId}" class="option-new">+ Ajouter une sous-catégorie</option>`;
-            
-            subSelect.innerHTML = optionsHtml;
-            subContainer.style.display = 'block';
-        } else {
-            subContainer.style.display = 'none';
-        }
-    });
-
-    subSelect.addEventListener('change', async function() {
-        if (this.value && this.value.indexOf("NEW_SUB:") === 0) {
-            const parts = this.value.split(":");
-            const parentId = parseInt(parts[1], 10);
-            const newName = prompt("Nom de la nouvelle sous-catégorie :");
-            if (newName && newName.trim() !== "") {
-                try {
-                    const d = await apiPost({
-                        action: "create_category",
-                        name: newName,
-                        parent_id: parentId,
-                        csrf_token: window.csrfToken,
-                        database_id: window.databaseId,
-                    });
-                    if (d && d.success) {
-                        // 1. Mise à jour des données globales (ajout dans les subs du parent)
-                        const parentCat = window.globalCategories.find(c => c.id == parentId);
-                        if (parentCat) {
-                            if (!parentCat.subs) parentCat.subs = [];
-                            parentCat.subs.push({ id: d.id, nom: newName, parent_id: parentId });
-                        }
-
-                        // 2. Ajout visuel de l'option dans le sous-menu (avant le bouton "Ajouter")
-                        const opt = new Option(newName, d.id);
-                        this.add(opt, this.options.length - 1);
-                        
-                        // 3. Sélection automatique (sans recharger la page, donc le parent reste sélectionné)
-                        this.value = d.id;
-                    }
-                    else { window.showToast("Erreur: " + (d.message || d.error || "Impossible de créer"), 'error'); this.value = parentId; }
-                } catch (e) { window.showToast("Erreur réseau", 'error'); this.value = parentId; }
-            } else {
-                this.value = parentId;
-            }
-        }
-    });
-});</script>
 <?php include __DIR__ . '/../templates/includes/footer.html'; ?>

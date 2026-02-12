@@ -20,34 +20,6 @@ foreach ($required_tables as $table) {
     }
 }
 
-$user_id = $_SESSION['user_id'];
-
-// Gérer les actions POST
-$action = $_GET['action'] ?? '';
-
-// Créer une nouvelle base de données
-if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!CsrfToken::verifyFromPost()) {
-        FlashMessage::error('Erreur de sécurité (token invalide)');
-    } else {
-        $db_controller = new DatabaseController($conn);
-        $name = $_POST['name'] ?? '';
-        $description = $_POST['description'] ?? '';
-        
-        $result = $db_controller->create($name, $description, $user_id);
-        if ($result['success']) {
-            FlashMessage::success($result['message']);
-            header("Location: index.php");
-            exit();
-        } else {
-            FlashMessage::error($result['message']);
-        }
-    }
-}
-
-// Récupérer les bases de données accessibles
-$db_controller = new DatabaseController($conn);
-$databases = $db_controller->getAccessible($user_id);
 
 // Affichage
 include __DIR__ . '/../templates/includes/header.phtml';
