@@ -253,16 +253,13 @@ class DatabaseModel {
     /**
      * Met à jour le nom et la description d'une base
      */
-    public function update($database_id, $name, $description, $redirect_on_add = 1, $skip_source_modal = 0, $prefer_gallery = 0) {
+    public function update($database_id, $name, $description) {
         $database_id = intval($database_id);
         $name = Validator::sanitizeText($name, 100);
         $description = Validator::sanitizeText($description, 255);
-        $redirect_on_add = intval($redirect_on_add);
-        $skip_source_modal = intval($skip_source_modal);
-        $prefer_gallery = intval($prefer_gallery);
         
-        $stmt = $this->conn->prepare("UPDATE `databases` SET name = ?, description = ?, redirect_on_add = ?, skip_source_modal = ?, prefer_gallery = ? WHERE id = ?");
-        $stmt->bind_param("ssiiii", $name, $description, $redirect_on_add, $skip_source_modal, $prefer_gallery, $database_id);
+        $stmt = $this->conn->prepare("UPDATE `databases` SET name = ?, description = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $name, $description, $database_id);
         
         return $stmt->execute();
     }
@@ -270,9 +267,6 @@ class DatabaseModel {
     /**
      * Renomme une catégorie dans une base de données
      */
-    /**
- * Renomme une catégorie dans la table globale des catégories
- */
     public function renameCategory($category_id, $new_name, $database_id) {
         $category_id = intval($category_id);
         $database_id = intval($database_id);
@@ -292,9 +286,6 @@ class DatabaseModel {
     /**
      * Récupère toutes les catégories d'une base de données
      */
-    /**
- * Récupère toutes les catégories (utilisé pour les filtres et menus)
- */
    public function getCategories($database_id) {
     $stmt = $this->conn->prepare("SELECT id, nom, parent_id FROM categories WHERE database_id = ? ORDER BY nom ASC");
     $stmt->bind_param("i", $database_id);

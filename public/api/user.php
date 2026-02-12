@@ -27,9 +27,13 @@ if ($action === 'update_profile') {
     $username = $_POST['username'] ?? '';
     $email = $_POST['email'] ?? '';
     $file = $_FILES['profile_image'] ?? null;
+    $redirect_on_add = isset($_POST['redirect_on_add']) ? 1 : 0;
+    $skip_source_modal = isset($_POST['skip_source_modal']) ? 1 : 0;
+    $prefer_gallery = isset($_POST['prefer_gallery']) ? 1 : 0;
+    $dark_mode = isset($_POST['dark_mode']) ? 1 : 0;
 
     $controller = new UserController($conn);
-    $result = $controller->updateProfile($user_id, $username, $email, $file);
+    $result = $controller->updateProfile($user_id, $username, $email, $file, $redirect_on_add, $skip_source_modal, $prefer_gallery, $dark_mode);
 
     echo json_encode($result);
     exit;

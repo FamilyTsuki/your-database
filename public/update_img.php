@@ -8,6 +8,13 @@ if (!Auth::isLoggedIn()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id']) && isset($_FILES['new_image'])) {
+    // SÉCURITÉ : Vérification CSRF
+    if (!CsrfToken::verifyFromPost()) {
+        FlashMessage::error('Erreur de sécurité (token invalide)');
+        header("Location: index.php");
+        exit();
+    }
+
     $id = intval($_POST['id']);
     
     if ($id <= 0) {

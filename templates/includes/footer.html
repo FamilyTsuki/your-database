@@ -81,6 +81,21 @@
 </div>
 
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script>
+// Fonction globale pour afficher une notification Toast
+window.showToast = function(message, type = 'success') {
+    const div = document.createElement('div');
+    div.className = `flash-message flash-${type}`;
+    div.innerHTML = `${message} <button onclick="this.parentElement.remove()" style="float:right;background:none;border:none;cursor:pointer;color:inherit;">&times;</button>`;
+    document.body.appendChild(div);
+    
+    // Suppression automatique après 3 secondes
+    setTimeout(() => {
+        div.classList.add('fade-out');
+        setTimeout(() => div.remove(), 500);
+    }, 3000);
+};
+</script>
 <script type="module" src="js/app.js"></script>
 
 </body>

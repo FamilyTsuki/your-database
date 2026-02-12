@@ -48,10 +48,11 @@ include __DIR__ . '/../templates/includes/header.phtml';
     window.globalCategories = <?php echo json_encode(array_values($categories_tree)); ?>;
     window.csrfToken = '<?php echo $csrf_token; ?>';
     window.databaseId = <?php echo json_encode(intval($database_id)); ?>;
-    window.dbRedirectOnAdd = <?php echo json_encode((bool)($db_info['redirect_on_add'] ?? true)); ?>;
+    <?php $user_prefs = Auth::getUser(); ?>
+    window.dbRedirectOnAdd = <?php echo json_encode((bool)($user_prefs['redirect_on_add'] ?? true)); ?>;
     window.dbCameraEnabled = <?php echo json_encode((bool)($db_info['camera_enabled'] ?? true)); ?>;
-    window.dbSkipSourceModal = <?php echo json_encode((bool)($db_info['skip_source_modal'] ?? false)); ?>;
-    window.dbPreferGallery = <?php echo json_encode((bool)($db_info['prefer_gallery'] ?? false)); ?>;
+    window.dbSkipSourceModal = <?php echo json_encode((bool)($user_prefs['skip_source_modal'] ?? false)); ?>;
+    window.dbPreferGallery = <?php echo json_encode((bool)($user_prefs['prefer_gallery'] ?? false)); ?>;
 </script>
 
 <div class="ajouter-container">
@@ -157,8 +158,8 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         this.value = d.id;
                         this.dispatchEvent(new Event('change'));
                     }
-                    else { alert("Erreur: " + (d.message || d.error || "Impossible de créer")); this.value = "0"; }
-                } catch (e) { alert("Erreur réseau"); this.value = "0"; }
+                    else { window.showToast("Erreur: " + (d.message || d.error || "Impossible de créer"), 'error'); this.value = "0"; }
+                } catch (e) { window.showToast("Erreur réseau", 'error'); this.value = "0"; }
             } else {
                 this.value = "0";
             }
@@ -223,8 +224,8 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         // 3. Sélection automatique (sans recharger la page, donc le parent reste sélectionné)
                         this.value = d.id;
                     }
-                    else { alert("Erreur: " + (d.message || d.error || "Impossible de créer")); this.value = parentId; }
-                } catch (e) { alert("Erreur réseau"); this.value = parentId; }
+                    else { window.showToast("Erreur: " + (d.message || d.error || "Impossible de créer"), 'error'); this.value = parentId; }
+                } catch (e) { window.showToast("Erreur réseau", 'error'); this.value = parentId; }
             } else {
                 this.value = parentId;
             }

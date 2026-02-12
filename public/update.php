@@ -9,6 +9,7 @@ if (!Auth::isLoggedIn()) {
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $action = isset($_GET['action']) ? $_GET['action'] : '';
+$token = $_REQUEST['csrf_token'] ?? ''; // Supporte GET et POST
 
 if ($id <= 0) {
     FlashMessage::error('ID invalide');
@@ -20,6 +21,13 @@ if ($id <= 0) {
 $allowedActions = ['inc', 'dec', 'delete'];
 if (!in_array($action, $allowedActions, true)) {
     FlashMessage::error('Action non autorisée');
+    header("Location: index.php");
+    exit();
+}
+
+// SÉCURITÉ : Vérification CSRF obligatoire pour toute action de modification
+if (!CsrfToken::verify($token)) {
+    FlashMessage::error('Erreur de sécurité (token manquant ou invalide)');
     header("Location: index.php");
     exit();
 }

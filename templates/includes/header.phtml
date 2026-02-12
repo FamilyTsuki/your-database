@@ -17,9 +17,12 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
     <link rel="icon" sizes="192x192" href="icon-192.png">
     
 
-    
+    <?php 
+    $current_user_data = Auth::getUser();
+    $body_class = ($current_user_data && !empty($current_user_data['dark_mode'])) ? 'dark-mode' : '';
+    ?>
 </head>
-<body>
+<body class="<?php echo $body_class; ?>">
     <nav class="top-nav">
         <!-- Logo (Toujours visible) -->
         <a href="index" class="nav-logo">📦 Your DataBase</a>
@@ -51,7 +54,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
                 $db_id = $_GET['id'];
                 // Check if admin (you might want to get this from session or pass it)
             ?>
-                <a href="database/<?php echo $db_id; ?>" class="nav-action-btn btn-vewe">👀 afficher</a>
+                <a href="database/<?php echo $db_id; ?>" class="nav-action-btn btn-view">👀 afficher</a>
             <?php endif; ?>
             <?php 
             

@@ -38,11 +38,6 @@ class DatabaseController {
     }
 
     /**
-     * Vérifie l'accès
-     */
-    
-
-    /**
      * Vérifie si propriétaire
      */
     public function isOwner($database_id, $user_id) {
@@ -87,43 +82,41 @@ class DatabaseController {
     /**
      * Met à jour une base
      */
-    public function update($database_id, $name, $description, $redirect_on_add = 1, $skip_source_modal = 0, $prefer_gallery = 0) {
-        return $this->model->update($database_id, $name, $description, $redirect_on_add, $skip_source_modal, $prefer_gallery);
+    public function update($database_id, $name, $description) {
+        return $this->model->update($database_id, $name, $description);
     }
 
     /**
  * Renomme une catégorie
  * On utilise maintenant l'ID de la catégorie pour plus de précision
  */
-    public function renameCategory($category_id, $new_name) {
+    public function renameCategory($category_id, $new_name, $database_id) {
         // On appelle la méthode du modèle qui met à jour la table 'categories'
-        return $this->model->renameCategory($category_id, $new_name);
+        return $this->model->renameCategory($category_id, $new_name, $database_id);
     }
 
     /**
      * Récupère les catégories
      */
-    /**
-     * Récupère les catégories (renvoie désormais un tableau associatif ID/Nom)
-     */
     public function getCategories($database_id) {
         return $this->model->getCategories($database_id);
     }
-    public function deleteCategory($category_id, $database_id) {
-    $user_id = Auth::getUserId();
-    
-    // 1. On vérifie si l'utilisateur est bien le propriétaire de la base
-    if (!$this->isOwner($database_id, $user_id)) {
-        return ['success' => false, 'message' => 'Action non autorisée'];
-    }
 
-    // 2. On appelle la suppression
-    if ($this->model->deleteCategorySecure($category_id, $database_id)) {
-        return ['success' => true, 'message' => 'Catégorie supprimée ✓'];
+    public function deleteCategory($category_id, $database_id) {
+        $user_id = Auth::getUserId();
+    
+        // 1. On vérifie les permissions (Admin requis)
+        $permission = $this->getPermission($database_id, $user_id);
+        if ($permission !== 'admin') {
+            return ['success' => false, 'message' => 'Action non autorisée'];
+        }
+
+        // 2. On appelle la suppression
+        if ($this->model->deleteCategorySecure($category_id, $database_id)) {
+            return ['success' => true, 'message' => 'Catégorie supprimée ✓'];
+        }
+        
+        return ['success' => false, 'message' => 'Erreur lors de la suppression'];
     }
-    
-    return ['success' => false, 'message' => 'Erreur lors de la suppression'];
-}
-    
 }
 ?>

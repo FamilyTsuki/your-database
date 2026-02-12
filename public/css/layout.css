@@ -1,4 +1,62 @@
 /* ==========================================================================
+   VARIABLES & THEME
+   ========================================================================== */
+:root {
+  /* Light Theme (Default) */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-glow: rgba(79, 70, 229, 0.5);
+  --bg-body: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f1f5f9;
+  --bg-nav: rgba(255, 255, 255, 0.8);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --input-bg: #ffffff;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --radius: 12px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.dark-mode {
+  /* Dark Theme */
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --bg-body: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-hover: #334155;
+  --bg-nav: rgba(30, 41, 59, 0.8);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --input-bg: #0f172a;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  margin: 0;
+  transition:
+    background-color 0.3s var(--ease),
+    color 0.3s var(--ease);
+}
+
+/* ==========================================================================
    NAVIGATION
    ========================================================================== */
 .top-nav {
@@ -64,12 +122,12 @@
   color: #fff;
   box-shadow: 0 0 15px var(--primary-glow);
 }
-.nav-action-btn.btn-vewe {
+.nav-action-btn.btn-view {
   background: #00028c;
   color: #ffffff; /* Texte blanc fixe sur fond foncé */
 }
 
-.nav-action-btn.btn-vewe:hover {
+.nav-action-btn.btn-view:hover {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;

@@ -10,7 +10,7 @@ class UserController {
         $this->model = new UserModel($database);
     }
 
-    public function updateProfile($id, $username, $email, $file = null) {
+    public function updateProfile($id, $username, $email, $file = null, $redirect_on_add = 1, $skip_source_modal = 0, $prefer_gallery = 0, $dark_mode = 0) {
         $image_path = null;
 
         // Gestion de l'upload d'image
@@ -34,7 +34,7 @@ class UserController {
             }
         }
 
-        if ($this->model->update($id, $username, $email, $image_path)) {
+        if ($this->model->update($id, $username, $email, $image_path, $redirect_on_add, $skip_source_modal, $prefer_gallery, $dark_mode)) {
             // Mise à jour de la session pour refléter les changements immédiatement
             $user = $this->model->getById($id);
             if (session_status() === PHP_SESSION_NONE) session_start();
@@ -42,6 +42,10 @@ class UserController {
             $_SESSION['username'] = $user['username'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['profile_image'] = $user['profile_image'];
+            $_SESSION['redirect_on_add'] = $user['redirect_on_add'];
+            $_SESSION['skip_source_modal'] = $user['skip_source_modal'];
+            $_SESSION['prefer_gallery'] = $user['prefer_gallery'];
+            $_SESSION['dark_mode'] = $user['dark_mode'];
             
             return ['success' => true, 'message' => 'Profil mis à jour', 'user' => $user];
         }

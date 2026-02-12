@@ -76,7 +76,7 @@ class Auth {
             return ['success' => false, 'message' => 'Veuillez remplir tous les champs'];
         }
 
-        $stmt = $this->conn->prepare("SELECT id, username, email, password, profile_image FROM users WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT id, username, email, password, profile_image, redirect_on_add, skip_source_modal, prefer_gallery, dark_mode FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -105,6 +105,10 @@ class Auth {
         $_SESSION['username'] = $user['username'];
         $_SESSION['email'] = $user['email'];
         $_SESSION['profile_image'] = $user['profile_image'];
+        $_SESSION['redirect_on_add'] = $user['redirect_on_add'];
+        $_SESSION['skip_source_modal'] = $user['skip_source_modal'];
+        $_SESSION['prefer_gallery'] = $user['prefer_gallery'];
+        $_SESSION['dark_mode'] = $user['dark_mode'];
 
         return ['success' => true, 'message' => 'Connexion réussie!'];
     }
@@ -139,7 +143,11 @@ class Auth {
                 'id' => $_SESSION['user_id'],
                 'username' => $_SESSION['username'],
                 'email' => $_SESSION['email'],
-                'profile_image' => $_SESSION['profile_image'] ?? null
+                'profile_image' => $_SESSION['profile_image'] ?? null,
+                'redirect_on_add' => $_SESSION['redirect_on_add'] ?? 1,
+                'skip_source_modal' => $_SESSION['skip_source_modal'] ?? 0,
+                'prefer_gallery' => $_SESSION['prefer_gallery'] ?? 0,
+                'dark_mode' => $_SESSION['dark_mode'] ?? 0
             ];
         }
         

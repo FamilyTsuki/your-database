@@ -185,6 +185,14 @@ if ($action === 'create') {
         }
     } elseif (intval($cat_value) > 0) {
         $id_categorie = intval($cat_value);
+        
+        // SÉCURITÉ : Vérifier que la catégorie appartient bien à cette database
+        $check = $conn->prepare("SELECT id FROM categories WHERE id = ? AND database_id = ?");
+        $check->bind_param("ii", $id_categorie, $database_id);
+        $check->execute();
+        if ($check->get_result()->num_rows === 0) {
+            http_response_code(403); echo json_encode(['error'=>'Catégorie invalide ou hors de cette base']); exit;
+        }
     }
 
     $image_filename = '';
@@ -235,9 +243,23 @@ if ($action === 'create') {
 
 // Create a category (used by client when adding objects and creating subcategories)
 if ($action === 'create_category') {
+    if ($permission !== 'edit' && $permission !== 'admin') {
+        http_response_code(403); echo json_encode(['error'=>'Permission insuffisante']); exit;
+    }
+
     $name = Validator::sanitizeText($_POST['name'] ?? '', 100);
     $parent_id = intval($_POST['parent_id'] ?? 0);
     if ($name === '') { http_response_code(400); echo json_encode(['error'=>'Nom requis']); exit; }
+
+    // SÉCURITÉ : Vérifier que le parent appartient bien à cette database
+    if ($parent_id > 0) {
+        $check = $conn->prepare("SELECT id FROM categories WHERE id = ? AND database_id = ?");
+        $check->bind_param("ii", $parent_id, $database_id);
+        $check->execute();
+        if ($check->get_result()->num_rows === 0) {
+            http_response_code(403); echo json_encode(['error'=>'Catégorie parente invalide ou hors de cette base']); exit;
+        }
+    }
     
     $stmt = $conn->prepare("INSERT INTO categories (nom, database_id, parent_id) VALUES (?, ?, ?)");
     $pid = ($parent_id > 0) ? $parent_id : null;
@@ -392,6 +414,16 @@ if ($action === 'add_subcategory') {
     $parent_id = intval($_POST['parent_id'] ?? 0);
     $name = Validator::sanitizeText($_POST['name'] ?? '', 100);
     if (empty($name)) { http_response_code(400); echo json_encode(['error'=>'Nom requis']); exit; }
+
+    // SÉCURITÉ : Vérifier que le parent appartient bien à cette database
+    if ($parent_id > 0) {
+        $check = $conn->prepare("SELECT id FROM categories WHERE id = ? AND database_id = ?");
+        $check->bind_param("ii", $parent_id, $database_id);
+        $check->execute();
+        if ($check->get_result()->num_rows === 0) {
+            http_response_code(403); echo json_encode(['error'=>'Catégorie parente invalide']); exit;
+        }
+    }
     
     $pid = ($parent_id > 0) ? $parent_id : null;
     $stmt = $conn->prepare("INSERT INTO categories (nom, database_id, parent_id) VALUES (?, ?, ?)");
@@ -447,19 +479,20 @@ if ($action === 'updateImage') {
 
 // ADMIN actions for settings
 if ($action === 'rename_category') {
-    if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
+    // Autoriser 'edit' pour renommer (correction UX)
+    if ($permission !== 'admin' && $permission !== 'edit') { http_response_code(403); echo json_encode(['error'=>'Permission insuffisante']); exit; }
     $category_id = intval($_POST['category_id'] ?? 0);
     $new_name = $_POST['new_name'] ?? '';
-    // Note: On appelle directement le modèle ici ou via le contrôleur si mis à jour. 
-    // Supposons que db_controller délègue au modèle :
-    if ($db_model->renameCategory($category_id, $new_name, $database_id)) { echo json_encode(['success'=>true]); } else { echo json_encode(['success'=>false]); }
+    
+    if ($db_controller->renameCategory($category_id, $new_name, $database_id)) { echo json_encode(['success'=>true]); } else { echo json_encode(['success'=>false]); }
     exit;
 }
 
 if ($action === 'delete_category') {
     if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
     $category_id = intval($_POST['category_id'] ?? 0);
-    if ($db_model->deleteCategorySecure($category_id, $database_id)) { echo json_encode(['success'=>true]); } else { echo json_encode(['success'=>false]); }
+    $result = $db_controller->deleteCategory($category_id, $database_id);
+    echo json_encode($result);
     exit;
 }
 
@@ -520,11 +553,8 @@ if ($action === 'update') {
     if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
     $name = $_POST['name'] ?? '';
     $description = $_POST['description'] ?? '';
-    $redirect_on_add = intval($_POST['redirect_on_add'] ?? 0);
-    $skip_source_modal = intval($_POST['skip_source_modal'] ?? 0);
-    $prefer_gallery = intval($_POST['prefer_gallery'] ?? 0);
     
-    $ok = $db_controller->update($database_id, $name, $description, $redirect_on_add, $skip_source_modal, $prefer_gallery);
+    $ok = $db_controller->update($database_id, $name, $description);
     echo json_encode(['success'=>(bool)$ok]);
     exit;
 }
