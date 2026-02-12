@@ -56,7 +56,11 @@
 }
 
 .create-db-form {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border: 1px solid var(--primary);
   padding: 20px;
   border-radius: var(--radius);
@@ -207,7 +211,11 @@
 }
 
 .database-card {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
@@ -347,7 +355,11 @@
 }
 
 .add-form {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border: 1px solid var(--border);
   padding: 20px;
   border-radius: var(--radius);
@@ -405,7 +417,11 @@
 }
 
 .objet-card {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -469,10 +485,6 @@
   justify-content: center;
 }
 
-.btn-qty:hover {
-  background: var(--primary);
-}
-
 /* ==========================================================================
    PAGE PARAMÈTRES
    ========================================================================== */
@@ -482,7 +494,11 @@
 }
 
 .settings-section {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 25px;
@@ -739,7 +755,11 @@
   max-width: 500px;
   margin: 50px auto;
   width: 95%;
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   padding: 40px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -796,7 +816,11 @@
   max-width: 400px;
   margin: 50px auto;
   width: 95%;
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   padding: 40px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -868,7 +892,11 @@
   max-width: 400px;
   margin: 30px auto;
   width: 95%;
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   padding: 40px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
@@ -967,7 +995,11 @@
 }
 
 .add-page-form {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border-radius: var(--radius);
   padding: 40px;
   box-shadow: var(--shadow-lg);
@@ -1174,7 +1206,11 @@
    MENUS DÉROULANTS & FILTRES (Nettoyé)
    ========================================================================== */
 .category-dropdown-menu {
-  background: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow-lg);

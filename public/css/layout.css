@@ -434,7 +434,11 @@ body {
    FOOTER
    ========================================================================== */
 .site-footer {
-  background-color: var(--bg-surface);
+  background: linear-gradient(
+    -120deg,
+    var(--bg-surface),
+    var(--bg-surface-hover)
+  );
   border-top: 1px solid var(--border);
   margin-top: auto;
   padding: 10px 10px;
