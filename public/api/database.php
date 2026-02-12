@@ -151,6 +151,11 @@ if ($action === 'updateQty') {
     $obj = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
+    if (!$obj) {
+        echo json_encode(['success' => false, 'error' => 'Objet introuvable']);
+        exit;
+    }
+
     if ($obj) {
         $min_required = intval($obj['qty_used']) + intval($obj['qty_degraded']);
         if ($new_qty < $min_required) {
@@ -165,9 +170,9 @@ if ($action === 'updateQty') {
 }
 
 if ($action === 'create') {
-    $nom = Validator::sanitizeText($_POST['nom'] ?? '');
+    $nom = Validator::sanitizeText($_POST['nom'] ?? '', 100);
     $cat_value = $_POST['categorie'] ?? '';
-    $quantite = intval($_POST['quantite'] ?? 1);
+    $quantite = Validator::validateQuantity($_POST['quantite'] ?? 1);
 
     $id_categorie = 'NULL';
     if (strpos($cat_value, 'NEW:') === 0) {
@@ -219,8 +224,12 @@ if ($action === 'create') {
         echo json_encode(['success' => true, 'object' => $obj]);
         exit;
     }
+    
+    // Nettoyage : Si l'insertion BDD échoue, on supprime l'image uploadée pour éviter les orphelins
+    if ($image_filename && file_exists($uploads_dir . '/' . $image_filename)) @unlink($uploads_dir . '/' . $image_filename);
+
     http_response_code(500);
-    echo json_encode(['error' => 'Erreur insertion BDD', 'debug' => $conn->error]);
+    echo json_encode(['error' => 'Erreur insertion BDD']);
     exit;
 }
 
@@ -252,9 +261,14 @@ if ($action === 'delete') {
     $stmt->execute();
     $objet = $stmt->get_result()->fetch_assoc();
     
-    if ($objet && $objet['image_path']) @unlink(__DIR__ . '/../uploads/' . $objet['image_path']);
-    $result = $objet_model->delete($objet_id, $database_id);
-    echo json_encode(['success' => (bool)$result]);
+    // On tente la suppression en BDD d'abord
+    if ($objet_model->delete($objet_id, $database_id)) {
+        // Si succès BDD, on supprime l'image physique
+        if ($objet && $objet['image_path']) @unlink(__DIR__ . '/../uploads/' . $objet['image_path']);
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
     exit;
 }
 
@@ -267,8 +281,9 @@ if ($action === 'edit') {
         $sub_name = Validator::sanitizeText($value, 100);
         $parent_id = intval($_POST['parent_id'] ?? 0);
         
+        $pid = ($parent_id > 0) ? $parent_id : null;
         $stmt = $conn->prepare("INSERT INTO categories (nom, database_id, parent_id) VALUES (?, ?, ?)");
-        $stmt->bind_param("sii", $sub_name, $database_id, $parent_id);
+        $stmt->bind_param("sii", $sub_name, $database_id, $pid);
         $stmt->execute();
         $new_id = $conn->insert_id;
         
@@ -277,7 +292,7 @@ if ($action === 'edit') {
         exit;
     }
 
-    if ($field === 'new_category_create' || $field === 'new_category_create') {
+    if ($field === 'new_category_create') {
         $cat_name = Validator::sanitizeText($value, 100);
         
         $stmt = $conn->prepare("INSERT INTO categories (nom, database_id) VALUES (?, ?)");
@@ -298,20 +313,30 @@ if ($action === 'edit') {
         $stringFields = ['nom', 'model', 'purchase_link', 'description'];
         
         if (in_array($field, $stringFields)) {
-            $clean_val = Validator::sanitizeText($value, ($field === 'description' ? 2000 : 255));
+            $limit = 255;
+            if ($field === 'description') $limit = 2000;
+            if ($field === 'nom') $limit = 100;
+            $clean_val = Validator::sanitizeText($value, $limit);
         } else {
-            $clean_val = intval($value);
+            if (in_array($field, ['quantite', 'qty_used', 'qty_degraded'])) {
+                $clean_val = Validator::validateQuantity($value);
+            } else {
+                $clean_val = intval($value);
+            }
             if ($field === 'id_categorie' && $clean_val === 0) $clean_val = null; // Model handles null? Model expects int. 
             // Correction: ObjetModel expects int for id_categorie, but if we pass 0 it might be issue if 0 is not valid.
             // Let's assume 0 or null is handled by DB as NULL if foreign key allows.
             
-            // Vérification si on modifie la quantité
-            if ($field === 'quantite') {
-                $obj = $objet_model->getById($objet_id);
+            // Vérification de cohérence des stocks (Total >= Utilisé + HS)
+            if (in_array($field, ['quantite', 'qty_used', 'qty_degraded'])) {
+                $obj = $objet_model->getById($objet_id, $database_id);
                 if ($obj) {
-                    $min_required = intval($obj['qty_used']) + intval($obj['qty_degraded']);
-                    if ($clean_val < $min_required) {
-                        echo json_encode(['success' => false, 'message' => "Impossible : Quantité inférieure à la somme (Utilisé + HS = $min_required)"]);
+                    $q = ($field === 'quantite') ? $clean_val : intval($obj['quantite']);
+                    $u = ($field === 'qty_used') ? $clean_val : intval($obj['qty_used']);
+                    $d = ($field === 'qty_degraded') ? $clean_val : intval($obj['qty_degraded']);
+                    
+                    if ($u + $d > $q) {
+                        echo json_encode(['success' => false, 'message' => "Incohérence : Utilisé ($u) + HS ($d) > Total ($q)"]);
                         exit;
                     }
                 }
@@ -333,9 +358,21 @@ if ($action === 'update_full') {
     unset($data['action'], $data['id'], $data['csrf_token'], $data['database_id']);
     
     // Validation de cohérence des stocks
-    $q = intval($data['quantite'] ?? 0);
-    $u = intval($data['qty_used'] ?? 0);
-    $d = intval($data['qty_degraded'] ?? 0);
+    // On récupère les valeurs envoyées ou on garde null pour aller chercher celles en BDD
+    $q = isset($data['quantite']) ? Validator::validateQuantity($data['quantite']) : null;
+    $u = isset($data['qty_used']) ? Validator::validateQuantity($data['qty_used']) : null;
+    $d = isset($data['qty_degraded']) ? Validator::validateQuantity($data['qty_degraded']) : null;
+
+    // Si une des valeurs manque, on récupère l'état actuel de l'objet pour comparer correctement
+    if ($q === null || $u === null || $d === null) {
+        $curr = $objet_model->getById($objet_id, $database_id);
+        if ($curr) {
+            if ($q === null) $q = intval($curr['quantite']);
+            if ($u === null) $u = intval($curr['qty_used']);
+            if ($d === null) $d = intval($curr['qty_degraded']);
+        }
+    }
+
     if ($u + $d > $q) {
         echo json_encode(['success' => false, 'error' => 'Incohérence: Utilisé + Dégradé > Total']);
         exit;
@@ -356,8 +393,9 @@ if ($action === 'add_subcategory') {
     $name = Validator::sanitizeText($_POST['name'] ?? '', 100);
     if (empty($name)) { http_response_code(400); echo json_encode(['error'=>'Nom requis']); exit; }
     
+    $pid = ($parent_id > 0) ? $parent_id : null;
     $stmt = $conn->prepare("INSERT INTO categories (nom, database_id, parent_id) VALUES (?, ?, ?)");
-    $stmt->bind_param("sii", $name, $database_id, $parent_id);
+    $stmt->bind_param("sii", $name, $database_id, $pid);
     $ok = $stmt->execute();
     if ($ok) echo json_encode(['success'=>true, 'id'=>$conn->insert_id]); else echo json_encode(['success'=>false, 'error'=>$conn->error]);
     exit;
@@ -389,9 +427,17 @@ if ($action === 'updateImage') {
     $filename = ImageHelper::processAndSave($file['tmp_name'], $uploads_dir, $filenameBase, 1024, 1024);
     
     if ($filename) {
-        if ($objet && $objet['image_path']) @unlink(__DIR__ . '/../uploads/' . $objet['image_path']);
-        $objet_model->update($objet_id, 'image_path', $filename, $database_id);
-        echo json_encode(['success' => true, 'image_path' => 'uploads/' . $filename]);
+        // On met à jour la BDD d'abord
+        if ($objet_model->update($objet_id, 'image_path', $filename, $database_id)) {
+            // Si succès, on supprime l'ancienne image
+            if ($objet && $objet['image_path']) @unlink(__DIR__ . '/../uploads/' . $objet['image_path']);
+            echo json_encode(['success' => true, 'image_path' => 'uploads/' . $filename]);
+        } else {
+            // Si échec BDD, on supprime la nouvelle image qui vient d'être créée
+            @unlink($uploads_dir . '/' . $filename);
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur mise à jour BDD']);
+        }
         exit;
     }
     http_response_code(500);
@@ -413,7 +459,7 @@ if ($action === 'rename_category') {
 if ($action === 'delete_category') {
     if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
     $category_id = intval($_POST['category_id'] ?? 0);
-    if ($db_controller->deleteCategory($category_id, $database_id)['success'] ?? false) { echo json_encode(['success'=>true]); } else { echo json_encode(['success'=>false]); }
+    if ($db_model->deleteCategorySecure($category_id, $database_id)) { echo json_encode(['success'=>true]); } else { echo json_encode(['success'=>false]); }
     exit;
 }
 
@@ -474,7 +520,7 @@ if ($action === 'update') {
     if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
     $name = $_POST['name'] ?? '';
     $description = $_POST['description'] ?? '';
-    $redirect_on_add = intval($_POST['redirect_on_add'] ?? 1);
+    $redirect_on_add = intval($_POST['redirect_on_add'] ?? 0);
     $skip_source_modal = intval($_POST['skip_source_modal'] ?? 0);
     $prefer_gallery = intval($_POST['prefer_gallery'] ?? 0);
     

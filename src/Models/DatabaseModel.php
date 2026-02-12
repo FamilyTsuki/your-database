@@ -193,21 +193,61 @@ class DatabaseModel {
     public function delete($database_id) {
         $database_id = intval($database_id);
         
-        // Supprimer les permissions
-        $stmt = $this->conn->prepare("DELETE FROM `database_permissions` WHERE database_id = ?");
+        // 1. Collecter les images à supprimer
+        $stmt = $this->conn->prepare("SELECT image_path FROM objets WHERE database_id = ? AND image_path IS NOT NULL AND image_path != ''");
         $stmt->bind_param("i", $database_id);
         $stmt->execute();
+        $result = $stmt->get_result();
+        $imagesToDelete = [];
+        while ($row = $result->fetch_assoc()) {
+            $imagesToDelete[] = $row['image_path'];
+        }
         
-        // Supprimer les objets
-        $stmt = $this->conn->prepare("DELETE FROM objets WHERE database_id = ?");
-        $stmt->bind_param("i", $database_id);
-        $stmt->execute();
+        // 2. Transaction pour la suppression BDD
+        $this->conn->begin_transaction();
         
-        // Supprimer la base
-        $stmt = $this->conn->prepare("DELETE FROM `databases` WHERE id = ?");
-        $stmt->bind_param("i", $database_id);
-        
-        return $stmt->execute();
+        try {
+            // Supprimer les permissions
+            $stmt = $this->conn->prepare("DELETE FROM `database_permissions` WHERE database_id = ?");
+            $stmt->bind_param("i", $database_id);
+            $stmt->execute();
+            
+            // Supprimer les objets
+            $stmt = $this->conn->prepare("DELETE FROM objets WHERE database_id = ?");
+            $stmt->bind_param("i", $database_id);
+            $stmt->execute();
+            
+            // Détacher les relations parent/enfant des catégories pour éviter les erreurs de contrainte
+            $stmt = $this->conn->prepare("UPDATE categories SET parent_id = NULL WHERE database_id = ?");
+            $stmt->bind_param("i", $database_id);
+            $stmt->execute();
+            
+            // Supprimer les catégories
+            $stmt = $this->conn->prepare("DELETE FROM categories WHERE database_id = ?");
+            $stmt->bind_param("i", $database_id);
+            $stmt->execute();
+            
+            // Supprimer la base
+            $stmt = $this->conn->prepare("DELETE FROM `databases` WHERE id = ?");
+            $stmt->bind_param("i", $database_id);
+            $stmt->execute();
+            
+            $this->conn->commit();
+            
+            // 3. Suppression physique des images (seulement si BDD ok)
+            $uploadsDir = dirname(__DIR__, 2) . '/public/uploads/';
+            foreach ($imagesToDelete as $img) {
+                $file = $uploadsDir . $img;
+                if (file_exists($file)) {
+                    @unlink($file);
+                }
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollback();
+            return false;
+        }
     }
 
     /**
@@ -266,13 +306,25 @@ public function deleteCategorySecure($category_id, $database_id) {
     $category_id = intval($category_id);
     $database_id = intval($database_id);
 
-    // 1. Supprimer d'abord les sous-catégories (enfants)
+    // 1. Détacher les objets des sous-catégories (les mettre à Sans catégorie)
+    $stmt = $this->conn->prepare("UPDATE objets SET id_categorie = NULL WHERE database_id = ? AND id_categorie IN (SELECT id FROM categories WHERE parent_id = ? AND database_id = ?)");
+    $stmt->bind_param("iii", $database_id, $category_id, $database_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // 2. Détacher les objets de la catégorie parente
+    $stmt = $this->conn->prepare("UPDATE objets SET id_categorie = NULL WHERE id_categorie = ? AND database_id = ?");
+    $stmt->bind_param("ii", $category_id, $database_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // 3. Supprimer les sous-catégories (enfants)
     $stmt = $this->conn->prepare("DELETE FROM categories WHERE parent_id = ? AND database_id = ?");
     $stmt->bind_param("ii", $category_id, $database_id);
     $stmt->execute();
     $stmt->close();
 
-    // 2. Supprimer la catégorie parente
+    // 4. Supprimer la catégorie parente
     $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ? AND database_id = ?");
     $stmt->bind_param("ii", $category_id, $database_id);
     

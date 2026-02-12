@@ -52,21 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id']) && isset($_FILE
     $image_name = ImageHelper::processAndSave($_FILES["new_image"]["tmp_name"], $target_dir, $filenameBase);
 
     if ($image_name) {
-        // Récupérer l'ancienne image et la supprimer
-        if (!empty($obj['image_path'])) {
-            $oldImagePath = $target_dir . '/' . $obj['image_path'];
-            if (file_exists($oldImagePath)) {
-                @unlink($oldImagePath);
-            }
-        }
-
-        // Mise à jour de la base de données
+        // Mise à jour de la base de données D'ABORD
         $stmt = $conn->prepare("UPDATE objets SET image_path = ? WHERE id = ?");
         $stmt->bind_param("si", $image_name, $id);
         
         if ($stmt->execute()) {
+            // Si succès, on supprime l'ancienne image
+            if (!empty($obj['image_path'])) {
+                $oldImagePath = $target_dir . '/' . $obj['image_path'];
+                if (file_exists($oldImagePath)) @unlink($oldImagePath);
+            }
             FlashMessage::success('Image mise à jour ✓');
         } else {
+            // Si échec, on supprime la nouvelle image (nettoyage)
+            @unlink($target_dir . '/' . $image_name);
             FlashMessage::error('Erreur mise à jour BD');
         }
     } else {

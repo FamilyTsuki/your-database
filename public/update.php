@@ -60,18 +60,16 @@ try {
         FlashMessage::success('Quantité diminuée ✓');
     } 
     elseif ($action == 'delete') {
-        // Supprimer aussi l'image associée
-        if (!empty($obj['image_path'])) {
-            $imagePath = __DIR__ . "/../public/uploads/" . $obj['image_path'];
-            if (file_exists($imagePath)) {
-                @unlink($imagePath);
-            }
-        }
-        
         $stmt = $conn->prepare("DELETE FROM objets WHERE id = ?");
         $stmt->bind_param("i", $id);
-        $stmt->execute();
-        FlashMessage::success('Objet supprimé ✓');
+        if ($stmt->execute()) {
+            // Supprimer l'image seulement si la suppression en BDD a réussi
+            if (!empty($obj['image_path'])) {
+                $imagePath = __DIR__ . "/../public/uploads/" . $obj['image_path'];
+                if (file_exists($imagePath)) @unlink($imagePath);
+            }
+            FlashMessage::success('Objet supprimé ✓');
+        }
     }
 } catch (Exception $e) {
     FlashMessage::error('Erreur : ' . $e->getMessage());

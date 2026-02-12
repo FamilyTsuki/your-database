@@ -241,11 +241,11 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <p>Cette action est <strong>irréversible</strong>. Tous les objets et les permissions seront supprimés.</p>
             
             <form id="deleteForm">
-                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="action" value="delete_database">
                 
                 <div class="form-group">
                     <label class="checkbox-label">
-                        <input type="checkbox" name="confirm" value="no" id="confirmCheck">
+                        <input type="checkbox" name="confirm" value="yes" id="confirmCheck">
                         Je comprends que cette action est irréversible
                     </label>
                 </div>

@@ -36,6 +36,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
     } else {
         // Créer les tables
         $sql_queries = [
+            "CREATE TABLE IF NOT EXISTS `users` (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                username VARCHAR(50) NOT NULL UNIQUE,
+                email VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                profile_image VARCHAR(255) DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )",
+
+            "CREATE TABLE IF NOT EXISTS `categories` (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                nom VARCHAR(100) NOT NULL,
+                parent_id INT DEFAULT NULL,
+                database_id INT DEFAULT NULL,
+                FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+            )",
+
+            "CREATE TABLE IF NOT EXISTS `objets` (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                nom VARCHAR(100) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )",
+
             "CREATE TABLE IF NOT EXISTS `databases` (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 name VARCHAR(100) NOT NULL,
@@ -59,6 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
                 UNIQUE KEY unique_permission (database_id, user_id)
             )",
             
+            "ALTER TABLE categories ADD FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE",
+            
+            "ALTER TABLE objets ADD COLUMN id_categorie INT DEFAULT NULL",
+            "ALTER TABLE objets ADD FOREIGN KEY (id_categorie) REFERENCES categories(id) ON DELETE SET NULL",
             "ALTER TABLE objets ADD COLUMN database_id INT DEFAULT 1",
             "ALTER TABLE objets ADD FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE",
             
@@ -68,6 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
             "ALTER TABLE `databases` ADD COLUMN prefer_gallery TINYINT(1) DEFAULT 0",
             "ALTER TABLE `users` ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL",
             "ALTER TABLE objets ADD COLUMN position VARCHAR(255) DEFAULT NULL",
+            "ALTER TABLE objets ADD COLUMN quantite INT DEFAULT 1",
+            "ALTER TABLE objets ADD COLUMN image_path VARCHAR(255) DEFAULT NULL",
             "ALTER TABLE objets ADD COLUMN model VARCHAR(255) DEFAULT NULL",
             "ALTER TABLE objets ADD COLUMN purchase_link TEXT DEFAULT NULL",
             "ALTER TABLE objets ADD COLUMN description TEXT DEFAULT NULL",

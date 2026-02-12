@@ -1,5 +1,6 @@
 <?php
 require_once '../config/config.php';
+require_once '../src/Models/ObjetModel.php';
 
 if (!Auth::isLoggedIn()) {
     FlashMessage::error('Vous devez être connecté');
@@ -29,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // SÉCURITÉ : Vérifier les permissions sur l'objet
     // On joint les tables pour vérifier si l'utilisateur est propriétaire ou a une permission edit/admin
     $permStmt = $conn->prepare("
-        SELECT d.owner_id, dp.permission 
+        SELECT d.owner_id, dp.permission, o.database_id 
         FROM objets o
         JOIN `databases` d ON o.database_id = d.id
         LEFT JOIN database_permissions dp ON d.id = dp.database_id AND dp.user_id = ?
@@ -42,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $permRow = $permResult->fetch_assoc();
 
     $hasAccess = $permRow && ($permRow['owner_id'] == $userId || in_array($permRow['permission'], ['admin', 'edit']));
+    $database_id = $permRow['database_id'] ?? 0;
 
     if (!$hasAccess) {
         FlashMessage::error('Accès refusé : Vous n\'avez pas les droits de modification sur cet objet');
@@ -80,18 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
          exit();
     }
 
-
-    // Préparation sécurisée de la requête
-    $stmt = $conn->prepare("UPDATE objets SET $field = ? WHERE id = ?");
+    // Utilisation du modèle pour la mise à jour (plus sûr et cohérent)
+    $objetModel = new ObjetModel($conn);
+    $result = $objetModel->update($id, $field, $value, $database_id);
     
-    // Si c'est la quantité OU l'id_categorie, on utilise "i" (integer)
-    if ($field === 'quantite' || $field === 'id_categorie') {
-        $stmt->bind_param("ii", $value, $id);
-    } else {
-        $stmt->bind_param("si", $value, $id);
-    }
-    
-    if ($stmt->execute()) {
+    if ($result) {
         FlashMessage::success('Modification enregistrée ✓');
     } else {
         FlashMessage::error('Erreur lors de la mise à jour');

@@ -120,22 +120,15 @@ class ObjetController {
     /**
      * Récupère tous les objets
      */
-    public function getAll() {
-        return $this->model->getAll();
-    }
-
-    /**
-     * Récupère les catégories
-     */
-    public function getCategories() {
-        return $this->model->getCategories();
+    public function getAll($database_id = null, $limit = null, $offset = 0) {
+        return $this->model->getAll($database_id, $limit, $offset);
     }
 
     /**
      * Récupère un objet par ID
      */
-    public function getById($id) {
-        return $this->model->getById($id);
+    public function getById($id, $database_id = null) {
+        return $this->model->getById($id, $database_id);
     }
 }
 ?>

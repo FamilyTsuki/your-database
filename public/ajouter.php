@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id_categorie = intval($cat_input) > 0 ? intval($cat_input) : null;
     }
 
-    if ($id_categorie === null && $cat_input !== "") {
+    if ($id_categorie === null && $cat_input !== "" && $cat_input !== "0") {
         FlashMessage::error('Catégorie invalide');
         header("Location: index.php");
         exit();
@@ -95,6 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($new_id) {
         FlashMessage::success('Objet ajouté avec succès ✓');
     } else {
+        if ($image_name && file_exists($target_dir . '/' . $image_name)) {
+            @unlink($target_dir . '/' . $image_name);
+        }
         FlashMessage::error('Erreur lors de l\'ajout');
     }
 }

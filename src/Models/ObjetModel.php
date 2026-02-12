@@ -45,15 +45,24 @@ class ObjetModel {
     /**
      * Récupère un objet par ID
      */
-    public function getById($id) {
-        $stmt = $this->conn->prepare("SELECT objets.*, categories.nom AS nom_categorie, p.nom AS parent_nom
+    public function getById($id, $database_id = null) {
+        $sql = "SELECT objets.*, categories.nom AS nom_categorie, p.nom AS parent_nom
             FROM objets 
             LEFT JOIN categories ON objets.id_categorie = categories.id
             LEFT JOIN categories p ON categories.parent_id = p.id
-            WHERE objets.id = ?
-        ");
+            WHERE objets.id = ?";
+        
+        if ($database_id !== null) {
+            $sql .= " AND objets.database_id = ?";
+        }
+        
+        $stmt = $this->conn->prepare($sql);
         $id = intval($id);
-        $stmt->bind_param("i", $id);
+        if ($database_id !== null) {
+            $stmt->bind_param("ii", $id, intval($database_id));
+        } else {
+            $stmt->bind_param("i", $id);
+        }
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc() ?: null;
 }
@@ -68,7 +77,7 @@ class ObjetModel {
     
     $database_id = intval($database_id);
     // Le second paramètre devient "i" pour integer (id_categorie)
-    $stmt->bind_param("isiss", $database_id, $nom, $id_categorie, $quantite, $image_path);
+    $stmt->bind_param("isiis", $database_id, $nom, $id_categorie, $quantite, $image_path);
     $success = $stmt->execute();
     $insert_id = $stmt->insert_id;
     $stmt->close();
@@ -144,10 +153,18 @@ class ObjetModel {
                 $updates[] = "`$key` = ?";
                 if (in_array($key, ['id_categorie', 'quantite', 'qty_used', 'qty_degraded'])) {
                     $types .= "i";
-                    $params[] = intval($val);
+                    if ($key === 'id_categorie' && empty($val)) {
+                        $params[] = null; // Permet de remettre à "Sans catégorie" (NULL)
+                    } else {
+                        $params[] = intval($val);
+                    }
                 } else {
                     $types .= "s";
-                    $params[] = Validator::sanitizeText($val, 2000); // Allow longer text for description
+                    $limit = 255;
+                    if ($key === 'description') $limit = 2000;
+                    if ($key === 'nom') $limit = 100;
+                    
+                    $params[] = Validator::sanitizeText($val, $limit);
                 }
             }
         }
