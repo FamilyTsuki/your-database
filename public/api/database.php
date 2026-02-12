@@ -302,15 +302,29 @@ if ($action === 'edit') {
     if ($field === 'new_subcategory_create') {
         $sub_name = Validator::sanitizeText($value, 100);
         $parent_id = intval($_POST['parent_id'] ?? 0);
+
+        // SÉCURITÉ : Vérifier que le parent appartient bien à cette database
+        if ($parent_id > 0) {
+            $check = $conn->prepare("SELECT id FROM categories WHERE id = ? AND database_id = ?");
+            $check->bind_param("ii", $parent_id, $database_id);
+            $check->execute();
+            if ($check->get_result()->num_rows === 0) {
+                echo json_encode(['success' => false, 'message' => 'Catégorie parente invalide']); exit;
+            }
+        }
         
         $pid = ($parent_id > 0) ? $parent_id : null;
         $stmt = $conn->prepare("INSERT INTO categories (nom, database_id, parent_id) VALUES (?, ?, ?)");
-        $stmt->bind_param("sii", $sub_name, $database_id, $pid);
+        $stmt->bind_param("sii", $sub_name, $database_id, $pid); // Note: bind_param avec 'i' et null fonctionne généralement, mais attention aux drivers stricts.
         $stmt->execute();
         $new_id = $conn->insert_id;
-        
-        $result = $objet_model->update($objet_id, 'id_categorie', $new_id, $database_id);
-        echo json_encode(['success' => (bool)$result]);
+
+        if ($new_id > 0) {
+            $result = $objet_model->update($objet_id, 'id_categorie', $new_id, $database_id);
+            echo json_encode(['success' => (bool)$result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Erreur création catégorie']);
+        }
         exit;
     }
 
@@ -321,9 +335,13 @@ if ($action === 'edit') {
         $stmt->bind_param("si", $cat_name, $database_id);
         $stmt->execute();
         $new_id = $conn->insert_id;
-        
-        $result = $objet_model->update($objet_id, 'id_categorie', $new_id, $database_id);
-        echo json_encode(['success' => (bool)$result]);
+
+        if ($new_id > 0) {
+            $result = $objet_model->update($objet_id, 'id_categorie', $new_id, $database_id);
+            echo json_encode(['success' => (bool)$result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Erreur création catégorie']);
+        }
         exit;
     }
 
@@ -348,6 +366,16 @@ if ($action === 'edit') {
             if ($field === 'id_categorie' && $clean_val === 0) $clean_val = null; // Model handles null? Model expects int. 
             // Correction: ObjetModel expects int for id_categorie, but if we pass 0 it might be issue if 0 is not valid.
             // Let's assume 0 or null is handled by DB as NULL if foreign key allows.
+
+            // SÉCURITÉ : Si on change la catégorie, vérifier qu'elle appartient à la base courante
+            if ($field === 'id_categorie' && $clean_val !== null) {
+                $check = $conn->prepare("SELECT id FROM categories WHERE id = ? AND database_id = ?");
+                $check->bind_param("ii", $clean_val, $database_id);
+                $check->execute();
+                if ($check->get_result()->num_rows === 0) {
+                    echo json_encode(['success' => false, 'message' => 'Catégorie invalide ou hors de cette base']); exit;
+                }
+            }
             
             // Vérification de cohérence des stocks (Total >= Utilisé + HS)
             if (in_array($field, ['quantite', 'qty_used', 'qty_degraded'])) {
@@ -395,6 +423,17 @@ if ($action === 'update_full') {
         }
     }
 
+    // SÉCURITÉ : Vérifier la catégorie si elle est modifiée
+    if (isset($data['id_categorie']) && intval($data['id_categorie']) > 0) {
+        $cat_check_id = intval($data['id_categorie']);
+        $check = $conn->prepare("SELECT id FROM categories WHERE id = ? AND database_id = ?");
+        $check->bind_param("ii", $cat_check_id, $database_id);
+        $check->execute();
+        if ($check->get_result()->num_rows === 0) {
+            echo json_encode(['success' => false, 'error' => 'Catégorie invalide ou hors de cette base']); exit;
+        }
+    }
+
     if ($u + $d > $q) {
         echo json_encode(['success' => false, 'error' => 'Incohérence: Utilisé + Dégradé > Total']);
         exit;
@@ -410,7 +449,7 @@ if ($action === 'update_full') {
 
 // Add subcategory (admin)
 if ($action === 'add_subcategory') {
-    if ($permission !== 'admin') { http_response_code(403); echo json_encode(['error'=>'Permission admin requise']); exit; }
+    if ($permission !== 'admin' && $permission !== 'edit') { http_response_code(403); echo json_encode(['error'=>'Permission insuffisante']); exit; }
     $parent_id = intval($_POST['parent_id'] ?? 0);
     $name = Validator::sanitizeText($_POST['name'] ?? '', 100);
     if (empty($name)) { http_response_code(400); echo json_encode(['error'=>'Nom requis']); exit; }
@@ -444,6 +483,13 @@ if ($action === 'updateImage') {
     $stmt->bind_param("ii", $objet_id, $database_id);
     $stmt->execute();
     $objet = $stmt->get_result()->fetch_assoc();
+    
+    if (!$objet) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Objet introuvable ou accès refusé']);
+        exit;
+    }
+
     $file = $_FILES['image'];
     
     $val = Validator::validateImageFile($file);
