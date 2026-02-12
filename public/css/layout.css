@@ -264,6 +264,13 @@ body {
   align-items: center;
 }
 
+/* Conteneur global du menu sur Desktop */
+.nav-menu-container {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* Pousse le menu à droite */
+}
+
 .user-info {
   display: flex;
   gap: 15px;
@@ -286,35 +293,106 @@ body {
     margin-right: 10px;
   }
 
-  .div-modif-inv {
-    display: none; /* Cacher les boutons par défaut */
-    width: 100%;
+  /* Configuration du menu bulles sur mobile */
+  .nav-menu-container {
+    display: none; /* Caché par défaut */
+    position: absolute;
+    top: 70px;
+    right: 12px;
     flex-direction: column;
-    padding-top: 15px;
-    border-top: 1px solid var(--border);
-    margin-top: 10px;
+    gap: 15px;
+    z-index: 1000;
+  }
+
+  /* Afficher le menu quand ouvert */
+  .top-nav.nav-open .nav-menu-container {
+    display: flex;
+  }
+
+  /* Transformer les conteneurs internes en éléments transparents pour que les liens soient des enfants directs visuels */
+  .div-modif-inv {
+    display: contents;
   }
 
   .user-info {
-    display: none; /* Cacher le profil par défaut */
-    width: 100%;
-    flex-direction: column-reverse; /* Profil en haut, Déconnexion en bas */
-    justify-content: center;
-    margin-left: 0;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
+    display: contents;
   }
 
-  /* Afficher le menu quand la classe .nav-open est présente */
-  .top-nav.nav-open .div-modif-inv,
-  .top-nav.nav-open .user-info {
+  /* Style des bulles */
+  .nav-menu-container a {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
     display: flex;
-    animation: slideDown 0.3s ease forwards;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 1.5rem; /* Taille de l'émoji */
+    text-decoration: none;
+
+    /* Animation */
+    opacity: 0;
+    transform: translateY(-20px) scale(0.5);
+    animation: bubblePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   }
 
-  .user-info .user-profile-link {
-    margin-right: 0; /* Centre le profil sur mobile */
+  /* Décalage de l'animation pour chaque bulle (effet cascade) */
+  .nav-menu-container a:nth-child(1) {
+    animation-delay: 0.05s;
+  }
+  .nav-menu-container a:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+  .nav-menu-container a:nth-child(3) {
+    animation-delay: 0.15s;
+  }
+  .nav-menu-container a:nth-child(4) {
+    animation-delay: 0.2s;
+  }
+  .nav-menu-container a:nth-child(5) {
+    animation-delay: 0.25s;
+  }
+  .nav-menu-container a:nth-child(6) {
+    animation-delay: 0.3s;
+  }
+
+  /* Cacher le texte sur mobile */
+  .nav-text {
+    display: none;
+  }
+
+  /* Ajustements spécifiques pour les bulles */
+  .nav-action-btn.btn-add {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  }
+
+  .nav-profile-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: none;
+  }
+  .nav-profile-img:hover {
+    transform: rotate(10deg);
+
+    size: 1.2;
+  }
+  .user-profile-link {
+    border: none;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .user-profile-link:hover {
+    background: none;
+    transform: scale(1.1);
   }
 }
 
@@ -344,6 +422,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border);
+  transition: transform 0.3s ease;
 }
 
 .profile-header {
@@ -386,6 +465,14 @@ body {
 
 .profile-avatar-edit:hover {
   transform: scale(1.1);
+}
+
+/* Animation d'apparition des bulles */
+@keyframes bubblePop {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .user-info a {
