@@ -33,7 +33,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
         <?php if ($user): ?>
             <a href="profile" class="mobile-profile-link">
                 <?php if (!empty($user['profile_image'])): ?>
-                    <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                    <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img1">
                 <?php else: ?>
                     <span class="nav-profile-icon" style="font-size: 1.5rem;">👤</span>
                 <?php endif; ?>
@@ -72,19 +72,22 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
                 if (($current_page === 'database-view.php' || $current_page === 'database-ajouter.php') && isset($_GET['id'])): 
                     $db_id = $_GET['id'];
                     // Check if admin (you might want to get this from session or pass it)
+                    if (isset($permission) && ($permission === 'admin' || $permission === 'edit')):
                 ?>
                     <a href="database/settings/<?php echo $db_id; ?>" class="nav-action-btn btn-settings">⚙️ <span class="nav-text">Paramètres</span></a>
-                <?php endif; ?>
+                <?php endif; endif; ?>
                 
             </div>
             <div class="user-info">
             
                 <?php if ($user): ?>
                     <a href="profile" class="user-profile-link">
-                        
-                        
+                        <span class="nav-text"><?php echo htmlspecialchars($user['username']); ?></span>
+                        <?php if (!empty($user['profile_image'])): ?>
+                            <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                        <?php else: ?>
                             <span class="nav-profile-icon">👤</span>
-                        
+                        <?php endif; ?>
                     </a>
                     <a href="logout" class="nav-action-btn btn-logout">🚪 <span class="nav-text">Déconnexion</span></a>
 

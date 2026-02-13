@@ -120,7 +120,7 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(15, 23, 42, 0.7); /* Fond sombre semi-transparent */
+  background: var(--bg-nav);
   backdrop-filter: blur(4px);
   color: var(--text-main);
   width: 32px;
@@ -132,7 +132,7 @@
   font-size: 16px;
   transition: all 0.2s var(--ease);
   z-index: 5;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
 }
 
 .view-image-icon:hover {
@@ -145,7 +145,7 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--bg-nav);
   backdrop-filter: blur(4px);
   color: var(--text-main);
   width: 32px;
@@ -157,7 +157,7 @@
   font-size: 16px;
   transition: all 0.2s var(--ease);
   z-index: 5;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
 }
 
 .info-icon:hover {

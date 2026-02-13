@@ -102,7 +102,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
             <div class="form-section">
                 <div class="form-group">
                     <label for="objet-nom">Nom de l'objet *</label>
-                    <input type="text" id="objet-nom" name="nom" required class="form-input" autocomplete="off">
+                    <input type="text" id="objet-nom" name="nom" required class="form-input" autocomplete="off" maxlength="20">
                 </div>
 
                 <label>Catégorie</label>
