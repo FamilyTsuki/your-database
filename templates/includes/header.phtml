@@ -103,11 +103,14 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
                 <?php if ($user): ?>
                     <a href="profile" class="user-profile-link">
                         <span class="nav-text"><?php echo htmlspecialchars($user['username']); ?></span>
-                        <?php if (!empty($user['profile_image'])): ?>
-                            <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
-                        <?php else: ?>
-                            <span class="nav-profile-icon">👤</span>
-                        <?php endif; ?>
+                        <div class="profile-img-wrapper">
+                            <?php if (!empty($user['profile_image'])): ?>
+                                <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                            <?php else: ?>
+                                <span class="nav-profile-icon">👤</span>
+                            <?php endif; ?>
+                            <span class="settings-badge">⚙️</span>
+                        </div>
                     </a>
                     <a href="logout" class="nav-action-btn btn-logout">🚪 <span class="nav-text">Déconnexion</span></a>
 

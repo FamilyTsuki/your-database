@@ -278,14 +278,6 @@ body {
   margin-left: 15px;
 }
 
-.nav-profile-img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--border);
-}
-
 @media (max-width: 768px) {
   .top-nav {
     padding: 10px 15px;
@@ -313,6 +305,7 @@ body {
     flex-direction: column;
     gap: 15px;
     z-index: 1000;
+    align-items: flex-end; /* Empêche l'étirement des bulles */
     transition: visibility 0s linear 0.4s; /* Délai pour laisser l'animation de fermeture se finir */
   }
 
@@ -334,6 +327,7 @@ body {
 
   /* Style des bulles */
   .nav-menu-container a {
+    box-sizing: border-box; /* Inclut la bordure dans les 50px */
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -348,6 +342,7 @@ body {
     margin-right: 0;
     font-size: 1.5rem; /* Taille de l'émoji */
     text-decoration: none;
+    flex-shrink: 0; /* Empêche la bulle de s'écraser et de devenir ovale */
 
     /* État initial (Fermé / Rentré) */
     opacity: 0;
@@ -414,22 +409,53 @@ body {
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
   }
 
-  .nav-profile-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: none;
+  .nav-action-btn.btn-logout {
+    font-size: 2rem;
   }
 
-  .user-profile-link {
+  .nav-profile-img {
+    width: 40px; /* Taille fixe pour éviter les déformations */
+    height: 40px;
+    border-radius: 40px;
+
+    border: 1px solid var(--border); /* On met la bordure sur l'image */
+    box-sizing: border-box;
+    object-fit: cover; /* Assure que l'image ne soit pas déformée */
+    display: block;
+    aspect-ratio: 1 / 1; /* Force un carré parfait */
+  }
+
+  /* Correction pour l'émoji sur mobile : remplit la bulle sans bordure interne */
+  .nav-profile-icon {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* On cible plus précisément pour surcharger la bordure par défaut des liens du menu */
+  .nav-menu-container .user-profile-link {
     border: none;
     padding: 0;
-    overflow: hidden;
+    overflow: visible; /* Permet au badge de dépasser légèrement si besoin */
   }
 
   .user-profile-link:hover {
     background: none;
     transform: scale(1.1);
+  }
+
+  /* Ajustement du badge sur mobile */
+  .settings-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    bottom: -2px;
+    right: -2px;
+    background: var(--bg-surface); /* Fond pour cacher la bordure derrière */
   }
 }
 
@@ -470,6 +496,30 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.profile-img-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  z-index: 5;
 }
 
 .profile-header {

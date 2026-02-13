@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="password">Mot de passe</label>
             <div class="password-wrapper">
                 <input type="password" name="password" id="password" required placeholder="Votre mot de passe" class="password-input">
-                <span id="togglePassword" class="password-toggle">🙈</span>
+                
             </div>
             
                 <?php echo CsrfToken::field(); ?>
@@ -56,15 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
             <script>window.csrfToken = <?php echo json_encode(CsrfToken::generate()); ?>;</script>
-            <script>
-                const togglePassword = document.querySelector('#togglePassword');
-                const password = document.querySelector('#password');
-                togglePassword.addEventListener('click', function (e) {
-                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                    password.setAttribute('type', type);
-                    this.textContent = type === 'password' ? '🙈' : '👁️';
-                });
-            </script>
+
 
         <div class="register-link">
             <p>Pas encore de compte? <a href="register">S'inscrire</a></p>
