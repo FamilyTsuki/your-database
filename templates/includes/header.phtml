@@ -21,6 +21,26 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
     $current_user_data = Auth::getUser();
     $body_class = ($current_user_data && !empty($current_user_data['dark_mode'])) ? 'dark-mode' : '';
     ?>
+    <script>
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            const selectors = [
+                'button[data-action="update-database"]', // Paramètres BDD
+                '#profileForm button[type="submit"]',    // Profil
+                '.add-form-full button[type="submit"]',  // Ajout objet
+                '.create-db-form button[type="submit"]'  // Création BDD (Dashboard)
+            ];
+            for (const selector of selectors) {
+                const btn = document.querySelector(selector);
+                if (btn && btn.offsetParent !== null && !btn.disabled) {
+                    btn.click();
+                    break;
+                }
+            }
+        }
+    });
+    </script>
 </head>
 <body class="<?php echo $body_class; ?>">
     <nav class="top-nav">
