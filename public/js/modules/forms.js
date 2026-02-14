@@ -87,7 +87,7 @@ export function initAddFormListeners() {
         const d = await res.json();
         if (d.success) {
           if (window.dbRedirectOnAdd) {
-            window.location.href = "database/" + window.databaseId;
+            window.location.href = "database-view.php?id=" + window.databaseId;
             return;
           }
           const grid = document.getElementById("inventoryGrid");

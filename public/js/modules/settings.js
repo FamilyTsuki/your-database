@@ -188,7 +188,7 @@ export function initSettingsListeners() {
         }).then((d) => {
           if (d.success) {
             showFlash("Supprimée", "success");
-            setTimeout(() => (window.location = "index"), 1000);
+            setTimeout(() => (window.location = "index.php"), 1000);
           } else showFlash("Erreur", "error");
         });
       } else showFlash("Cochez la case pour confirmer", "error");

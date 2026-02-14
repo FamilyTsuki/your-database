@@ -60,7 +60,7 @@ export function renderInventory(objects, gridEl) {
   gridEl.innerHTML = "";
   if (!objects.length) {
     gridEl.innerHTML =
-      '<div class="empty-state" onclick="window.location.href=\'database/add/' +
+      '<div class="empty-state" onclick="window.location.href=\'database-ajouter.php?id=' +
       window.databaseId +
       '\'" style="cursor: pointer;">Aucun objet dans cette base.<br><strong>Cliquez ici pour en ajouter un.</strong></div>';
     return;

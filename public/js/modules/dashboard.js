@@ -34,9 +34,9 @@ export async function fetchAndRenderDatabases() {
         
         ${db.description ? `<p class="db-description">${db.description}</p>` : '<p class="db-description"></p>'}
         <div class="db-card-footer">
-            <a href="database/${db.id}" class="btn-link">Consulter</a>
+            <a href="database-view.php?id=${db.id}" class="btn-link">Consulter</a>
             
-            ${db.owner_id == (window.userId || "") ? `<a href="database/settings/${db.id}" class="btn-link">Paramètres</a>` : ""}
+            ${db.owner_id == (window.userId || "") ? `<a href="database-settings.php?id=${db.id}" class="btn-link">Paramètres</a>` : ""}
         </div>
       `;
       grid.appendChild(card);
