@@ -6,7 +6,7 @@ export async function fetchAndRenderDatabases() {
   const grid = document.getElementById("databasesGrid");
   if (!grid) return;
   try {
-    const res = await fetch("api/dashboard.php");
+    const res = await fetch("api/dashboard");
     const d = await res.json();
     if (!d.success) {
       grid.innerHTML = '<div class="error">Erreur chargement</div>';
@@ -30,13 +30,13 @@ export async function fetchAndRenderDatabases() {
         badges += `<span class="badge-permission">${db.permission}</span>`;
 
       card.innerHTML = `
-        <div class="db-card-header"><h3>${db.name}</h3>${badges}<a href="export.php?id=${db.id}" class="btn-icon" target="_blank" title="Exporter">⬇️</a></div>
+        <div class="db-card-header"><h3>${db.name}</h3>${badges}<a href="export?id=${db.id}" class="btn-icon" target="_blank" title="Exporter">⬇️</a></div>
         
         ${db.description ? `<p class="db-description">${db.description}</p>` : '<p class="db-description"></p>'}
         <div class="db-card-footer">
-            <a href="database-view.php?id=${db.id}" class="btn-link">Consulter</a>
+            <a href="database-view?id=${db.id}" class="btn-link">Consulter</a>
             
-            ${db.owner_id == (window.userId || "") ? `<a href="database-settings.php?id=${db.id}" class="btn-link">Paramètres</a>` : ""}
+            ${db.owner_id == (window.userId || "") ? `<a href="database-settings?id=${db.id}" class="btn-link">Paramètres</a>` : ""}
         </div>
       `;
       grid.appendChild(card);
@@ -54,7 +54,7 @@ export function initDashboardListeners() {
       const fd = new FormData(createForm);
       fd.append("action", "create");
       try {
-        const res = await fetch("api/dashboard.php", {
+        const res = await fetch("api/dashboard", {
           method: "POST",
           body: fd,
         });

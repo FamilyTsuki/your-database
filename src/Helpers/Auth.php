@@ -168,7 +168,7 @@ class Auth {
      */
     public static function requireLogin() {
         if (!self::isLoggedIn()) {
-            header("Location: login.php");
+            header("Location: login");
             exit();
         }
     }

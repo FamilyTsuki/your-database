@@ -80,14 +80,14 @@ export function initAddFormListeners() {
       fd.append("csrf_token", window.csrfToken);
       fd.append("database_id", window.databaseId);
       try {
-        const res = await fetch("api/database.php", {
+        const res = await fetch("api/database", {
           method: "POST",
           body: fd,
         });
         const d = await res.json();
         if (d.success) {
           if (window.dbRedirectOnAdd) {
-            window.location.href = "database-view.php?id=" + window.databaseId;
+            window.location.href = "database-view?id=" + window.databaseId;
             return;
           }
           const grid = document.getElementById("inventoryGrid");
@@ -289,7 +289,7 @@ export function initProfileListeners() {
       fd.append("action", "update_profile");
       fd.append("csrf_token", window.csrfToken);
       try {
-        const res = await fetch("api/user.php", { method: "POST", body: fd });
+        const res = await fetch("api/user", { method: "POST", body: fd });
         const d = await res.json();
         if (d.success) {
           showFlash("Profil mis à jour !", "success");

@@ -129,7 +129,7 @@ export function openObjectDetails(row) {
     fd.append("database_id", window.databaseId);
 
     try {
-      const res = await fetch("api/database.php", { method: "POST", body: fd });
+      const res = await fetch("api/database", { method: "POST", body: fd });
       const d = await res.json();
       if (d.success) {
         showFlash("Détails enregistrés", "success");
@@ -172,7 +172,7 @@ export function changeImage(id) {
       fd.append("csrf_token", window.csrfToken);
       fd.append("database_id", window.databaseId);
       fd.append("image", file);
-      const res = await fetch("api/database.php", { method: "POST", body: fd });
+      const res = await fetch("api/database", { method: "POST", body: fd });
       const d = await res.json();
       if (d.success) location.reload();
       else showFlash("Erreur: " + (d.error || "upload"), "error");
