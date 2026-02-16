@@ -68,25 +68,22 @@ class FlashMessage {
 
         $type = htmlspecialchars($flash['type']);
         $message = htmlspecialchars($flash['message']);
-        $bgColor = $type === 'success' ? '#d4edda' : ($type === 'error' ? '#f8d7da' : '#d1ecf1');
-        $textColor = $type === 'success' ? '#155724' : ($type === 'error' ? '#721c24' : '#0c5460');
-        $borderColor = $type === 'success' ? '#c3e6cb' : ($type === 'error' ? '#f5c6cb' : '#bee5eb');
+        $id = 'flash-' . uniqid();
 
         return <<<HTML
-    <div class="flash-message flash-{$type}" style="
-        background-color: {$bgColor};
-        color: {$textColor};
-        border: 1px solid {$borderColor};
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    ">
+    <div id="{$id}" class="flash-message flash-{$type}">
         <span>{$message}</span>
-        <button data-action="flash-close" aria-label="Fermer" style="background: none; border: none; cursor: pointer; font-size: 18px;">✕</button>
+        <button onclick="document.getElementById('{$id}').remove()" aria-label="Fermer" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 20px; color: inherit;">&times;</button>
     </div>
+    <script>
+        setTimeout(function() {
+            var f = document.getElementById('{$id}');
+            if (f) {
+                f.classList.add('fade-out');
+                f.addEventListener('animationend', function() { f.remove(); });
+            }
+        }, 3000);
+    </script>
     HTML;
     }
 }

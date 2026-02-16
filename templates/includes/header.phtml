@@ -71,7 +71,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
             <?php if ($user): ?>
                 <a href="profile.php" class="mobile-profile-link">
                     <?php if (!empty($user['profile_image'])): ?>
-                        <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img1">
+                        <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
                     <?php else: ?>
                         <span class="nav-profile-icon" style="font-size: 1.5rem;">👤</span>
                     <?php endif; ?>
