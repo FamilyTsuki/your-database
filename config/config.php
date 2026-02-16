@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $host = 'localhost';
 $user = 'familytsuki';
 $pass = 'Tsuki4545!';
-$db = 'maison_db';
+$db = 'your_home_db';
 $conn = new mysqli($host, $user, $pass, $db);
 
 if ($conn->connect_error) {
