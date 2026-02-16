@@ -128,6 +128,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Initialisation - Mon Inventaire</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            const btn = document.querySelector('#setupForm button[type="submit"]');
+            if (btn && btn.offsetParent !== null && !btn.disabled) {
+                btn.click();
+            }
+        }
+    });
+    </script>
 </head>
 <body>
     <div class="container">
