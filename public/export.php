@@ -2,7 +2,7 @@
 require_once '../config/config.php';
 
 if (!Auth::isLoggedIn()) {
-    header("Location: login.php");
+    header("Location: login");
     exit();
 }
 

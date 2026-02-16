@@ -9,14 +9,14 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Protect route
 if (!Auth::isLoggedIn()) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
 $database_id = intval($_GET['id'] ?? 0);
 if (!$database_id) {
     FlashMessage::error('error', 'Base de données non trouvée');
-    header('Location: index.php');
+    header('Location: index');
     exit;
 }
 
@@ -25,7 +25,7 @@ $user_id = $_SESSION['user_id'] ?? null;
 $permission = $db_model->getPermission($database_id, $user_id);
 if (!$permission) {
     FlashMessage::error('error', 'Accès refusé à cette base de données');
-    header('Location: index.php');
+    header('Location: index');
     exit;
 }
 
@@ -36,7 +36,7 @@ $db_info = $stmt->get_result()->fetch_assoc();
 
 if (!$db_info) {
     FlashMessage::error('error', 'Base de données non trouvée');
-    header('Location: index.php');
+    header('Location: index');
     exit;
 }
 

@@ -2,7 +2,7 @@
 require_once '../config/config.php';
 
 if (!Auth::isLoggedIn()) {
-    header("Location: login.php");
+    header("Location: login");
     exit();
 }
 
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('action', 'update_profile');
             formData.append('csrf_token', window.csrfToken);
 
-            fetch('api/user.php', {
+            fetch('api/user', {
                 method: 'POST',
                 body: formData
             })

@@ -4,7 +4,7 @@ require_once '../config/config.php';
 
 // Vérifier que l'utilisateur est connecté
 if (!Auth::isLoggedIn()) {
-    header("Location: login.php");
+    header("Location: login");
     exit();
 }
 
@@ -15,7 +15,7 @@ $required_tables = ['databases', 'database_permissions'];
 foreach ($required_tables as $table) {
     $result = $conn->query("SHOW TABLES LIKE '$table'");
     if ($result->num_rows == 0) {
-        header("Location: setup.php");
+        header("Location: setup");
         exit();
     }
 }

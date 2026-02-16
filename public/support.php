@@ -25,4 +25,4 @@ include __DIR__ . '/../templates/includes/header.phtml';
     </div>
 </div>
 
-<?php include __DIR__ . '/../templates/includes/footer.html'; ?>
+<?php include __DIR__ . '/../templates/includes/footer.html'; ?>    

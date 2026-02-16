@@ -6,12 +6,12 @@
     <?php include 'ajout.phtml'; ?>
 </div>
 
-<form id="formUpdateImg" action="update_img.php" method="POST" enctype="multipart/form-data" style="display:none;">
+<form id="formUpdateImg" action="update_img" method="POST" enctype="multipart/form-data" style="display:none;">
     <input type="hidden" name="id" id="updateImgId">
     <input type="file" name="new_image" id="updateImgInput" accept="image/*" onchange="document.getElementById('formUpdateImg').submit()">
 </form>
 
-<form id="formFastUpdate" action="fast_update.php" method="POST" style="display:none;">
+<form id="formFastUpdate" action="fast_update" method="POST" style="display:none;">
     <input type="hidden" name="id" id="fastUpdateId">
     <input type="hidden" name="field" id="fastUpdateField">
     <input type="hidden" name="value" id="fastUpdateValue">

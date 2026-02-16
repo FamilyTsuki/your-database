@@ -2,7 +2,7 @@
 require_once '../config/config.php';
 
 if (!Auth::isLoggedIn()) {
-    header("Location: login.php");
+    header("Location: login");
     exit();
 }
 
@@ -14,14 +14,14 @@ $db_controller = new DatabaseController($conn);
 $permission = $db_controller->getPermission($database_id, $user_id);
 if ($permission !== 'admin' && $permission !== 'edit') {
     FlashMessage::error('Vous n\'avez pas accès aux paramètres');
-    header("Location: index.php");
+    header("Location: index");
     exit();
 }
 
 $database = $db_controller->getDatabase($database_id);
 if (!$database) {
     FlashMessage::error('Base de données introuvable');
-    header("Location: index.php");
+    header("Location: index");
     exit();
 }
 
@@ -43,7 +43,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
     <?php echo FlashMessage::render(); ?>
     
     <div class="settings-header">
-        <a href="database-view.php?id=<?php echo $database_id; ?>" class="back-link">← Retour</a>
+        <a href="database/<?php echo $database_id; ?>" class="back-link">← Retour</a>
         <h1>⚙️ Paramètres de <?php echo htmlspecialchars($database['name']); ?></h1>
     </div>
 

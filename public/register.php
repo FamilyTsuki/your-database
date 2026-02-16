@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($success): ?>
             <div class="success">
                 <?php echo htmlspecialchars($success); ?>
-                <p style="margin-top: 10px;"><a href="login.php" style="color: #155724;">Cliquez ici pour vous connecter</a></p>
+                <p style="margin-top: 10px;"><a href="login" style="color: #155724;">Cliquez ici pour vous connecter</a></p>
             </div>
         <?php endif; ?>
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <script>window.csrfToken = <?php echo json_encode(CsrfToken::generate()); ?>;</script>
 
         <div class="login-link">
-            <p>Déjà inscrit? <a href="login.php">Se connecter</a></p>
+            <p>Déjà inscrit? <a href="login">Se connecter</a></p>
         </div>
     </div>
 </body>

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../src/Models/DatabaseModel.php';
 
 // 1. Authentification
 if (!Auth::isLoggedIn()) {
-    header("Location: login.php");
+    header("Location: login");
     exit();
 }
 
@@ -12,7 +12,7 @@ if (!Auth::isLoggedIn()) {
 $database_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$database_id) {
     FlashMessage::error('Base de données non trouvée');
-    header("Location: index.php");
+    header("Location: index");
     exit();
 }
 
@@ -25,7 +25,7 @@ $permission = $db_model->getPermission($database_id, $user_id);
 
 if (!$permission || ($permission !== 'admin' && $permission !== 'edit')) {
     FlashMessage::error('Accès refusé : Vous n\'avez pas les droits pour ajouter des objets dans cette base');
-    header("Location: index.php");
+    header("Location: index");
     exit();
 }
 
@@ -74,7 +74,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
 
 <div class="ajouter-container">
     <div class="add-page-header">
-        <a href="database-view.php?id=<?= $database_id ?>" class="back-link">← Retour à l'inventaire</a>
+        <a href="database/<?= $database_id ?>" class="back-link">← Retour à l'inventaire</a>
     </div>
 
     <div class="add-page-form">
@@ -128,7 +128,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                 </div>
                 <div class="form-buttons-section">
                 <button type="submit" name="add_object" class="btn btn-primary">✓ Ajouter</button>
-                <a href="database-view.php?id=<?= $database_id ?>" class="btn btn-secondary">Annuler</a>
+                <a href="database/<?= $database_id ?>" class="btn btn-secondary">Annuler</a>
             </div>
             </div>
 
