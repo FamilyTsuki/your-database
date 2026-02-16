@@ -1,11 +1,7 @@
 <?php
 require_once '../config/config.php';
 
-// Vérifier que l'utilisateur est admin ou propriétaire
-if (!Auth::isLoggedIn()) {
-    header("Location: login.php");
-    exit();
-}
+
 
 $initialized = false;
 $error = '';
@@ -13,7 +9,7 @@ $success = '';
 
 // Vérifier si les tables existent
 $tables_exist = true;
-$required_tables = ['databases', 'database_permissions'];
+$required_tables = ['users', 'databases', 'database_permissions', 'categories', 'objets'];
 
 foreach ($required_tables as $table) {
     $result = $conn->query("SHOW TABLES LIKE '$table'");
@@ -23,6 +19,11 @@ foreach ($required_tables as $table) {
     }
 }
 
+// Si le système est déjà installé, on protège l'accès (seul un admin connecté peut y retourner)
+if ($tables_exist && !Auth::isLoggedIn()) {
+    header("Location: login.php");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
     if (!CsrfToken::verifyFromPost()) {
@@ -36,20 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
                 email VARCHAR(100) NOT NULL UNIQUE,
                 password VARCHAR(255) NOT NULL,
                 profile_image VARCHAR(255) DEFAULT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )",
-
-            "CREATE TABLE IF NOT EXISTS `categories` (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                nom VARCHAR(100) NOT NULL,
-                parent_id INT DEFAULT NULL,
-                database_id INT DEFAULT NULL,
-                FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
-            )",
-
-            "CREATE TABLE IF NOT EXISTS `objets` (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                nom VARCHAR(100) NOT NULL,
+                redirect_on_add TINYINT(1) DEFAULT 1,
+                skip_source_modal TINYINT(1) DEFAULT 0,
+                prefer_gallery TINYINT(1) DEFAULT 0,
+                dark_mode TINYINT(1) DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )",
 
@@ -63,6 +54,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
                 FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
                 UNIQUE KEY unique_owner_db (name, owner_id)
             )",
+
+            "CREATE TABLE IF NOT EXISTS `categories` (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                nom VARCHAR(100) NOT NULL,
+                parent_id INT DEFAULT NULL,
+                database_id INT DEFAULT NULL,
+                FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE,
+                FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+            )",
+
+            "CREATE TABLE IF NOT EXISTS `objets` (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                nom VARCHAR(100) NOT NULL,
+                id_categorie INT DEFAULT NULL,
+                database_id INT NOT NULL,
+                position VARCHAR(255) DEFAULT NULL,
+                quantite INT DEFAULT 1,
+                image_path VARCHAR(255) DEFAULT NULL,
+                model VARCHAR(255) DEFAULT NULL,
+                purchase_link TEXT DEFAULT NULL,
+                description TEXT DEFAULT NULL,
+                qty_used INT DEFAULT 0,
+                qty_degraded INT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (id_categorie) REFERENCES categories(id) ON DELETE SET NULL,
+                FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE
+            )",
+
+
             
             "CREATE TABLE IF NOT EXISTS `database_permissions` (
                 id INT PRIMARY KEY AUTO_INCREMENT,
@@ -75,27 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
                 UNIQUE KEY unique_permission (database_id, user_id)
             )",
             
-            "ALTER TABLE categories ADD FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE",
-            
-            "ALTER TABLE objets ADD COLUMN id_categorie INT DEFAULT NULL",
-            "ALTER TABLE objets ADD FOREIGN KEY (id_categorie) REFERENCES categories(id) ON DELETE SET NULL",
-            "ALTER TABLE objets ADD COLUMN database_id INT DEFAULT 1",
-            "ALTER TABLE objets ADD FOREIGN KEY (database_id) REFERENCES `databases`(id) ON DELETE CASCADE",
-            
-            "ALTER TABLE `databases` ADD COLUMN camera_enabled TINYINT(1) DEFAULT 1",
-            "ALTER TABLE `users` ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL",
-            "ALTER TABLE `users` ADD COLUMN redirect_on_add TINYINT(1) DEFAULT 1",
-            "ALTER TABLE `users` ADD COLUMN skip_source_modal TINYINT(1) DEFAULT 0",
-            "ALTER TABLE `users` ADD COLUMN prefer_gallery TINYINT(1) DEFAULT 0",
-            "ALTER TABLE `users` ADD COLUMN dark_mode TINYINT(1) DEFAULT 0",
-            "ALTER TABLE objets ADD COLUMN position VARCHAR(255) DEFAULT NULL",
-            "ALTER TABLE objets ADD COLUMN quantite INT DEFAULT 1",
-            "ALTER TABLE objets ADD COLUMN image_path VARCHAR(255) DEFAULT NULL",
-            "ALTER TABLE objets ADD COLUMN model VARCHAR(255) DEFAULT NULL",
-            "ALTER TABLE objets ADD COLUMN purchase_link TEXT DEFAULT NULL",
-            "ALTER TABLE objets ADD COLUMN description TEXT DEFAULT NULL",
-            "ALTER TABLE objets ADD COLUMN qty_used INT DEFAULT 0",
-            "ALTER TABLE objets ADD COLUMN qty_degraded INT DEFAULT 0"
+
         ];
         
         $all_ok = true;
@@ -111,12 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['init'])) {
         }
         
         if ($all_ok) {
-            // Insérer la base de données par défaut si elle n'existe pas
-            $conn->query("INSERT IGNORE INTO `databases` (id, name, description, owner_id) VALUES (1, 'Ma première base', 'Base par défaut', 1)");
-            
+   
             $success = 'Initialisation réussie! Les tables ont été créées.';
             FlashMessage::success($success);
-            header("Location: index.php");
+           // On redirige vers l'inscription car aucun utilisateur n'existe encore
+            header("Location: register.php");
             exit();
         }
     }

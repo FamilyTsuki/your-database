@@ -117,6 +117,13 @@ a:hover {
   padding: 40px 20px;
 }
 
+/* Support écrans larges (2K/4K) */
+@media (min-width: 1921px) {
+  .container {
+    max-width: 2000px;
+  }
+}
+
 .container-narrow {
   width: 100%;
   max-width: 900px;

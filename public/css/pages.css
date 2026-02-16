@@ -221,7 +221,7 @@
   padding: 20px;
   box-shadow: var(--shadow-sm);
   transition: all 0.3s;
-  max-width: 400px;
+  width: 100%;
 }
 
 .database-card:hover {
@@ -752,7 +752,7 @@
    ========================================================================== */
 
 .setup-container {
-  max-width: 500px;
+  max-width: 600px;
   margin: 50px auto;
   width: 95%;
   background: linear-gradient(
@@ -776,6 +776,14 @@
   color: var(--text-muted);
   line-height: 1.6;
   margin: 15px 0;
+}
+
+/* Ajustement pour écrans larges (2K/4K) */
+@media (min-width: 1921px) {
+  .setup-container {
+    max-width: 800px;
+    padding: 60px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -813,7 +821,7 @@
    LOGIN CONTAINER
    ========================================================================== */
 .login-container {
-  max-width: 400px;
+  max-width: 500px;
   margin: 50px auto;
   width: 95%;
   background: linear-gradient(
@@ -885,11 +893,24 @@
   text-decoration: underline;
 }
 
+/* Ajustement pour écrans larges (2K/4K) */
+@media (min-width: 1921px) {
+  .login-container {
+    max-width: 700px;
+    padding: 60px;
+  }
+  .login-container input,
+  .login-container button {
+    font-size: 1.2rem;
+    padding: 16px;
+  }
+}
+
 /* ==========================================================================
    REGISTER CONTAINER
    ========================================================================== */
 .register-container {
-  max-width: 400px;
+  max-width: 500px;
   margin: 30px auto;
   width: 95%;
   background: linear-gradient(
@@ -967,6 +988,19 @@
 }
 .register-container .login-link a:hover {
   text-decoration: underline;
+}
+
+/* Ajustement pour écrans larges (2K/4K) */
+@media (min-width: 1921px) {
+  .register-container {
+    max-width: 700px;
+    padding: 60px;
+  }
+  .register-container input,
+  .register-container button {
+    font-size: 1.2rem;
+    padding: 16px;
+  }
 }
 
 @media (max-width: 480px) {

@@ -6,8 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Configuration base de données
 $host = 'localhost';
-$user = 'root';
-$pass = '';
+$user = 'familytsuki';
+$pass = 'Tsuki4545!';
 $db = 'maison_db';
 $conn = new mysqli($host, $user, $pass, $db);
 

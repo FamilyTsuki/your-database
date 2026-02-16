@@ -3,7 +3,7 @@ export async function initStats() {
   const container = document.getElementById("globalStats");
   if (!container) return;
   try {
-    const res = await fetch("api/stats.php");
+    const res = await fetch("api/stats");
     const d = await res.json();
     if (d.success && d.total_items > 0) {
       container.style.display = "block";

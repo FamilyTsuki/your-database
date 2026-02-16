@@ -72,6 +72,7 @@ body {
   z-index: 1000;
   flex-direction: row; /* Direction standard : Logo à gauche, reste à droite */
   flex-wrap: wrap;
+  gap: 10px; /* Espacement automatique entre les éléments (horizontal et vertical) */
 }
 
 .nav-action-btn {
@@ -187,7 +188,19 @@ body {
   font-size: 1.1rem;
   color: var(--text-main);
   text-decoration: none;
-  margin-right: auto; /* Pousse le reste vers la droite */
+  order: 1;
+  margin-right: 10px;
+}
+
+.nav-right-group {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* Pousse tout ce groupe vers la droite */
+  order: 3;
+}
+
+.header-add-btn {
+  order: 2;
 }
 
 /* Mobile Profile Icon */
@@ -268,7 +281,7 @@ body {
 .nav-menu-container {
   display: flex;
   align-items: center;
-  margin-left: auto; /* Pousse le menu à droite */
+  margin-left: 0;
 }
 
 .user-info {
@@ -292,6 +305,22 @@ body {
     display: flex;
     align-items: center;
     margin-right: 10px;
+  }
+
+  /* Style du bouton ajouter dans le header mobile */
+  .header-add-btn {
+    order: 3; /* Passe en dernier sur mobile */
+    width: 70%; /* Plus petit (70% de la largeur) */
+    margin: 10px auto 0 auto; /* Centré horizontalement */
+    justify-content: center; /* Centre le texte */
+    display: flex;
+  }
+  .header-add-btn .nav-text {
+    display: inline;
+  }
+
+  .nav-right-group {
+    order: 2; /* Passe avant le bouton ajouter sur mobile */
   }
 
   /* Configuration du menu bulles sur mobile */

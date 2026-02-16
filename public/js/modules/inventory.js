@@ -38,7 +38,7 @@ export async function fetchAndRenderInventory() {
       sort: sort,
     });
 
-    const res = await fetch("api/database.php?" + params.toString());
+    const res = await fetch("api/database?" + params.toString());
     const data = await res.json();
     if (!data.success) {
       grid.innerHTML = '<div class="error">Erreur chargement</div>';
@@ -60,7 +60,7 @@ export function renderInventory(objects, gridEl) {
   gridEl.innerHTML = "";
   if (!objects.length) {
     gridEl.innerHTML =
-      '<div class="empty-state" onclick="window.location.href=\'database/add/' +
+      '<div class="empty-state" onclick="window.location.href=\'database-ajouter?id=' +
       window.databaseId +
       '\'" style="cursor: pointer;">Aucun objet dans cette base.<br><strong>Cliquez ici pour en ajouter un.</strong></div>';
     return;

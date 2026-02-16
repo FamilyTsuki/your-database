@@ -2,7 +2,7 @@
 export async function apiPost(data) {
   const params = new URLSearchParams();
   for (const k in data) params.append(k, data[k]);
-  const res = await fetch("api/database.php", {
+  const res = await fetch("api/database", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params.toString(),
