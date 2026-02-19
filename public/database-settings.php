@@ -114,7 +114,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
                         <?php foreach ($shared_users as $user): ?>
                             <tr>
                                 <td>
-                                    <?php if (!empty($user['profile_image'])): ?>
+                                    <?php if (!empty($user['profile_image']) && file_exists(__DIR__ . '/uploads/profiles/' . $user['profile_image'])): ?>
                                         <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar" class="nav-profile-img">
                                     <?php else: ?>
                                         <span style="font-size: 1.5em;">👤</span>

@@ -22,7 +22,7 @@ include __DIR__ . '/../templates/includes/header.phtml';
         <form id="profileForm" enctype="multipart/form-data">
             <div class="profile-header">
                 <div class="profile-avatar-container" id="profileAvatarContainer">
-                    <?php if (!empty($user['profile_image'])): ?>
+                    <?php if (!empty($user['profile_image']) && file_exists(__DIR__ . '/uploads/profiles/' . $user['profile_image'])): ?>
                         <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Avatar" class="profile-avatar" id="profileAvatarPreview">
                     <?php else: ?>
                         <div class="profile-avatar profile-avatar-placeholder" id="profileAvatarPreview">👤</div>

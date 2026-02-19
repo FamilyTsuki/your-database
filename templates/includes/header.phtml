@@ -70,7 +70,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
             <!-- Mobile Profile (Visible uniquement sur mobile à côté du burger) -->
             <?php if ($user): ?>
                 <a href="profile" class="mobile-profile-link">
-                    <?php if (!empty($user['profile_image'])): ?>
+                    <?php if (!empty($user['profile_image']) && file_exists(dirname(__DIR__, 2) . '/public/uploads/profiles/' . $user['profile_image'])): ?>
                         <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
                     <?php else: ?>
                         <span class="nav-profile-icon" style="font-size: 1.5rem;">👤</span>
@@ -113,7 +113,7 @@ if (substr($base_path, -1) !== '/') $base_path .= '/';
                     <a href="profile" class="user-profile-link">
                         <span class="nav-text"><?php echo htmlspecialchars($user['username']); ?></span>
                         <div class="profile-img-wrapper">
-                            <?php if (!empty($user['profile_image'])): ?>
+                            <?php if (!empty($user['profile_image']) && file_exists(dirname(__DIR__, 2) . '/public/uploads/profiles/' . $user['profile_image'])): ?>
                                 <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
                             <?php else: ?>
                                 <span class="nav-profile-icon">👤</span>
