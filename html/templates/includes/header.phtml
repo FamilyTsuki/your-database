@@ -1,0 +1,122 @@
+<?php
+
+$base_path = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+if (substr($base_path, -1) !== '/') $base_path .= '/';
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Database</title>
+    <base href="<?php echo htmlspecialchars($base_path); ?>">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" sizes="192x192" href="icon-192.png">
+    
+    <?php 
+    $current_user_data = Auth::getUser();
+    $body_class = ($current_user_data && !empty($current_user_data['dark_mode'])) ? 'dark-mode' : '';
+    ?>
+    <script>
+
+        window.csrfToken = <?php echo json_encode(CsrfToken::generate()); ?>;
+        window.userId = <?php echo json_encode(is_array($current_user_data) ? ($current_user_data['id'] ?? null) : null); ?>;
+        window.databaseId = <?php echo json_encode(isset($_GET['id']) ? intval($_GET['id']) : null); ?>;
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                const selectors = [
+                    'button[data-action="update-database"]',
+                    '#profileForm button[type="submit"]',
+                    '.add-form-full button[type="submit"]',
+                    '.create-db-form button[type="submit"]'
+                ];
+                for (const selector of selectors) {
+                    const btn = document.querySelector(selector);
+                    if (btn && btn.offsetParent !== null && !btn.disabled) {
+                        btn.click();
+                        break;
+                    }
+                }
+            }
+        });
+    </script>
+    
+</head>
+<body class="<?php echo $body_class; ?>">
+    <nav class="top-nav">
+        <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
+
+        <a href="index" class="nav-logo">📦 Your DataBase</a>
+
+        <?php 
+        if (($current_page === 'database-view.php' || $current_page === 'database-settings.php') && isset($_GET['id'])): 
+            $db_id = $_GET['id'];
+        ?>
+            <a href="database/add/<?php echo $db_id; ?>" class="nav-action-btn btn-add header-add-btn">➕ <span class="nav-text">Ajouter</span></a>
+        <?php endif; ?>
+
+        
+        <?php $user = Auth::getUser(); ?>
+        
+        <div class="nav-right-group">
+
+            <?php if ($user): ?>
+                <a href="profile" class="mobile-profile-link">
+                    <?php if (!empty($user['profile_image']) && file_exists(dirname(__DIR__, 2) . '/public/uploads/profiles/' . $user['profile_image'])): ?>
+                        <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                    <?php else: ?>
+                        <span class="nav-profile-icon" style="font-size: 1.5rem;">👤</span>
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
+
+            <button class="burger-btn" aria-label="Menu" onclick="this.closest('.top-nav').classList.toggle('nav-open')">
+                <span class="burger-icon"></span>
+            </button>
+
+            <div class="nav-menu-container">
+            <div class="div-modif-inv">
+                <?php 
+                if (($current_page === 'database-ajouter.php' || $current_page === 'database-settings.php') && isset($_GET['id'])): 
+                    $db_id = $_GET['id'];
+                ?>
+                    <a href="database/<?php echo $db_id; ?>" class="nav-action-btn btn-view">👀 <span class="nav-text">afficher</span></a>
+                <?php endif; ?>
+                
+                <?php 
+                if (($current_page === 'database-view.php' || $current_page === 'database-ajouter.php') && isset($_GET['id'])): 
+                    $db_id = $_GET['id'];
+                    if (isset($permission) && ($permission === 'admin' || $permission === 'edit')):
+                ?>
+                    <a href="database/settings/<?php echo $db_id; ?>" class="nav-action-btn btn-settings">⚙️ <span class="nav-text">Paramètres</span></a>
+                <?php endif; endif; ?>
+                
+            </div>
+            <div class="user-info">
+            
+                <?php if ($user): ?>
+                    <a href="profile" class="user-profile-link">
+                        <span class="nav-text"><?php echo htmlspecialchars($user['username']); ?></span>
+                        <div class="profile-img-wrapper">
+                            <?php if (!empty($user['profile_image']) && file_exists(dirname(__DIR__, 2) . '/public/uploads/profiles/' . $user['profile_image'])): ?>
+                                <img src="uploads/profiles/<?php echo htmlspecialchars($user['profile_image']); ?>" alt="Profile" class="nav-profile-img">
+                            <?php else: ?>
+                                <span class="nav-profile-icon">👤</span>
+                            <?php endif; ?>
+                            <span class="settings-badge">⚙️</span>
+                        </div>
+                    </a>
+                    <a href="logout" class="nav-action-btn btn-logout">🚪 <span class="nav-text">Déconnexion</span></a>
+
+                    
+                    
+                <?php endif; ?>
+            </div>
+        </div>
+        </div>
+    </nav>

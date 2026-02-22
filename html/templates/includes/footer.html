@@ -1,0 +1,98 @@
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-compact">
+            <p class="footer-copyright">
+                &copy; <span id="year"></span> <strong>YourDatabase</strong>. Tous droits réservés.
+            </p>
+            <ul class="footer-nav">
+                <li><a href="index">Tableau de bord</a></li>
+                <li><a href="legal">Mentions légales</a></li>
+                <li><a href="privacy">Confidentialité</a></li>
+                <li><a href="support">Support</a></li>
+            </ul>
+        </div>
+    </div>
+</footer>
+
+<div id="sourceChoiceModal" class="custom-modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Choisir une source</h3>
+        <div class="choice-container">
+            <div class="choice-option" id="btnCamera">
+                <span class="source-icon">📷</span>
+                <p>Appareil Photo</p>
+            </div>
+            <div class="choice-option" id="btnGallery">
+                <span class="source-icon">🖼️</span>
+                <p>Galerie</p>
+            </div>
+        </div>
+        <button type="button" class="btn-secondary btn-cancel-source" id="closeSourceModal">Annuler</button>
+    </div>
+</div>
+
+<div id="imageViewerModal" class="custom-modal" style="display: none;">
+    <span id="closeImageViewer" class="modal-close-btn">&times;</span>
+    <img id="fullImage" class="full-image">
+</div>
+
+<div id="objectDetailsModal" class="custom-modal" style="display: none;">
+    <div class="modal-content modal-content-large">
+        <h3 id="detailTitle" class="modal-title">Détails de l'objet</h3>
+        <form id="detailsForm">
+            <input type="hidden" name="id" id="detailId">
+            
+            <div class="details-grid">
+                <div class="form-group">
+                    <label>🔧Modèle / Référence</label>
+                    <input type="text" name="model" id="detailModel" class="form-input" >
+                </div>
+                <div class="form-group">
+                    <label>📍Position (théorique)</label>
+                    <input type="text" name="position" id="detailPosition" class="form-input" placeholder="chanbre, sous le chat ...">
+                </div>
+                <div class="form-group details-full">
+                    <label>🔗Lien d'achat</label>
+                    <input type="text" name="purchase_link" id="detailLink" class="form-input" placeholder="https://...">
+                </div>
+                <div class="form-group details-full">
+                    <label>Description précise</label>
+                    <textarea name="description" id="detailDesc" class="form-input" rows="3"></textarea>
+                </div>
+            </div>
+
+            <h4 class="details-subtitle">État du stock</h4>
+            <div class="details-grid">
+                <div class="form-group"><label>Total</label><input type="number" name="quantite" id="detailQtyTotal" class="form-input" min="0"></div>
+                <div class="form-group"><label>En utilisation</label><input type="number" name="qty_used" id="detailQtyUsed" class="form-input" min="0"></div>
+                <div class="form-group"><label>Dégradé / HS</label><input type="number" name="qty_degraded" id="detailQtyDegraded" class="form-input" min="0"></div>
+                <div class="form-group"><label>Disponible</label><input type="text" id="detailQtyAvailable" class="form-input input-available" readonly></div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn-primary">Enregistrer</button>
+                <button type="button" class="btn-secondary" id="closeDetailsModal">Fermer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script>
+
+window.showToast = function(message, type = 'success') {
+    const div = document.createElement('div');
+    div.className = `flash-message flash-${type}`;
+    div.innerHTML = `${message} <button onclick="this.parentElement.remove()" style="float:right;background:none;border:none;cursor:pointer;color:inherit;">&times;</button>`;
+    document.body.appendChild(div);
+    
+    setTimeout(() => {
+        div.classList.add('fade-out');
+        setTimeout(() => div.remove(), 500);
+    }, 3000);
+};
+</script>
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>
