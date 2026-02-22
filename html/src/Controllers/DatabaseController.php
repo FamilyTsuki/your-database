@@ -8,7 +8,7 @@ class DatabaseController {
         $this->model = new DatabaseModel($database);
     }
     
-
+ 
     public function create($name, $description = '', $owner_id = null) {
         if ($owner_id === null && isset($_SESSION['user_id'])) {
             $owner_id = $_SESSION['user_id'];

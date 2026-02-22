@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../src/Helpers/Auth.php';
 require_once __DIR__ . '/../../src/Helpers/ImageHelper.php';
 require_once __DIR__ . '/../../src/Models/DatabaseModel.php';
 require_once __DIR__ . '/../../src/Controllers/DatabaseController.php';
-
+ 
 header('Content-Type: application/json; charset=utf-8');
 
 Auth::initSession();

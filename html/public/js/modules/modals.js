@@ -163,19 +163,92 @@ export function changeImage(id) {
     input.accept = "image/*";
     if (source === "camera") input.setAttribute("capture", "environment");
 
-    input.onchange = async (e) => {
+    input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const fd = new FormData();
-      fd.append("action", "updateImage");
-      fd.append("id", id);
-      fd.append("csrf_token", window.csrfToken);
-      fd.append("database_id", window.databaseId);
-      fd.append("image", file);
-      const res = await fetch("api/database", { method: "POST", body: fd });
-      const d = await res.json();
-      if (d.success) location.reload();
-      else showFlash("Erreur: " + (d.error || "upload"), "error");
+
+      // 1. Création dynamique de la modale de crop si elle n'existe pas
+      let cropModal = document.getElementById("cropModalDynamic");
+      if (!cropModal) {
+        cropModal = document.createElement("div");
+        cropModal.id = "cropModalDynamic";
+        cropModal.className = "modal";
+        cropModal.style.display = "none";
+        cropModal.innerHTML = `
+          <div class="modal-content" style="width: 95%; max-width: 500px;">
+            <span class="close" id="closeCropDynamic">&times;</span>
+            <h2 style="margin-top:0">Ajuster l'image</h2>
+            <div style="max-height: 50vh; overflow: hidden; background:#000;">
+              <img id="cropImageTarget" style="max-width: 100%; display:block;">
+            </div>
+            <button id="btnValidateCrop" class="btn btn-primary" style="width:100%; margin-top:15px;">Valider et Enregistrer</button>
+          </div>`;
+        document.body.appendChild(cropModal);
+      }
+
+      const imgTarget = document.getElementById("cropImageTarget");
+      const btnValidate = document.getElementById("btnValidateCrop");
+      const btnClose = document.getElementById("closeCropDynamic");
+      let cropper = null;
+
+      const closeCrop = () => {
+        if (cropper) cropper.destroy();
+        cropModal.style.display = "none";
+        document.body.classList.remove("modal-open");
+      };
+
+      // 2. Chargement de l'image dans le cropper
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        imgTarget.src = ev.target.result;
+        cropModal.style.display = "flex";
+        document.body.classList.add("modal-open");
+        cropper = new Cropper(imgTarget, { aspectRatio: 1, viewMode: 1 });
+      };
+      reader.readAsDataURL(file);
+
+      // 3. Gestion de la validation
+      // On clone le bouton pour supprimer les anciens écouteurs d'événements
+      const newBtn = btnValidate.cloneNode(true);
+      btnValidate.parentNode.replaceChild(newBtn, btnValidate);
+
+      newBtn.onclick = () => {
+        if (!cropper) return;
+        newBtn.textContent = "Envoi en cours...";
+        cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob(
+          async (blob) => {
+            const fd = new FormData();
+            fd.append("action", "updateImage");
+            fd.append("id", id);
+            fd.append("csrf_token", window.csrfToken);
+            fd.append("database_id", window.databaseId);
+            fd.append("image", blob, "photo.jpg");
+
+            try {
+              const res = await fetch("api/database", {
+                method: "POST",
+                body: fd,
+              });
+              const d = await res.json();
+              if (d.success) location.reload();
+              else {
+                showFlash("Erreur: " + (d.error || "upload"), "error");
+                newBtn.textContent = "Valider et Enregistrer";
+              }
+            } catch (err) {
+              showFlash("Erreur réseau", "error");
+              newBtn.textContent = "Valider et Enregistrer";
+            }
+          },
+          "image/jpeg",
+          0.9,
+        );
+      };
+
+      btnClose.onclick = closeCrop;
+      cropModal.onclick = (evt) => {
+        if (evt.target === cropModal) closeCrop();
+      };
     };
     input.click();
   });

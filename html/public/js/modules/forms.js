@@ -55,11 +55,15 @@ export function initAddFormListeners() {
       dropZone.style.background = "#f8f9fa";
       if (e.dataTransfer.files.length) {
         fileInput.files = e.dataTransfer.files;
+        finalBlob = null; // Réinitialise le blob précédent
         handlePreview(e.dataTransfer.files[0]);
       }
     });
     fileInput.addEventListener("change", (e) => {
-      if (e.target.files.length) handlePreview(e.target.files[0]);
+      if (e.target.files.length) {
+        finalBlob = null; // Réinitialise le blob précédent
+        handlePreview(e.target.files[0]);
+      }
     });
   }
 
@@ -117,7 +121,7 @@ export function initAddFormListeners() {
           cropper.destroy();
           cropper = null;
         },
-        "image/webp",
+        "image/jpeg",
         0.9,
       );
     });
@@ -131,7 +135,7 @@ export function initAddFormListeners() {
 
       // Si on a une image recadrée, on remplace celle du formulaire
       if (finalBlob) {
-        fd.set("image", finalBlob, "photo.webp");
+        fd.set("image", finalBlob, "photo.jpg");
       }
 
       fd.append("action", "create");

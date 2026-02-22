@@ -1,5 +1,5 @@
 <?php
-
+ 
 class ImageHelper {
     public static function processAndSave($sourcePath, $destinationDir, $filenameBase, $maxWidth = 1024, $maxHeight = 1024, $quality = 80) {
         if (!file_exists($sourcePath)) return false;
@@ -64,6 +64,10 @@ class ImageHelper {
             $newWidth = $width;
             $newHeight = $height;
         }
+        
+        // PHP 8+ nécessite des entiers pour imagecreatetruecolor
+        $newWidth = (int)$newWidth;
+        $newHeight = (int)$newHeight;
 
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
 
@@ -77,17 +81,25 @@ class ImageHelper {
         // On recopie l'image (maintenant dans le bon sens) vers la nouvelle taille
         imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
-        $finalFilename = $filenameBase . '.webp';
-        $destinationPath = $destinationDir . '/' . $finalFilename;
-        
+        // Tentative de sauvegarde en WebP, sinon repli sur JPEG
+        $result = false;
+        $finalFilename = '';
+
         if (function_exists('imagewebp')) {
+            $finalFilename = $filenameBase . '.webp';
+            $destinationPath = $destinationDir . '/' . $finalFilename;
             $result = imagewebp($newImage, $destinationPath, $quality);
-        } else {
-            $result = false;
         }
         
-        imagedestroy($image);
-        imagedestroy($newImage);
+        // Si WebP a échoué ou n'est pas dispo, on utilise JPEG
+        if (!$result) {
+            $finalFilename = $filenameBase . '.jpg';
+            $destinationPath = $destinationDir . '/' . $finalFilename;
+            $result = imagejpeg($newImage, $destinationPath, $quality);
+        }
+
+        if ($image) imagedestroy($image);
+        if ($newImage) imagedestroy($newImage);
 
         return $result ? $finalFilename : false;
     }
