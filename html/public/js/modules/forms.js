@@ -1,4 +1,3 @@
-
 import { apiPost } from "../utils/api.js";
 import { showFlash } from "../utils/ui.js";
 import { openSourceChoice } from "./modals.js";
@@ -25,6 +24,13 @@ export function initAddFormListeners() {
   const fileInput = document.getElementById("fileInput");
   const previewImage = document.getElementById("previewImage");
   const placeholder = document.getElementById("placeholder");
+
+  // Variables pour Cropper.js
+  let cropper;
+  let finalBlob = null;
+  const cropperWrapper = document.getElementById("cropperWrapper");
+  const imageToCrop = document.getElementById("imageToCrop");
+  const confirmCropBtn = document.getElementById("confirmCrop");
 
   if (dropZone && fileInput) {
     fileInput.addEventListener("click", (e) => e.stopPropagation());
@@ -61,14 +67,60 @@ export function initAddFormListeners() {
     if (!file || !file.type || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      if (previewImage) {
-        previewImage.src = ev.target.result;
-        previewImage.style.display = "block";
+      // Au lieu d'afficher directement, on lance le Cropper
+      if (imageToCrop && cropperWrapper) {
+        imageToCrop.src = ev.target.result;
+        cropperWrapper.style.display = "block";
+        dropZone.style.display = "none"; // On cache la zone de drop pendant le crop
+
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(imageToCrop, {
+          aspectRatio: 1, // Carré (changer à NaN pour libre, ou 2/3 pour portrait)
+          viewMode: 1,
+          autoCropArea: 1,
+        });
+      } else {
+        // Fallback si pas de cropper
+        if (previewImage) {
+          previewImage.src = ev.target.result;
+          previewImage.style.display = "block";
+        }
+        if (placeholder) placeholder.style.display = "none";
       }
-      if (placeholder) placeholder.style.display = "none";
-      dropZone.style.border = "2px dashed #3498db";
     };
     reader.readAsDataURL(file);
+  }
+
+  // Gestion du bouton "Valider le cadrage"
+  if (confirmCropBtn) {
+    confirmCropBtn.addEventListener("click", () => {
+      if (!cropper) return;
+      // Génère l'image recadrée (800x800 max pour optimiser)
+      cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob(
+        (blob) => {
+          finalBlob = blob;
+
+          // Affiche le résultat dans la zone de drop
+          const url = URL.createObjectURL(blob);
+          if (previewImage) {
+            previewImage.src = url;
+            previewImage.style.display = "block";
+          }
+          if (placeholder) placeholder.style.display = "none";
+
+          // Restaure l'interface
+          cropperWrapper.style.display = "none";
+          dropZone.style.display = ""; // Réaffiche la dropzone (flex/block selon CSS)
+          dropZone.style.border = "2px dashed #3498db";
+
+          // Nettoyage
+          cropper.destroy();
+          cropper = null;
+        },
+        "image/webp",
+        0.9,
+      );
+    });
   }
 
   const addForm = document.querySelector(".add-form-full");
@@ -76,6 +128,12 @@ export function initAddFormListeners() {
     addForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       const fd = new FormData(addForm);
+
+      // Si on a une image recadrée, on remplace celle du formulaire
+      if (finalBlob) {
+        fd.set("image", finalBlob, "photo.webp");
+      }
+
       fd.append("action", "create");
       fd.append("csrf_token", window.csrfToken);
       fd.append("database_id", window.databaseId);

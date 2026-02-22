@@ -5,7 +5,7 @@ require_once __DIR__ . '/../src/Models/DatabaseModel.php';
 if (!Auth::isLoggedIn()) {
     header("Location: login");
     exit();
-}
+} 
 
 $database_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$database_id) {
@@ -89,6 +89,14 @@ include __DIR__ . '/../templates/includes/header.phtml';
                     </div>
                     <img id="previewImage" class="preview-image" style="display:none; max-width: 100%;">
                     <input type="file" name="image" id="fileInput" accept="image/*" style="display:none;">
+                </div>
+                
+                <!-- Zone de recadrage (cachée par défaut) -->
+                <div id="cropperWrapper" style="display:none; margin-top: 15px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div style="max-height: 500px; overflow: hidden;">
+                        <img id="imageToCrop" style="max-width: 100%; display: block;">
+                    </div>
+                    <button type="button" id="confirmCrop" class="btn btn-primary" style="margin-top: 10px; width: 100%;">✂️ Valider le cadrage</button>
                 </div>
             </div>
             
